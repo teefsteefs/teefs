@@ -285,6 +285,54 @@ document.querySelectorAll('.faq-question').forEach(btn => {
     });
 });
 
+// === Demo Modal ===
+const demoModal = document.getElementById('demo-modal');
+const demoModalBody = document.getElementById('demo-modal-body');
+const demoModalClose = document.getElementById('demo-modal-close');
+const demoModalBackdrop = document.getElementById('demo-modal-backdrop');
+
+function openDemoModal(url, type) {
+    if (!demoModal || !demoModalBody) return;
+    demoModalBody.innerHTML = '<div class="demo-loading">Loading demo...</div>';
+    demoModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    if (type === 'image') {
+        const img = new Image();
+        img.onload = () => { demoModalBody.innerHTML = ''; demoModalBody.appendChild(img); };
+        img.onerror = () => { demoModalBody.innerHTML = '<div class="demo-loading">Failed to load image</div>'; };
+        img.src = url;
+        img.alt = 'Demo preview';
+    } else {
+        const iframe = document.createElement('iframe');
+        iframe.src = url;
+        iframe.allow = 'autoplay; encrypted-media';
+        iframe.allowFullscreen = true;
+        iframe.onload = () => { demoModalBody.querySelector('.demo-loading')?.remove(); };
+        demoModalBody.innerHTML = '';
+        demoModalBody.appendChild(iframe);
+    }
+}
+
+function closeDemoModal() {
+    if (!demoModal) return;
+    demoModal.classList.remove('active');
+    document.body.style.overflow = '';
+    setTimeout(() => { if (demoModalBody) demoModalBody.innerHTML = ''; }, 400);
+}
+
+document.querySelectorAll('[data-demo]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openDemoModal(btn.dataset.demo, btn.dataset.type || 'video');
+    });
+});
+
+if (demoModalClose) demoModalClose.addEventListener('click', closeDemoModal);
+if (demoModalBackdrop) demoModalBackdrop.addEventListener('click', closeDemoModal);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDemoModal(); });
+
 // === Form Submissions ===
 document.querySelectorAll('.kz-form').forEach(form => {
     form.addEventListener('submit', (e) => {
