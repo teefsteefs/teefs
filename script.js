@@ -573,25 +573,40 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
     }
 
     function renderSlots(data) {
-        let slots = Array.isArray(data) ? data : (data.slots || data.available || data.data || []);
-        if (!slots.length) {
+        // Handle format: { "2026-06-09": { "available": ["09:00", ...], "busy": [...] }, ... }
+        const grouped = {};
+        let hasSlots = false;
+
+        if (Array.isArray(data)) {
+            data.forEach(s => {
+                const date = s.date || (s.start && s.start.split('T')[0]) || 'Available';
+                const time = s.time || (s.start && s.start.split('T')[1]?.substring(0, 5)) || s.slot || '';
+                if (!grouped[date]) grouped[date] = [];
+                grouped[date].push(time);
+                hasSlots = true;
+            });
+        } else if (data && typeof data === 'object') {
+            for (const [key, val] of Object.entries(data)) {
+                if (val && Array.isArray(val.available) && val.available.length) {
+                    grouped[key] = val.available;
+                    hasSlots = true;
+                } else if (Array.isArray(val) && val.length) {
+                    grouped[key] = val;
+                    hasSlots = true;
+                }
+            }
+        }
+
+        if (!hasSlots) {
             bookScroll.innerHTML = '<div class="kz-slots-empty">No available slots at the moment. Please check back later.</div>';
             return;
         }
 
-        const grouped = {};
-        slots.forEach(s => {
-            const date = s.date || (s.start && s.start.split('T')[0]) || 'Available';
-            const time = s.time || (s.start && s.start.split('T')[1]?.substring(0, 5)) || s.slot || '';
-            if (!grouped[date]) grouped[date] = [];
-            grouped[date].push({ date, time, raw: s });
-        });
-
         let html = '<div class="kz-slots-label">Select a time slot</div>';
         for (const [date, times] of Object.entries(grouped)) {
             html += `<div class="kz-slots-date-group"><div class="kz-slots-date-title">${formatDate(date)}</div><div class="kz-slots-grid">`;
-            times.forEach(t => {
-                html += `<button class="kz-slot-btn" data-date="${t.date}" data-time="${t.time}">${t.time}</button>`;
+            times.forEach(time => {
+                html += `<button class="kz-slot-btn" data-date="${date}" data-time="${time}">${time}</button>`;
             });
             html += '</div></div>';
         }
