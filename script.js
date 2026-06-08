@@ -361,6 +361,33 @@ document.querySelectorAll(
     observer.observe(el);
 });
 
+// === Scroll-triggered section headers ===
+document.querySelectorAll('.split-section, .section-showcase-img, .audit-cta, .scaling-highlight').forEach((el) => {
+    el.classList.add('fade-in');
+    observer.observe(el);
+});
+
+// === Smooth parallax for split images on scroll ===
+const splitImages = document.querySelectorAll('.split-image img');
+if (splitImages.length) {
+    let splitRAF = null;
+    window.addEventListener('scroll', () => {
+        if (!splitRAF) {
+            splitRAF = requestAnimationFrame(() => {
+                splitImages.forEach(img => {
+                    const rect = img.getBoundingClientRect();
+                    if (rect.top < window.innerHeight && rect.bottom > 0) {
+                        const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+                        const translateY = (progress - 0.5) * -20;
+                        img.style.transform = `translateY(${translateY}px) scale(1.02)`;
+                    }
+                });
+                splitRAF = null;
+            });
+        }
+    });
+}
+
 // === 3D tilt for process timeline cards ===
 document.querySelectorAll('.process-timeline-card').forEach(card => {
     card.addEventListener('mousemove', (e) => {
