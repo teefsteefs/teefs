@@ -363,9 +363,10 @@ document.querySelectorAll('.kz-form').forEach(form => {
         const successId = formId.replace('-form', '-success');
         const successEl = document.getElementById(successId);
         if (successEl) {
+            const scrollTarget = form.parentElement;
             form.style.display = 'none';
             successEl.style.display = 'block';
-            window.scrollTo({ top: successEl.offsetTop - 120, behavior: 'smooth' });
+            scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
