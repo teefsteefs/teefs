@@ -422,3 +422,257 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
     });
 });
+
+// === Chat & Booking Widget ===
+(function () {
+    const CHAT_URL = 'https://n8n.kaiizen.ai/webhook/kaiizenknowledge';
+    const SLOTS_URL = 'https://n8n.kaiizen.ai/webhook/calendar_slots';
+    const BOOK_URL = 'https://n8n.kaiizen.ai/webhook/calendar_set_appointment';
+
+    const fab = document.createElement('button');
+    fab.className = 'kz-widget-fab';
+    fab.setAttribute('aria-label', 'Open chat');
+    fab.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/><path d="M7 9h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg>';
+
+    const panel = document.createElement('div');
+    panel.className = 'kz-widget-panel';
+    panel.innerHTML = `
+        <div class="kz-widget-tabs">
+            <button class="kz-widget-tab active" data-tab="chat">Chat with AI</button>
+            <button class="kz-widget-tab" data-tab="book">Book a Call</button>
+        </div>
+        <div class="kz-chat-view active" id="kz-chat-view">
+            <div class="kz-chat-messages" id="kz-chat-messages">
+                <div class="kz-chat-msg bot">Hi! I'm Kaiizen AI assistant. How can I help you today?</div>
+            </div>
+            <div class="kz-chat-input-row">
+                <input type="text" class="kz-chat-input" id="kz-chat-input" placeholder="Type a message..." autocomplete="off">
+                <button class="kz-chat-send" id="kz-chat-send" aria-label="Send">
+                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="kz-book-view" id="kz-book-view">
+            <div class="kz-book-scroll" id="kz-book-scroll">
+                <div class="kz-book-loading">Loading available slots<span class="kz-typing-dots"><span></span><span></span><span></span></span></div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(panel);
+    document.body.appendChild(fab);
+
+    const chatView = panel.querySelector('#kz-chat-view');
+    const bookView = panel.querySelector('#kz-book-view');
+    const msgContainer = panel.querySelector('#kz-chat-messages');
+    const chatInput = panel.querySelector('#kz-chat-input');
+    const chatSend = panel.querySelector('#kz-chat-send');
+    const bookScroll = panel.querySelector('#kz-book-scroll');
+    const tabs = panel.querySelectorAll('.kz-widget-tab');
+
+    let isOpen = false;
+    let chatBusy = false;
+    let selectedSlot = null;
+    let slotsLoaded = false;
+
+    fab.addEventListener('click', () => {
+        isOpen = !isOpen;
+        panel.classList.toggle('open', isOpen);
+        fab.classList.toggle('open', isOpen);
+        if (isOpen) {
+            fab.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+            chatInput.focus();
+        } else {
+            fab.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/><path d="M7 9h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg>';
+        }
+    });
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.dataset.tab;
+            chatView.classList.toggle('active', target === 'chat');
+            bookView.classList.toggle('active', target === 'book');
+            if (target === 'book' && !slotsLoaded) loadSlots();
+            if (target === 'chat') chatInput.focus();
+        });
+    });
+
+    function addMsg(text, cls) {
+        const div = document.createElement('div');
+        div.className = 'kz-chat-msg ' + cls;
+        div.textContent = text;
+        msgContainer.appendChild(div);
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+        return div;
+    }
+
+    function addTyping() {
+        const div = document.createElement('div');
+        div.className = 'kz-chat-msg typing';
+        div.innerHTML = '<span class="kz-typing-dots"><span></span><span></span><span></span></span>';
+        msgContainer.appendChild(div);
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+        return div;
+    }
+
+    async function sendChat() {
+        const text = chatInput.value.trim();
+        if (!text || chatBusy) return;
+
+        addMsg(text, 'user');
+        chatInput.value = '';
+        chatBusy = true;
+        chatSend.disabled = true;
+
+        const typing = addTyping();
+
+        try {
+            const res = await fetch(CHAT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+            typing.remove();
+            const reply = data.output || data.response || data.message || data.text || data.answer || (typeof data === 'string' ? data : JSON.stringify(data));
+            addMsg(reply, 'bot');
+        } catch (err) {
+            typing.remove();
+            addMsg('Sorry, I couldn\'t connect. Please try again.', 'bot');
+        }
+
+        chatBusy = false;
+        chatSend.disabled = false;
+        chatInput.focus();
+    }
+
+    chatSend.addEventListener('click', sendChat);
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+    });
+
+    async function loadSlots() {
+        slotsLoaded = true;
+        bookScroll.innerHTML = '<div class="kz-book-loading">Loading available slots<span class="kz-typing-dots"><span></span><span></span><span></span></span></div>';
+
+        try {
+            const res = await fetch(SLOTS_URL, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            renderSlots(data);
+        } catch (err) {
+            bookScroll.innerHTML = '<div class="kz-slots-empty">Could not load slots. Please try again later.</div>';
+            slotsLoaded = false;
+        }
+    }
+
+    function renderSlots(data) {
+        let slots = Array.isArray(data) ? data : (data.slots || data.available || data.data || []);
+        if (!slots.length) {
+            bookScroll.innerHTML = '<div class="kz-slots-empty">No available slots at the moment. Please check back later.</div>';
+            return;
+        }
+
+        const grouped = {};
+        slots.forEach(s => {
+            const date = s.date || (s.start && s.start.split('T')[0]) || 'Available';
+            const time = s.time || (s.start && s.start.split('T')[1]?.substring(0, 5)) || s.slot || '';
+            if (!grouped[date]) grouped[date] = [];
+            grouped[date].push({ date, time, raw: s });
+        });
+
+        let html = '<div class="kz-slots-label">Select a time slot</div>';
+        for (const [date, times] of Object.entries(grouped)) {
+            html += `<div class="kz-slots-date-group"><div class="kz-slots-date-title">${formatDate(date)}</div><div class="kz-slots-grid">`;
+            times.forEach(t => {
+                html += `<button class="kz-slot-btn" data-date="${t.date}" data-time="${t.time}">${t.time}</button>`;
+            });
+            html += '</div></div>';
+        }
+
+        html += `
+            <div class="kz-book-form" id="kz-book-form" style="display:none;">
+                <div class="kz-book-selected" id="kz-book-selected-label"></div>
+                <input type="text" id="kz-book-name" placeholder="Full Name" required>
+                <input type="email" id="kz-book-email" placeholder="Email" required>
+                <input type="tel" id="kz-book-phone" placeholder="Phone" required>
+                <textarea id="kz-book-notes" placeholder="Notes (optional)"></textarea>
+                <button class="kz-book-submit" id="kz-book-submit">Confirm Booking</button>
+                <div class="kz-book-error" id="kz-book-error" style="display:none;"></div>
+            </div>
+        `;
+
+        bookScroll.innerHTML = html;
+
+        bookScroll.querySelectorAll('.kz-slot-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                bookScroll.querySelectorAll('.kz-slot-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedSlot = { date: btn.dataset.date, time: btn.dataset.time };
+                const form = bookScroll.querySelector('#kz-book-form');
+                const label = bookScroll.querySelector('#kz-book-selected-label');
+                label.textContent = formatDate(selectedSlot.date) + ' at ' + selectedSlot.time;
+                form.style.display = 'flex';
+                form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        });
+
+        const submitBtn = bookScroll.querySelector('#kz-book-submit');
+        if (submitBtn) submitBtn.addEventListener('click', submitBooking);
+    }
+
+    function formatDate(dateStr) {
+        try {
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        } catch { return dateStr; }
+    }
+
+    async function submitBooking() {
+        if (!selectedSlot) return;
+
+        const name = bookScroll.querySelector('#kz-book-name').value.trim();
+        const email = bookScroll.querySelector('#kz-book-email').value.trim();
+        const phone = bookScroll.querySelector('#kz-book-phone').value.trim();
+        const notes = bookScroll.querySelector('#kz-book-notes').value.trim();
+        const errEl = bookScroll.querySelector('#kz-book-error');
+        const submitBtn = bookScroll.querySelector('#kz-book-submit');
+
+        if (!name || !email || !phone) {
+            errEl.textContent = 'Please fill in name, email, and phone.';
+            errEl.style.display = 'block';
+            return;
+        }
+
+        errEl.style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Booking...';
+
+        try {
+            await fetch(BOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, phone, notes, date: selectedSlot.date, time: selectedSlot.time })
+            });
+
+            bookScroll.innerHTML = `
+                <div class="kz-book-success">
+                    <div class="kz-success-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <h4>Booking Confirmed!</h4>
+                    <p>${formatDate(selectedSlot.date)} at ${selectedSlot.time}<br>We'll send a confirmation to ${email}</p>
+                </div>
+            `;
+        } catch (err) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Confirm Booking';
+            errEl.textContent = 'Could not complete booking. Please try again.';
+            errEl.style.display = 'block';
+        }
+    }
+})();

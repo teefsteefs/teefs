@@ -2746,3 +2746,453 @@ body::before {
     .hero-actions { flex-direction: column; }
     .btn-lg { width: 100%; }
 }
+
+/* ============================================
+   Chat & Booking Widget
+   ============================================ */
+
+.kz-widget-fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 9999;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--gradient-gold);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 24px rgba(200, 168, 78, 0.3), 0 0 60px rgba(200, 168, 78, 0.1);
+    transition: transform 0.3s var(--ease-out-expo), box-shadow 0.3s ease;
+}
+
+.kz-widget-fab:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 32px rgba(200, 168, 78, 0.4), 0 0 80px rgba(200, 168, 78, 0.15);
+}
+
+.kz-widget-fab svg {
+    width: 28px;
+    height: 28px;
+    fill: #0a0a0a;
+    transition: transform 0.3s ease;
+}
+
+.kz-widget-fab.open svg { transform: rotate(90deg); }
+
+.kz-widget-panel {
+    position: fixed;
+    bottom: 100px;
+    right: 28px;
+    z-index: 9998;
+    width: 380px;
+    max-height: 560px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    pointer-events: none;
+    transition: opacity 0.35s var(--ease-out-expo), transform 0.35s var(--ease-out-expo);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(200, 168, 78, 0.05);
+}
+
+.kz-widget-panel.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.kz-widget-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15, 15, 15, 0.95);
+    backdrop-filter: blur(12px);
+}
+
+.kz-widget-tab {
+    flex: 1;
+    padding: 14px 0;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.3s, background 0.3s;
+    position: relative;
+    letter-spacing: 0.02em;
+}
+
+.kz-widget-tab.active {
+    color: var(--gold);
+    background: rgba(200, 168, 78, 0.04);
+}
+
+.kz-widget-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    width: 60%;
+    height: 2px;
+    background: var(--gradient-gold);
+    border-radius: 2px;
+}
+
+.kz-widget-tab:hover:not(.active) {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Chat Tab */
+.kz-chat-view {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.kz-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 280px;
+    max-height: 360px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.kz-chat-messages::-webkit-scrollbar { width: 4px; }
+.kz-chat-messages::-webkit-scrollbar-track { background: transparent; }
+.kz-chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.kz-chat-msg {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    animation: kzMsgIn 0.3s var(--ease-out-expo);
+}
+
+@keyframes kzMsgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.kz-chat-msg.bot {
+    align-self: flex-start;
+    background: rgba(200, 168, 78, 0.08);
+    border: 1px solid rgba(200, 168, 78, 0.12);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+}
+
+.kz-chat-msg.user {
+    align-self: flex-end;
+    background: var(--gradient-gold);
+    color: #0a0a0a;
+    font-weight: 500;
+    border-bottom-right-radius: 4px;
+}
+
+.kz-chat-msg.typing {
+    align-self: flex-start;
+    background: rgba(200, 168, 78, 0.06);
+    border: 1px solid rgba(200, 168, 78, 0.08);
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.kz-typing-dots span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    margin: 0 2px;
+    animation: kzDot 1.2s infinite;
+}
+
+.kz-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.kz-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes kzDot {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+}
+
+.kz-chat-input-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    background: rgba(10, 10, 10, 0.6);
+}
+
+.kz-chat-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.kz-chat-input::placeholder { color: var(--text-muted); }
+.kz-chat-input:focus { border-color: var(--gold); }
+
+.kz-chat-send {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--gradient-gold);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.kz-chat-send:hover { transform: scale(1.05); }
+.kz-chat-send:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+.kz-chat-send svg {
+    width: 18px;
+    height: 18px;
+    fill: #0a0a0a;
+}
+
+/* Booking Tab */
+.kz-book-view {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.kz-book-view.active { display: flex; }
+.kz-chat-view.active { display: flex; }
+.kz-chat-view { display: none; }
+
+.kz-book-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    min-height: 280px;
+    max-height: 420px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.kz-book-scroll::-webkit-scrollbar { width: 4px; }
+.kz-book-scroll::-webkit-scrollbar-track { background: transparent; }
+.kz-book-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.kz-book-loading {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
+.kz-book-loading .kz-typing-dots { display: inline-flex; margin-left: 4px; }
+
+.kz-slots-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+}
+
+.kz-slots-date-group {
+    margin-bottom: 16px;
+}
+
+.kz-slots-date-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+}
+
+.kz-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.kz-slot-btn {
+    padding: 8px 4px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.kz-slot-btn:hover {
+    border-color: var(--gold);
+    background: rgba(200, 168, 78, 0.06);
+    color: var(--gold);
+}
+
+.kz-slot-btn.selected {
+    border-color: var(--gold);
+    background: rgba(200, 168, 78, 0.12);
+    color: var(--gold);
+    box-shadow: 0 0 12px rgba(200, 168, 78, 0.1);
+}
+
+.kz-book-form {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.kz-book-form input,
+.kz-book-form textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.86rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.kz-book-form input::placeholder,
+.kz-book-form textarea::placeholder { color: var(--text-muted); }
+
+.kz-book-form input:focus,
+.kz-book-form textarea:focus { border-color: var(--gold); }
+
+.kz-book-form textarea {
+    resize: none;
+    height: 60px;
+}
+
+.kz-book-selected {
+    font-size: 0.82rem;
+    color: var(--gold);
+    padding: 8px 12px;
+    background: rgba(200, 168, 78, 0.06);
+    border: 1px solid rgba(200, 168, 78, 0.12);
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.kz-book-submit {
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--gradient-gold);
+    color: #0a0a0a;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.kz-book-submit:hover { transform: scale(1.02); }
+.kz-book-submit:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+.kz-book-success {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text);
+}
+
+.kz-book-success .kz-success-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(200, 168, 78, 0.1);
+    border: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.kz-book-success .kz-success-icon svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--gold);
+}
+
+.kz-book-success h4 {
+    color: var(--gold);
+    font-size: 1.05rem;
+    margin-bottom: 8px;
+}
+
+.kz-book-success p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.kz-book-error {
+    font-size: 0.82rem;
+    color: #e85d5d;
+    text-align: center;
+    padding: 8px;
+}
+
+.kz-slots-empty {
+    text-align: center;
+    padding: 30px 0;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
+/* Responsive widget */
+@media (max-width: 480px) {
+    .kz-widget-panel {
+        right: 12px;
+        left: 12px;
+        width: auto;
+        bottom: 96px;
+        max-height: 70vh;
+    }
+    .kz-widget-fab {
+        bottom: 20px;
+        right: 20px;
+        width: 54px;
+        height: 54px;
+    }
+}
