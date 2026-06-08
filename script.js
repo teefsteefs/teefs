@@ -1,9 +1,10 @@
 // === Preloader ===
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        document.getElementById('preloader').classList.add('hidden');
-    }, 1600);
-});
+const preloader = document.getElementById('preloader');
+if (preloader) {
+    window.addEventListener('load', () => {
+        setTimeout(() => preloader.classList.add('hidden'), 1600);
+    });
+}
 
 // === Custom Cursor Glow ===
 const cursorGlow = document.getElementById('cursor-glow');
@@ -59,47 +60,10 @@ function smoothScrollTo(targetY, duration) {
 
 // === Navigation ===
 const nav = document.getElementById('nav');
-const navLinksEl = document.querySelectorAll('.nav-link');
-const navIndicator = document.getElementById('nav-indicator');
-const sections = document.querySelectorAll('section[id]');
 
-// Scroll effect on nav
-let lastScrollY = 0;
 window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 50);
-    lastScrollY = window.scrollY;
+    if (nav) nav.classList.toggle('scrolled', window.scrollY > 50);
 });
-
-// Active section tracking with indicator
-function updateActiveNav() {
-    let current = '';
-    sections.forEach(section => {
-        const top = section.offsetTop - 120;
-        if (window.scrollY >= top) {
-            current = section.getAttribute('id');
-        }
-    });
-
-    navLinksEl.forEach(link => {
-        link.classList.remove('active');
-        if (link.dataset.section === current) {
-            link.classList.add('active');
-            // Move indicator
-            const rect = link.getBoundingClientRect();
-            const navRect = link.parentElement.getBoundingClientRect();
-            navIndicator.style.left = (rect.left - navRect.left) + 'px';
-            navIndicator.style.width = rect.width + 'px';
-            navIndicator.classList.add('active');
-        }
-    });
-
-    if (!current) {
-        navIndicator.classList.remove('active');
-    }
-}
-
-window.addEventListener('scroll', updateActiveNav);
-updateActiveNav();
 
 // Smooth anchor click
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -298,5 +262,34 @@ document.querySelectorAll('.btn-gold, .nav-cta').forEach(btn => {
 
     btn.addEventListener('mouseleave', () => {
         btn.style.transform = '';
+    });
+});
+
+// === FAQ Accordion ===
+document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const item = btn.parentElement;
+        const isOpen = item.classList.contains('open');
+
+        // Close all
+        document.querySelectorAll('.faq-item.open').forEach(openItem => {
+            openItem.classList.remove('open');
+            openItem.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+        });
+
+        // Open clicked (if it wasn't already open)
+        if (!isOpen) {
+            item.classList.add('open');
+            btn.setAttribute('aria-expanded', 'true');
+        }
+    });
+});
+
+// === 3D tilt for process timeline cards ===
+document.querySelectorAll('.process-timeline-card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
+        card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
     });
 });
