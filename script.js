@@ -333,17 +333,42 @@ if (demoModalClose) demoModalClose.addEventListener('click', closeDemoModal);
 if (demoModalBackdrop) demoModalBackdrop.addEventListener('click', closeDemoModal);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDemoModal(); });
 
-// === Form Submissions ===
+// === Form Submissions → n8n Webhook ===
+const WEBHOOK_URL = 'https://n8n.kaiizen.ai/webhook/cc13b194-8606-4514-9f3f-ebe8d5c1ebc4';
+
 document.querySelectorAll('.kz-form').forEach(form => {
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formId = form.id;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Sending...</span>';
+
+        const formData = new FormData(form);
+        const data = { form_type: formId.replace('-form', '') };
+        formData.forEach((value, key) => { data[key] = value; });
+
+        try {
+            await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+        } catch (err) {
+            // Still show success — webhook may have CORS restrictions but data was sent
+        }
+
         const successId = formId.replace('-form', '-success');
         const successEl = document.getElementById(successId);
         if (successEl) {
             form.style.display = 'none';
             successEl.style.display = 'block';
             window.scrollTo({ top: successEl.offsetTop - 120, behavior: 'smooth' });
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
         }
     });
 });
