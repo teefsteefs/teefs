@@ -112,7 +112,7 @@ if (particlesContainer) {
 }
 
 // === 3D Tilt Effect ===
-const tiltCards = document.querySelectorAll('.service-card, .pricing-card, .feature-card, .testimonial-card, .process-step');
+const tiltCards = document.querySelectorAll('.service-card, .pricing-card, .feature-card, .testimonial-card, .process-step, .demo-feature-card, .firm-benefit-card, .capability-card');
 
 tiltCards.forEach(card => {
     let tiltRAF = null;
@@ -283,6 +283,34 @@ document.querySelectorAll('.faq-question').forEach(btn => {
             btn.setAttribute('aria-expanded', 'true');
         }
     });
+});
+
+// === Form Submissions ===
+document.querySelectorAll('.kz-form').forEach(form => {
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formId = form.id;
+        const successId = formId.replace('-form', '-success');
+        const successEl = document.getElementById(successId);
+        if (successEl) {
+            form.style.display = 'none';
+            successEl.style.display = 'block';
+            window.scrollTo({ top: successEl.offsetTop - 120, behavior: 'smooth' });
+        }
+    });
+});
+
+// === Scroll reveal for new card types ===
+document.querySelectorAll(
+    '.demo-feature-card, .firm-benefit-card, .form-info-card, .form-card, .capability-card, .benefit-card, .solution-feature'
+).forEach((el, i) => {
+    el.classList.add('fade-in');
+    const parent = el.parentElement;
+    const className = el.classList[0];
+    const siblings = Array.from(parent.children).filter(c => c.classList.contains(className));
+    const index = siblings.indexOf(el);
+    el.style.transitionDelay = (index * 0.1) + 's';
+    observer.observe(el);
 });
 
 // === 3D tilt for process timeline cards ===
