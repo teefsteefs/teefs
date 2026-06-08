@@ -85,6 +85,7 @@ a { text-decoration: none; color: inherit; }
     color: #0a0a0a;
     margin: 0 auto 24px;
     animation: preloaderPulse 1.2s ease-in-out infinite;
+    object-fit: cover;
 }
 
 @keyframes preloaderPulse {
@@ -1541,6 +1542,261 @@ a { text-decoration: none; color: inherit; }
     font-weight: 500;
 }
 
+/* === Logo Image === */
+.logo-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+/* === Solutions Capabilities Grid === */
+.solutions-capabilities-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.capability-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px 32px;
+    transition: all 0.5s var(--ease-out-expo);
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+    overflow: hidden;
+}
+
+.capability-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    background: radial-gradient(
+        600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(200, 168, 78, 0.08),
+        transparent 40%
+    );
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.capability-card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: var(--radius-lg);
+    background: radial-gradient(
+        400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(200, 168, 78, 0.3),
+        transparent 40%
+    );
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.capability-card:hover::before,
+.capability-card:hover::after { opacity: 1; }
+
+.capability-card:hover {
+    border-color: rgba(200, 168, 78, 0.2);
+    background: var(--bg-card-hover);
+    box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.5),
+        0 0 80px rgba(200, 168, 78, 0.06);
+}
+
+.capability-card .capability-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(200, 168, 78, 0.08);
+    border: 1px solid rgba(200, 168, 78, 0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    margin-bottom: 20px;
+    transition: all 0.5s var(--ease-out-expo);
+    box-shadow: 0 4px 16px rgba(200, 168, 78, 0.08);
+}
+
+.capability-card:hover .capability-icon {
+    background: rgba(200, 168, 78, 0.18);
+    border-color: rgba(200, 168, 78, 0.4);
+    box-shadow: 0 8px 28px rgba(200, 168, 78, 0.2);
+    transform: scale(1.1);
+}
+
+.capability-card h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+    transition: color 0.4s;
+}
+
+.capability-card:hover h3 { color: var(--gold-light); }
+
+.capability-card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.65;
+}
+
+/* === Solution Features === */
+.solution-features {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.solution-feature {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    transition: all 0.4s var(--ease-out-expo);
+}
+
+.solution-feature:hover {
+    background: var(--bg-card-hover);
+    border-left-color: var(--gold-light);
+    box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.3),
+        0 0 24px rgba(200, 168, 78, 0.04);
+    transform: translateX(4px);
+}
+
+.solution-feature h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    transition: color 0.4s;
+}
+
+.solution-feature:hover h3 { color: var(--gold-light); }
+
+.solution-feature p {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.65;
+}
+
+/* === Benefits Grid === */
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    perspective: 1000px;
+}
+
+.benefit-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px 32px;
+    transition: all 0.5s var(--ease-out-expo);
+    position: relative;
+    overflow: hidden;
+}
+
+.benefit-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(200, 168, 78, 0.06),
+        transparent 40%
+    );
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+}
+
+.benefit-card:hover::before { opacity: 1; }
+
+.benefit-card:hover {
+    border-color: rgba(200, 168, 78, 0.2);
+    box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.3),
+        0 0 40px rgba(200, 168, 78, 0.05);
+}
+
+.benefit-card .benefit-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--gold);
+    opacity: 0.2;
+    line-height: 1;
+    margin-bottom: 16px;
+    transition: opacity 0.5s var(--ease-out-expo);
+}
+
+.benefit-card:hover .benefit-number {
+    opacity: 0.5;
+}
+
+.benefit-card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    transition: color 0.4s;
+}
+
+.benefit-card:hover h3 { color: var(--gold-light); }
+
+.benefit-card p {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.65;
+}
+
+/* === Contact Details === */
+.contact-details {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-bottom: 36px;
+}
+
+.contact-item {
+    text-align: center;
+}
+
+.contact-item-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+}
+
+.contact-item-value {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+}
+
+.contact-item-value a {
+    color: var(--text);
+    transition: color 0.3s;
+}
+
+.contact-item-value a:hover {
+    color: var(--gold-light);
+}
+
 /* === Responsive === */
 @media (max-width: 1024px) {
     .services-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1555,6 +1811,8 @@ a { text-decoration: none; color: inherit; }
     .pricing-card-featured:hover { transform: none; }
     .testimonials-grid { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr 1fr; }
+    .solutions-capabilities-grid { grid-template-columns: repeat(2, 1fr); }
+    .benefits-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -1587,6 +1845,9 @@ a { text-decoration: none; color: inherit; }
     .services-grid { grid-template-columns: 1fr; }
     .process-grid { grid-template-columns: 1fr; }
     .features-grid { grid-template-columns: 1fr; }
+    .solutions-capabilities-grid { grid-template-columns: 1fr; }
+    .benefits-grid { grid-template-columns: 1fr; }
+    .contact-details { flex-direction: column; align-items: center; }
     .footer-grid { grid-template-columns: 1fr; gap: 32px; }
     .page-hero { padding: 120px 0 60px; }
     .process-timeline-step { flex-direction: column; gap: 12px; }
