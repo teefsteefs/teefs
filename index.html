@@ -6,7 +6,7 @@
     <title>Kaiizen AI — Intelligent AI Agents for Your Business</title>
     <meta name="description" content="We build intelligent AI agents that transform your operations, save time, and increase profits. Custom AI workflows designed for your business.">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,13 +15,13 @@
         <div class="nav-container">
             <a href="#" class="nav-logo">
                 <div class="logo-icon">K</div>
-                <span>Kaiizen AI</span>
+                <span>KAIIZEN</span>
             </a>
             <div class="nav-links" id="nav-links">
                 <a href="#services">Services</a>
                 <a href="#process">Process</a>
-                <a href="#solutions">Solutions</a>
                 <a href="#pricing">Pricing</a>
+                <a href="#testimonials">Clients</a>
                 <a href="#contact" class="nav-cta">Get Started</a>
             </div>
             <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
@@ -37,9 +37,7 @@
         <div class="hero-bg">
             <div class="hero-gradient"></div>
             <div class="hero-grid"></div>
-            <div class="hero-orb hero-orb-1"></div>
-            <div class="hero-orb hero-orb-2"></div>
-            <div class="hero-orb hero-orb-3"></div>
+            <div class="hero-particles" id="particles"></div>
         </div>
         <div class="container hero-content">
             <div class="hero-badge">
@@ -47,21 +45,20 @@
                 AI-Powered Business Automation
             </div>
             <h1 class="hero-title">
-                Build Intelligent
-                <span class="hero-gradient-text">AI Agents</span>
-                That Work For You
+                We Build <span class="gold-text">AI Agents</span><br>
+                That Transform Your Business
             </h1>
             <p class="hero-subtitle">
-                We design and deploy custom AI agents that transform your operations,
-                automate repetitive tasks, and drive measurable growth — so you can focus on what truly matters.
+                Intelligent AI agents designed to automate your operations, save time,
+                and increase profits — so you can focus on what truly matters.
             </p>
             <div class="hero-actions">
-                <a href="#contact" class="btn btn-primary btn-lg">
+                <a href="#contact" class="btn btn-gold btn-lg">
                     Start Your AI Journey
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                 </a>
-                <a href="#process" class="btn btn-ghost btn-lg">
-                    See How It Works
+                <a href="#services" class="btn btn-ghost btn-lg">
+                    Explore Services
                 </a>
             </div>
             <div class="hero-stats">
@@ -81,19 +78,8 @@
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- Trusted By / Logo Bar -->
-    <section class="logos-section">
-        <div class="container">
-            <p class="logos-label">Trusted by forward-thinking companies</p>
-            <div class="logos-grid">
-                <div class="logo-item">TechFlow</div>
-                <div class="logo-item">Meridian</div>
-                <div class="logo-item">Vertex AI</div>
-                <div class="logo-item">NovaPulse</div>
-                <div class="logo-item">SkyBridge</div>
-            </div>
+        <div class="hero-scroll-indicator">
+            <div class="scroll-line"></div>
         </div>
     </section>
 
@@ -101,98 +87,143 @@
     <section class="section" id="services">
         <div class="container">
             <div class="section-header">
-                <span class="section-tag">What We Do</span>
-                <h2 class="section-title">AI Solutions That <span class="gradient-text">Drive Results</span></h2>
-                <p class="section-subtitle">From strategy to deployment, we build AI agents that integrate seamlessly into your existing workflows and deliver immediate value.</p>
+                <span class="section-tag">Our Services</span>
+                <h2 class="section-title">Powerful AI Solutions <span class="gold-text">Built For You</span></h2>
+                <p class="section-subtitle">From RAG models to voice agents, we design and deploy AI systems that integrate seamlessly into your business.</p>
             </div>
             <div class="services-grid">
-                <div class="service-card service-card-featured">
-                    <div class="service-icon">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93"/><path d="M8.24 4.47A4 4 0 0 1 12 2"/><circle cx="12" cy="12" r="3"/><path d="M12 16v6"/><path d="m15.6 18.4-7.2-7.2"/><path d="m8.4 18.4 7.2-7.2"/></svg>
-                    </div>
-                    <h3>Custom AI Agents</h3>
-                    <p>Purpose-built AI agents designed for your specific business processes. From customer service to data analysis, our agents handle it all.</p>
-                    <ul class="service-features">
-                        <li>Natural language understanding</li>
-                        <li>Multi-tool integration</li>
-                        <li>Self-learning capabilities</li>
-                    </ul>
-                </div>
+                <!-- Service 1 -->
                 <div class="service-card">
-                    <div class="service-icon">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+                    <div class="service-top">
+                        <div class="service-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+                        </div>
+                        <span class="service-number">01</span>
                     </div>
-                    <h3>Workflow Automation</h3>
-                    <p>Streamline complex business processes with intelligent automation that adapts to your needs and scales with your growth.</p>
-                    <ul class="service-features">
-                        <li>End-to-end automation</li>
-                        <li>Smart routing & decisions</li>
-                        <li>Real-time monitoring</li>
-                    </ul>
+                    <h3>RAG Model Service</h3>
+                    <p>AI that retrieves and answers from your company knowledge base, documents and internal data with accurate, contextual responses.</p>
+                    <a href="#contact" class="service-link">
+                        <span>KNOWLEDGE AI</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
                 </div>
+                <!-- Service 2 -->
                 <div class="service-card">
-                    <div class="service-icon">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="7.5 4.21 12 6.81 16.5 4.21"/><polyline points="7.5 19.79 7.5 14.6 3 12"/><polyline points="21 12 16.5 14.6 16.5 19.79"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    <div class="service-top">
+                        <div class="service-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        </div>
+                        <span class="service-number">02</span>
                     </div>
-                    <h3>System Integration</h3>
-                    <p>Seamlessly connect your AI agents with CRMs, ERPs, communication tools, and any platform your business relies on.</p>
-                    <ul class="service-features">
-                        <li>API & webhook support</li>
-                        <li>500+ integrations</li>
-                        <li>Zero downtime setup</li>
-                    </ul>
+                    <h3>OCR & PDF Reading</h3>
+                    <p>Read, extract and process text from PDFs, scanned files, invoices and documents automatically — structured data, every time.</p>
+                    <a href="#contact" class="service-link">
+                        <span>DOCUMENT AI</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
                 </div>
+                <!-- Service 3 -->
                 <div class="service-card">
-                    <div class="service-icon">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    <div class="service-top">
+                        <div class="service-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                        </div>
+                        <span class="service-number">03</span>
                     </div>
-                    <h3>AI Training & Support</h3>
-                    <p>Continuous training, monitoring, and optimization to ensure your AI agents perform at peak efficiency around the clock.</p>
-                    <ul class="service-features">
-                        <li>Performance analytics</li>
-                        <li>Continuous improvement</li>
-                        <li>Dedicated support team</li>
-                    </ul>
+                    <div class="service-demo-badge">WATCH DEMO</div>
+                    <h3>Voice AI Agent</h3>
+                    <p>Agents that call APIs, transfer calls, use RAG knowledge bases and answer customers naturally in real-time on the phone.</p>
+                    <a href="#contact" class="service-link">
+                        <span>REALTIME VOICE</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
+                </div>
+                <!-- Service 4 -->
+                <div class="service-card">
+                    <div class="service-top">
+                        <div class="service-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                        </div>
+                        <span class="service-number">04</span>
+                    </div>
+                    <div class="service-demo-badge">WATCH DEMO</div>
+                    <h3>Facebook & Instagram Agent</h3>
+                    <p>Chatbot automation for Facebook and Instagram that replies to customers using your custom scripts and workflows.</p>
+                    <a href="#contact" class="service-link">
+                        <span>SOCIAL DMS</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
+                </div>
+                <!-- Service 5 -->
+                <div class="service-card">
+                    <div class="service-top">
+                        <div class="service-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        </div>
+                        <span class="service-number">05</span>
+                    </div>
+                    <h3>OpenClaw AI Platform</h3>
+                    <p>Advanced agent platform where agents continuously learn new skills and work with unlimited LLM integrations.</p>
+                    <a href="#contact" class="service-link">
+                        <span>AGENT OS</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
+                </div>
+                <!-- Service 6 -->
+                <div class="service-card">
+                    <div class="service-top">
+                        <div class="service-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+                        </div>
+                        <span class="service-number">06</span>
+                    </div>
+                    <h3>n8n Automation</h3>
+                    <p>Workflow automation using n8n to connect apps, APIs, databases and AI systems — your business logic, fully automated.</p>
+                    <a href="#contact" class="service-link">
+                        <span>WORKFLOWS</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Process Section -->
-    <section class="section section-dark" id="process">
+    <section class="section section-alt" id="process">
         <div class="container">
             <div class="section-header">
                 <span class="section-tag">How It Works</span>
-                <h2 class="section-title">From Idea to <span class="gradient-text">Intelligent Agent</span></h2>
+                <h2 class="section-title">From Idea to <span class="gold-text">Intelligent Agent</span></h2>
                 <p class="section-subtitle">Our proven 4-step process ensures your AI agents are perfectly tailored to your business needs.</p>
             </div>
             <div class="process-grid">
                 <div class="process-step">
                     <div class="process-number">01</div>
+                    <div class="process-line"></div>
                     <div class="process-content">
                         <h3>Discover & Analyze</h3>
                         <p>We dive deep into your business processes to identify automation opportunities and design the perfect AI strategy.</p>
                     </div>
                 </div>
-                <div class="process-connector"></div>
                 <div class="process-step">
                     <div class="process-number">02</div>
+                    <div class="process-line"></div>
                     <div class="process-content">
                         <h3>Design & Build</h3>
                         <p>Our team creates custom AI agents with advanced capabilities, tailored workflows, and seamless integrations.</p>
                     </div>
                 </div>
-                <div class="process-connector"></div>
                 <div class="process-step">
                     <div class="process-number">03</div>
+                    <div class="process-line"></div>
                     <div class="process-content">
                         <h3>Deploy & Integrate</h3>
                         <p>We deploy your AI agents into production, connecting them with your existing tools and systems with zero disruption.</p>
                     </div>
                 </div>
-                <div class="process-connector"></div>
                 <div class="process-step">
                     <div class="process-number">04</div>
+                    <div class="process-line"></div>
                     <div class="process-content">
                         <h3>Monitor & Optimize</h3>
                         <p>Continuous performance monitoring, training, and optimization to ensure your agents keep getting smarter.</p>
@@ -202,55 +233,52 @@
         </div>
     </section>
 
-    <!-- Solutions Section -->
-    <section class="section" id="solutions">
+    <!-- Why Choose Us -->
+    <section class="section" id="why">
         <div class="container">
             <div class="section-header">
-                <span class="section-tag">Use Cases</span>
-                <h2 class="section-title">AI Agents For <span class="gradient-text">Every Need</span></h2>
-                <p class="section-subtitle">Discover how our AI agents are transforming businesses across industries.</p>
+                <span class="section-tag">Why Kaiizen</span>
+                <h2 class="section-title">Built Different. <span class="gold-text">Built Better.</span></h2>
             </div>
-            <div class="solutions-grid">
-                <div class="solution-card">
-                    <div class="solution-icon">💬</div>
-                    <h3>Customer Support</h3>
-                    <p>AI agents that handle customer inquiries 24/7 with human-like empathy, resolving 80% of tickets instantly.</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </div>
+                    <h3>Lightning Fast Deployment</h3>
+                    <p>Go from concept to production in days, not months. Our battle-tested frameworks accelerate every step.</p>
                 </div>
-                <div class="solution-card">
-                    <div class="solution-icon">📊</div>
-                    <h3>Data Analytics</h3>
-                    <p>Transform raw data into actionable insights. Our agents analyze patterns and generate reports automatically.</p>
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <h3>Enterprise-Grade Security</h3>
+                    <p>Your data stays yours. We build with security-first architecture and full compliance standards.</p>
                 </div>
-                <div class="solution-card">
-                    <div class="solution-icon">📧</div>
-                    <h3>Email & Outreach</h3>
-                    <p>Personalized email campaigns at scale. AI writes, sends, and follows up with prospects intelligently.</p>
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <h3>Dedicated Support Team</h3>
+                    <p>A real team behind every project. We monitor, optimize, and scale your AI systems continuously.</p>
                 </div>
-                <div class="solution-card">
-                    <div class="solution-icon">📋</div>
-                    <h3>Document Processing</h3>
-                    <p>Extract, classify, and process documents with AI. From invoices to contracts, handle it all automatically.</p>
-                </div>
-                <div class="solution-card">
-                    <div class="solution-icon">🔄</div>
-                    <h3>Sales Automation</h3>
-                    <p>AI-powered lead scoring, CRM updates, and pipeline management that help your team close deals faster.</p>
-                </div>
-                <div class="solution-card">
-                    <div class="solution-icon">🛡️</div>
-                    <h3>Quality Assurance</h3>
-                    <p>Automated testing, monitoring, and quality checks that catch issues before they reach your customers.</p>
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </div>
+                    <h3>Measurable ROI</h3>
+                    <p>Every agent we build comes with analytics. Track performance, cost savings, and business impact in real time.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Pricing Section -->
-    <section class="section section-dark" id="pricing">
+    <section class="section section-alt" id="pricing">
         <div class="container">
             <div class="section-header">
                 <span class="section-tag">Pricing</span>
-                <h2 class="section-title">Simple, <span class="gradient-text">Transparent</span> Pricing</h2>
+                <h2 class="section-title">Simple, <span class="gold-text">Transparent</span> Pricing</h2>
                 <p class="section-subtitle">All plans include setup, integration, and dedicated support. No hidden fees.</p>
             </div>
             <div class="pricing-grid">
@@ -264,26 +292,11 @@
                         <span class="price-period">/month</span>
                     </div>
                     <ul class="pricing-features">
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            1 Custom AI Agent
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Up to 3 integrations
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            5,000 actions/month
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Email support
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Monthly performance reports
-                        </li>
+                        <li><span class="check-icon"></span> 1 Custom AI Agent</li>
+                        <li><span class="check-icon"></span> Up to 3 integrations</li>
+                        <li><span class="check-icon"></span> 5,000 actions/month</li>
+                        <li><span class="check-icon"></span> Email support</li>
+                        <li><span class="check-icon"></span> Monthly performance reports</li>
                     </ul>
                     <a href="#contact" class="btn btn-outline btn-block">Get Started</a>
                 </div>
@@ -298,32 +311,14 @@
                         <span class="price-period">/month</span>
                     </div>
                     <ul class="pricing-features">
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            3 Custom AI Agents
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Unlimited integrations
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            25,000 actions/month
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Priority support
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Weekly optimization
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Advanced analytics dashboard
-                        </li>
+                        <li><span class="check-icon"></span> 3 Custom AI Agents</li>
+                        <li><span class="check-icon"></span> Unlimited integrations</li>
+                        <li><span class="check-icon"></span> 25,000 actions/month</li>
+                        <li><span class="check-icon"></span> Priority support</li>
+                        <li><span class="check-icon"></span> Weekly optimization</li>
+                        <li><span class="check-icon"></span> Advanced analytics dashboard</li>
                     </ul>
-                    <a href="#contact" class="btn btn-primary btn-block">Get Started</a>
+                    <a href="#contact" class="btn btn-gold btn-block">Get Started</a>
                 </div>
                 <div class="pricing-card">
                     <div class="pricing-header">
@@ -334,30 +329,12 @@
                         <span class="price-amount">Custom</span>
                     </div>
                     <ul class="pricing-features">
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Unlimited AI Agents
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Unlimited integrations
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Unlimited actions
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Dedicated account manager
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            Custom SLA & security review
-                        </li>
-                        <li>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            On-premise deployment option
-                        </li>
+                        <li><span class="check-icon"></span> Unlimited AI Agents</li>
+                        <li><span class="check-icon"></span> Unlimited integrations</li>
+                        <li><span class="check-icon"></span> Unlimited actions</li>
+                        <li><span class="check-icon"></span> Dedicated account manager</li>
+                        <li><span class="check-icon"></span> Custom SLA & security review</li>
+                        <li><span class="check-icon"></span> On-premise deployment option</li>
                     </ul>
                     <a href="#contact" class="btn btn-outline btn-block">Contact Sales</a>
                 </div>
@@ -370,7 +347,7 @@
         <div class="container">
             <div class="section-header">
                 <span class="section-tag">Testimonials</span>
-                <h2 class="section-title">What Our <span class="gradient-text">Clients Say</span></h2>
+                <h2 class="section-title">What Our <span class="gold-text">Clients Say</span></h2>
             </div>
             <div class="testimonials-grid">
                 <div class="testimonial-card">
@@ -414,10 +391,11 @@
     <section class="cta-section" id="contact">
         <div class="container">
             <div class="cta-content">
-                <h2>Ready to Transform Your Business with AI?</h2>
+                <div class="cta-badge">Let's Talk</div>
+                <h2>Ready to Transform Your<br>Business with <span class="gold-text">AI</span>?</h2>
                 <p>Book a free strategy call and discover how AI agents can save you time, reduce costs, and accelerate your growth.</p>
                 <div class="cta-actions">
-                    <a href="mailto:office@kaiizen.ai" class="btn btn-white btn-lg">
+                    <a href="mailto:office@kaiizen.ai" class="btn btn-gold btn-lg">
                         Book a Free Consultation
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </a>
@@ -434,27 +412,28 @@
                 <div class="footer-brand">
                     <a href="#" class="nav-logo">
                         <div class="logo-icon">K</div>
-                        <span>Kaiizen AI</span>
+                        <span>KAIIZEN</span>
                     </a>
                     <p>Building intelligent AI agents that transform businesses. Continuous improvement through artificial intelligence.</p>
                     <div class="footer-social">
                         <a href="#" aria-label="Twitter">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                         </a>
                         <a href="#" aria-label="LinkedIn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
                         </a>
                         <a href="mailto:office@kaiizen.ai" aria-label="Email">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                         </a>
                     </div>
                 </div>
                 <div class="footer-links">
                     <h4>Services</h4>
-                    <a href="#services">Custom AI Agents</a>
-                    <a href="#services">Workflow Automation</a>
-                    <a href="#services">System Integration</a>
-                    <a href="#services">AI Training & Support</a>
+                    <a href="#services">RAG Model Service</a>
+                    <a href="#services">OCR & PDF Reading</a>
+                    <a href="#services">Voice AI Agent</a>
+                    <a href="#services">Social Media Agents</a>
+                    <a href="#services">n8n Automation</a>
                 </div>
                 <div class="footer-links">
                     <h4>Company</h4>
