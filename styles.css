@@ -276,8 +276,13 @@ a { text-decoration: none; color: inherit; }
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 36px;
+    gap: 6px;
     position: relative;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 6px 8px;
+    backdrop-filter: blur(12px);
 }
 
 .nav-indicator {
@@ -296,28 +301,36 @@ a { text-decoration: none; color: inherit; }
 }
 
 .nav-link {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 500;
     color: var(--text-muted);
-    transition: color 0.4s var(--ease-out-expo);
+    transition: color 0.3s, background 0.3s;
     letter-spacing: 0.02em;
     position: relative;
-    padding: 4px 0;
+    padding: 8px 14px;
+    border-radius: 50px;
+    white-space: nowrap;
 }
 
-.nav-link:hover,
+.nav-link:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+}
+
 .nav-link.active {
     color: var(--gold-light);
+    background: rgba(200, 168, 78, 0.1);
 }
 
 .nav-cta {
     background: var(--gradient-gold) !important;
     color: #0a0a0a !important;
-    padding: 8px 22px !important;
-    border-radius: 6px !important;
+    padding: 8px 20px !important;
+    border-radius: 50px !important;
     font-weight: 700 !important;
     transition: all 0.4s var(--ease-out-expo) !important;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    margin-left: 4px;
 }
 
 .nav-cta:hover {
@@ -2589,27 +2602,9 @@ body::before {
     50% { opacity: 1; transform: translateX(-50%) scale(1.15); }
 }
 
-/* Nav link hover underline animation */
-.nav-link {
-    position: relative;
-}
-
+/* Nav link - no underline, pill style handles active state */
 .nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 50%;
-    width: 0;
-    height: 2px;
-    background: var(--gradient-gold);
-    border-radius: 2px;
-    transition: width 0.4s var(--ease-out-expo), left 0.4s var(--ease-out-expo);
-}
-
-.nav-link:hover::after,
-.nav-link.active::after {
-    width: 100%;
-    left: 0;
+    display: none;
 }
 
 /* Service number subtle glow */
