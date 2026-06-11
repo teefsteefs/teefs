@@ -416,6 +416,18 @@ if (splitImages.length) {
     });
 }
 
+// === Image Accordion ===
+const imgAccordion = document.getElementById('img-accordion');
+if (imgAccordion) {
+    const items = imgAccordion.querySelectorAll('.img-accordion-item');
+    items.forEach(item => {
+        item.addEventListener('mouseenter', () => {
+            items.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+        });
+    });
+}
+
 // === 3D tilt for process timeline cards ===
 document.querySelectorAll('.process-timeline-card').forEach(card => {
     card.addEventListener('mousemove', (e) => {
