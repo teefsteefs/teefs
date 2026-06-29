@@ -1634,6 +1634,52 @@ a { text-decoration: none; color: inherit; }
     transform: perspective(1000px) translateY(0) rotateX(0deg);
 }
 
+/* === Directional Scroll Reveals === */
+.kz-slide-up {
+    opacity: 0;
+    transform: translateY(60px);
+    transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+}
+
+.kz-slide-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.kz-slide-left {
+    opacity: 0;
+    transform: translateX(-60px);
+    transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+}
+
+.kz-slide-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.kz-slide-right {
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+}
+
+.kz-slide-right.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* === Text Highlight on Scroll === */
+.kz-highlight-text {
+    background-size: 0% 100%;
+    background-repeat: no-repeat;
+    background-image: linear-gradient(transparent 60%, rgba(200, 168, 78, 0.15) 60%);
+    transition: background-size 0.8s var(--ease-out-expo);
+}
+
+.kz-highlight-text.kz-highlighted {
+    background-size: 100% 100%;
+}
+
 /* === Section transitions (smooth reveal) === */
 .section {
     position: relative;

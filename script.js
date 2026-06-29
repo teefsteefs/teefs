@@ -416,15 +416,39 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
 
 document.querySelectorAll(
-    '.service-card, .process-step, .feature-card, .pricing-card, .testimonial-card, .section-header, .cta-content'
+    '.service-card, .process-step, .feature-card, .pricing-card, .testimonial-card, .section-header, .cta-content, .split-text, .split-image, .demo-feature-card, .demo-suited-list'
 ).forEach((el, i) => {
-    el.classList.add('fade-in');
-    // Staggered delay within each group
     const parent = el.parentElement;
-    const siblings = Array.from(parent.children).filter(c => c.classList.contains(el.classList[0]));
+    const siblings = Array.from(parent.children).filter(c => c.tagName === el.tagName);
     const index = siblings.indexOf(el);
-    el.style.transitionDelay = (index * 0.1) + 's';
+
+    if (el.classList.contains('split-text')) {
+        el.classList.add('kz-slide-left');
+    } else if (el.classList.contains('split-image')) {
+        el.classList.add('kz-slide-right');
+    } else if (index % 2 === 0) {
+        el.classList.add('kz-slide-up');
+    } else {
+        el.classList.add('kz-slide-up');
+    }
+
+    el.style.transitionDelay = (index * 0.12) + 's';
     observer.observe(el);
+});
+
+// === Text Highlight on Scroll ===
+const highlightObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('kz-highlighted');
+            highlightObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.gold-text, .section-title, .hero-subtitle, .cta-content h2, .cta-content p').forEach(el => {
+    el.classList.add('kz-highlight-text');
+    highlightObserver.observe(el);
 });
 
 // === Counter Animation ===
