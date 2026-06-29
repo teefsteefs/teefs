@@ -989,7 +989,7 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
 
         // Scroll to section — "scroll to FAQ", "go to pricing", "cuộn tới contact"
         const SECTION_MAP = [
-            { words: ['hero', 'banner', 'top'], selector: '.hero, .page-hero' },
+            { words: ['hero', 'banner', 'header', 'heading', 'đầu trang'], selector: '.hero, .page-hero' },
             { words: ['capability', 'capabilities', 'accordion'], selector: '.img-accordion-section' },
             { words: ['scaling', 'scale', 'firm'], selector: '#scaling' },
             { words: ['audit', 'kiểm tra'], selector: '#audit, .audit-cta' },
