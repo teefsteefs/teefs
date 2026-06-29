@@ -806,9 +806,9 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
 
     function detectSearchType(q) {
         const t = q.toLowerCase();
-        if (t.match(/github|repo|repository|trending|open\s*source/)) return 'github';
+        if (t.match(/github|repo|repository|open\s*source/)) return 'github';
         if (t.match(/youtube|video|watch/)) return 'youtube';
-        return 'ai';
+        return 'web';
     }
 
     async function searchGitHub(query) {
@@ -873,20 +873,28 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         }
     }
 
-    async function searchAI(query) {
-        agentAddStep('Sending to AI assistant...');
+    async function searchWeb(query) {
+        agentAddStep('Detected: Web search');
         await new Promise(r => setTimeout(r, 300));
+        agentAddStep('Searching the web for "' + escHtml(query) + '"...');
 
-        const res = await fetch('https://n8n.kaiizen.ai/webhook/kaiizenknowledge', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: query })
-        });
+        const res = await fetch('/api/websearch/?q=' + encodeURIComponent(query));
         const data = await res.json();
-        const answer = data.output || data.answer || data.message || (typeof data === 'string' ? data : JSON.stringify(data));
 
-        agentAddStep('AI responded', 'done');
-        agentResults.innerHTML = '<div class="kz-agent-answer">' + escHtml(answer) + '</div>';
+        if (Array.isArray(data) && data.length > 0) {
+            agentAddStep('Found ' + data.length + ' results', 'done');
+            let html = '';
+            for (const item of data) {
+                html += '<a class="kz-agent-result-item" href="' + escHtml(item.url || '#') + '" target="_blank" rel="noopener">';
+                html += '<div class="kz-agent-result-title">' + escHtml(item.title || 'Result') + '</div>';
+                if (item.description) html += '<div class="kz-agent-result-desc">' + escHtml(item.description) + '</div>';
+                html += '</a>';
+            }
+            agentResults.innerHTML = html;
+        } else {
+            agentAddStep('No results found', 'error');
+            agentResults.innerHTML = '<div class="kz-agent-answer">No results found for this query.</div>';
+        }
     }
 
     async function agentSearch(query) {
@@ -904,7 +912,7 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             } else if (type === 'youtube') {
                 await searchYouTube(query);
             } else {
-                await searchAI(query);
+                await searchWeb(query);
             }
 
             agentAddStep('Task complete', 'done');
