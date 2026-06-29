@@ -894,11 +894,13 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
 
             let html = '<div class="kz-agent-answer">' + escHtml(answer) + '</div>';
             html += '<div class="kz-agent-sources-label">Sources</div>';
+            html += '<div class="kz-agent-sources-list">';
             for (const item of data.slice(0, 4)) {
                 html += '<a class="kz-agent-source" href="' + escHtml(item.url || '#') + '" target="_blank" rel="noopener">';
                 html += escHtml(item.title || 'Source');
                 html += '</a>';
             }
+            html += '</div>';
             agentResults.innerHTML = html;
         } else {
             agentAddStep('No results found', 'error');

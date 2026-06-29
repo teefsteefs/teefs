@@ -3159,13 +3159,18 @@ body::before {
     margin: 16px 0 10px;
 }
 
+.kz-agent-sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .kz-agent-source {
     display: block;
     font-size: 0.75rem;
     color: var(--gold);
     text-decoration: none;
     padding: 10px 14px;
-    margin-bottom: 8px;
     border: 1px solid var(--border);
     border-radius: 8px;
     background: rgba(255,255,255,0.03);
@@ -3173,10 +3178,6 @@ body::before {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.kz-agent-source:last-child {
-    margin-bottom: 0;
 }
 
 .kz-agent-source:hover {
