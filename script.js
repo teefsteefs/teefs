@@ -917,29 +917,7 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             return;
         }
 
-        // Navigate — flexible matching: "go to services", "take me to services", "can you go to service tab", "open services"
-        const NAV_KEYWORDS = [
-            { words: ['home', 'trang chủ', 'main', 'homepage'], path: '/', label: 'Home' },
-            { words: ['service', 'dịch vụ'], path: '/services', label: 'Services' },
-            { words: ['solution', 'giải pháp'], path: '/solutions', label: 'Solutions' },
-            { words: ['process', 'quy trình', 'how it work'], path: '/process', label: 'Process' },
-            { words: ['client', 'khách hàng', 'testimonial'], path: '/clients', label: 'Clients' },
-            { words: ['audit', 'kiểm tra'], path: '/audit', label: 'Audit' },
-            { words: ['demo', 'book', 'đặt lịch', 'booking'], path: '/demo', label: 'Book a Demo' },
-            { words: ['contact', 'liên hệ'], path: '/contact', label: 'Contact' },
-        ];
-
-        for (const nav of NAV_KEYWORDS) {
-            for (const word of nav.words) {
-                if (text.includes(word)) {
-                    showToast(transcript, 'Going to ' + nav.label);
-                    setTimeout(() => window.location.href = nav.path, 600);
-                    return;
-                }
-            }
-        }
-
-        // Demo commands — "show voice demo", "demo email agent", "show xero demo"
+        // Demo commands — BEFORE navigation so "demo" keyword doesn't trigger nav
         const DEMO_MAP = [
             { words: ['voice ai', 'voice agent', 'voice demo'], name: 'Voice AI Agent' },
             { words: ['facebook', 'instagram', 'fb', 'ig', 'social media'], name: 'Facebook & Instagram Agent' },
@@ -967,6 +945,28 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
                         showToast(transcript, 'Navigate to Services page first to watch demos');
                         return;
                     }
+                }
+            }
+        }
+
+        // Navigate — AFTER demo commands so "demo" doesn't always trigger nav
+        const NAV_KEYWORDS = [
+            { words: ['home', 'trang chủ', 'main', 'homepage'], path: '/', label: 'Home' },
+            { words: ['service', 'dịch vụ'], path: '/services', label: 'Services' },
+            { words: ['solution', 'giải pháp'], path: '/solutions', label: 'Solutions' },
+            { words: ['process', 'quy trình', 'how it work'], path: '/process', label: 'Process' },
+            { words: ['client', 'khách hàng', 'testimonial'], path: '/clients', label: 'Clients' },
+            { words: ['audit', 'kiểm tra'], path: '/audit', label: 'Audit' },
+            { words: ['book a demo', 'book demo', 'đặt lịch', 'booking'], path: '/demo', label: 'Book a Demo' },
+            { words: ['contact', 'liên hệ'], path: '/contact', label: 'Contact' },
+        ];
+
+        for (const nav of NAV_KEYWORDS) {
+            for (const word of nav.words) {
+                if (text.includes(word)) {
+                    showToast(transcript, 'Going to ' + nav.label);
+                    setTimeout(() => window.location.href = nav.path, 600);
+                    return;
                 }
             }
         }
