@@ -770,28 +770,37 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         musicFrame.innerHTML = '';
         musicFrame.classList.remove('has-video');
         musicNow.classList.remove('active');
-        if (musicPopup && !musicPopup.closed) musicPopup.close();
     }
 
-    let musicPopup = null;
-
-    function searchMusic(query) {
+    async function searchMusic(query) {
         if (!query.trim()) return;
-        const encoded = encodeURIComponent(query.trim());
-        const url = 'https://www.youtube.com/results?search_query=' + encoded;
-
-        if (musicPopup && !musicPopup.closed) {
-            musicPopup.location.href = url;
-            musicPopup.focus();
-        } else {
-            musicPopup = window.open(url, 'kz_music', 'width=480,height=600,left=100,top=200,toolbar=no,menubar=no,scrollbars=yes,resizable=yes');
-        }
-
         openMusicPlayer();
-        musicFrame.classList.remove('has-video');
+        const encoded = encodeURIComponent(query.trim());
+        musicFrame.innerHTML = '<div style="padding:40px;text-align:center;color:#888;font-size:0.85rem;">Searching...</div>';
+        musicFrame.classList.add('has-video');
         musicNowText.textContent = query.trim();
         musicNow.classList.add('active');
         musicInput.value = '';
+
+        try {
+            const res = await fetch('/api/youtube/search?q=' + encoded + '&type=video');
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0 && data[0].videoId) {
+                const videoId = data[0].videoId;
+                const title = data[0].title || query.trim();
+                const iframe = document.createElement('iframe');
+                iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
+                iframe.allow = 'autoplay; encrypted-media';
+                iframe.allowFullscreen = true;
+                musicFrame.innerHTML = '';
+                musicFrame.appendChild(iframe);
+                musicNowText.textContent = title;
+            } else {
+                musicFrame.innerHTML = '<div style="padding:30px;text-align:center;color:#888;font-size:0.85rem;">No results found. Try a different search.</div>';
+            }
+        } catch (err) {
+            musicFrame.innerHTML = '<div style="padding:30px;text-align:center;color:#888;font-size:0.85rem;">Search error. Please try again.</div>';
+        }
     }
 
     musicSearchBtn.addEventListener('click', () => searchMusic(musicInput.value));
