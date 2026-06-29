@@ -30,24 +30,6 @@ backToTop.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// === Live Visitor Counter ===
-(function () {
-    const base = 3 + Math.floor(Math.random() * 5);
-    const counter = document.createElement('div');
-    counter.className = 'kz-visitor-counter';
-    counter.innerHTML = '<span class="kz-visitor-dot"></span><span class="kz-visitor-text"><strong>' + base + '</strong> people viewing this page</span>';
-    document.body.appendChild(counter);
-
-    setTimeout(() => counter.classList.add('visible'), 3000);
-
-    setInterval(() => {
-        const delta = Math.random() > 0.5 ? 1 : -1;
-        const current = parseInt(counter.querySelector('strong').textContent);
-        const next = Math.max(2, Math.min(15, current + delta));
-        counter.querySelector('strong').textContent = next;
-    }, 12000);
-})();
-
 // === Command Palette (Ctrl+K) ===
 (function () {
     const COMMANDS = [
