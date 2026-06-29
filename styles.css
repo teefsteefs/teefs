@@ -12,13 +12,14 @@
 .kz-scroll-progress {
     position: fixed;
     top: 0;
-    left: 0;
-    height: 3px;
-    width: 0%;
+    right: 0;
+    width: 3px;
+    height: 0%;
     background: var(--gradient-gold);
     z-index: 10001;
-    transition: width 0.1s linear;
-    box-shadow: 0 0 8px rgba(200, 168, 78, 0.4);
+    transition: height 0.1s linear;
+    box-shadow: -4px 0 8px rgba(200, 168, 78, 0.3);
+    border-radius: 0 0 0 2px;
 }
 
 /* === Back to Top === */
@@ -69,28 +70,28 @@
 /* === Live Visitor Counter === */
 .kz-visitor-counter {
     position: fixed;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
+    top: 80px;
+    right: 20px;
     z-index: 9990;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 6px 14px;
     background: rgba(10, 10, 10, 0.9);
     border: 1px solid var(--border);
     border-radius: 50px;
     backdrop-filter: blur(12px);
     opacity: 0;
+    transform: translateX(20px);
     pointer-events: none;
     transition: all 0.5s var(--ease-out-expo);
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     color: var(--text-secondary);
 }
 
 .kz-visitor-counter.visible {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(0);
     pointer-events: auto;
 }
 
@@ -258,9 +259,10 @@ body.kz-page-exit {
     }
 
     .kz-visitor-counter {
-        bottom: 76px;
-        font-size: 0.72rem;
-        padding: 6px 12px;
+        top: 70px;
+        right: 12px;
+        font-size: 0.68rem;
+        padding: 5px 10px;
     }
 
     .kz-cmd-panel {
