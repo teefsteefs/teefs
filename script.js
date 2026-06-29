@@ -1149,10 +1149,10 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             }
         }
 
-        // AI Agent search — "search for X", "find X", "look up X", "tìm X"
-        const searchMatch = text.match(/(?:search|find|look\s*up|tìm|tra\s*cứu|research|google)\s*(?:for\s*|about\s*)?(.+)/);
+        // AI Agent search — flexible matching for any search-like request
+        const searchMatch = text.match(/(?:search|find|look\s*up|tìm|tra\s*cứu|research|google|give\s*me|show\s*me|what\s*is|what\s*are|what's|how\s*much|how\s*many|tell\s*me|check|get|whats)\s*(?:for\s*|about\s*|the\s*|me\s*)?(.+)/);
         if (searchMatch) {
-            const query = searchMatch[1].replace(/(?:please|for me|giúp tôi|đi)$/i, '').trim();
+            const query = searchMatch[1].replace(/(?:please|for me|giúp tôi|đi|right now|now)$/i, '').trim();
             if (query.length > 1) {
                 showToast(transcript, 'Searching: ' + query);
                 agentSearch(query);
