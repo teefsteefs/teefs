@@ -783,7 +783,7 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         musicInput.value = '';
 
         try {
-            const res = await fetch('/api/youtube/search?q=' + encoded + '&type=video');
+            const res = await fetch('/api/youtube/?q=' + encoded);
             const data = await res.json();
             if (Array.isArray(data) && data.length > 0 && data[0].videoId) {
                 const videoId = data[0].videoId;
