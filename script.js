@@ -939,6 +939,38 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             }
         }
 
+        // Demo commands — "show voice demo", "demo email agent", "show xero demo"
+        const DEMO_MAP = [
+            { words: ['voice ai', 'voice agent', 'voice demo'], name: 'Voice AI Agent' },
+            { words: ['facebook', 'instagram', 'fb', 'ig', 'social media'], name: 'Facebook & Instagram Agent' },
+            { words: ['email agent', 'email demo', 'email ai'], name: 'Email AI Agent' },
+            { words: ['xero', 'accounting', 'accountant'], name: 'Xero AI' },
+            { words: ['media agent', 'media ai', 'media demo'], name: 'Media AI Agent' },
+            { words: ['android', 'app dev', 'mobile app'], name: 'Android App' },
+            { words: ['multi agent', 'librechat', 'libre chat', 'multi-agent'], name: 'Multi-Agent Chat' },
+        ];
+
+        if (text.match(/(?:demo|show|watch|xem|mở demo|phát demo)/)) {
+            for (const demo of DEMO_MAP) {
+                for (const word of demo.words) {
+                    if (text.includes(word)) {
+                        const btn = Array.from(document.querySelectorAll('.service-card h3')).find(h => h.textContent.toLowerCase().includes(demo.words[0]));
+                        if (btn) {
+                            const card = btn.closest('.service-card');
+                            const demoBtn = card?.querySelector('[data-demo]');
+                            if (demoBtn) {
+                                showToast(transcript, 'Opening ' + demo.name + ' demo...');
+                                demoBtn.click();
+                                return;
+                            }
+                        }
+                        showToast(transcript, 'Navigate to Services page first to watch demos');
+                        return;
+                    }
+                }
+            }
+        }
+
         // Scroll
         if (text.match(/(?:scroll|go|cuộn|move)\s*(?:to\s*)?(?:the\s*)?(?:up|lên|top|đầu|beginning)/)) {
             showToast(transcript, 'Scrolling to top');
@@ -951,7 +983,7 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             return;
         }
 
-        showToast(transcript, 'Command not recognized. Try: "play [song]", "go to services", "open chat"');
+        showToast(transcript, 'Try: "play [song]", "go to [page]", "show voice demo", "open chat"');
     }
 
     if (SpeechRecognition) {
