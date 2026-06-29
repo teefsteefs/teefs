@@ -1668,18 +1668,6 @@ a { text-decoration: none; color: inherit; }
     transform: translateX(0);
 }
 
-/* === Text Highlight on Scroll === */
-.kz-highlight-text {
-    background-size: 0% 100%;
-    background-repeat: no-repeat;
-    background-image: linear-gradient(transparent 60%, rgba(200, 168, 78, 0.15) 60%);
-    transition: background-size 0.8s var(--ease-out-expo);
-}
-
-.kz-highlight-text.kz-highlighted {
-    background-size: 100% 100%;
-}
-
 /* === Section transitions (smooth reveal) === */
 .section {
     position: relative;

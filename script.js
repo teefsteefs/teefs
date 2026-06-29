@@ -436,20 +436,6 @@ document.querySelectorAll(
     observer.observe(el);
 });
 
-// === Text Highlight on Scroll ===
-const highlightObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('kz-highlighted');
-            highlightObserver.unobserve(entry.target);
-        }
-    });
-}, { threshold: 0.5 });
-
-document.querySelectorAll('.hero-subtitle, .section-subtitle, .page-hero-subtitle').forEach(el => {
-    el.classList.add('kz-highlight-text');
-    highlightObserver.observe(el);
-});
 
 // === Counter Animation ===
 const statNumbers = document.querySelectorAll('.hero-stat-number');
