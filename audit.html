@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Audit — Kaiizen AI</title>
+    <meta name="description" content="Get your free Client Chasing & Tax Opportunity Audit. Answer a few quick questions and receive a personalised snapshot of workflow pressure points.">
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="cursor-glow" id="cursor-glow"></div>
+
+    <nav class="nav scrolled" id="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="logo.jpg" alt="Kaiizen AI" class="logo-img">
+                <span>KAIIZEN</span>
+            </a>
+            <div class="nav-links" id="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="services" class="nav-link">Services</a>
+                <a href="solutions" class="nav-link">Solutions</a>
+                <a href="process" class="nav-link">Process</a>
+
+                <a href="clients" class="nav-link">Clients</a>
+                <a href="audit" class="nav-link active">Audit</a>
+                <a href="demo" class="nav-link">Book a Demo</a>
+                <a href="contact" class="nav-cta">Contact Us</a>
+            </div>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <section class="page-hero">
+        <div class="hero-bg">
+            <div class="hero-gradient"></div>
+            <div class="hero-grid"></div>
+        </div>
+        <div class="container">
+            <div class="page-hero-content">
+                <span class="section-tag">Free Audit</span>
+                <h1 class="page-hero-title">Get Your Free Client Chasing & <span class="gold-text">Tax Opportunity Audit</span></h1>
+                <p class="page-hero-subtitle">Answer a few quick questions about how your firm operates and receive a personalised snapshot of workflow pressure points and opportunities.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="form-layout">
+                <div class="form-sidebar">
+                    <div class="form-info-card">
+                        <div class="form-info-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        </div>
+                        <h3>What is this audit?</h3>
+                        <p>This short audit helps professional firms identify administrative bottlenecks, workflow delays, and hidden advisory opportunities.</p>
+                    </div>
+                    <div class="form-info-card">
+                        <div class="form-info-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <h3>Takes just a minute</h3>
+                        <p>Once submitted, we'll review your responses and send your personalised summary by email.</p>
+                    </div>
+                    <div class="form-info-card">
+                        <div class="form-info-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <h3>No call required</h3>
+                        <p>We'll deliver your audit results directly to your inbox. No strings attached.</p>
+                    </div>
+                </div>
+                <div class="form-card">
+                    <form id="audit-form" class="kz-form">
+                        <h2 class="form-title">Your Details</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="audit-first">First Name <span class="required">*</span></label>
+                                <input type="text" id="audit-first" name="first_name" placeholder="Enter your first name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="audit-last">Last Name <span class="required">*</span></label>
+                                <input type="text" id="audit-last" name="last_name" placeholder="Enter your last name" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="audit-business">Business Name <span class="required">*</span></label>
+                                <input type="text" id="audit-business" name="business_name" placeholder="Enter your business name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="audit-role">Your Role <span class="required">*</span></label>
+                                <input type="text" id="audit-role" name="role" placeholder="e.g. Partner, Director, Manager" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-email">Email Address <span class="required">*</span></label>
+                            <input type="email" id="audit-email" name="email" placeholder="Example: user@website.com" required>
+                        </div>
+
+                        <h2 class="form-title" style="margin-top:2.5rem">About Your Firm</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="audit-team">Team Size <span class="required">*</span></label>
+                                <select id="audit-team" name="team_size" required>
+                                    <option value="" disabled selected>Select team size</option>
+                                    <option value="1">Just me</option>
+                                    <option value="2-5">2–5 people</option>
+                                    <option value="6-15">6–15 people</option>
+                                    <option value="16-30">16–30 people</option>
+                                    <option value="30+">30+ people</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="audit-clients">Number of Recurring Tax Clients <span class="required">*</span></label>
+                                <select id="audit-clients" name="tax_clients" required>
+                                    <option value="" disabled selected>Select range</option>
+                                    <option value="1-50">1–50</option>
+                                    <option value="51-150">51–150</option>
+                                    <option value="151-300">151–300</option>
+                                    <option value="301-500">301–500</option>
+                                    <option value="500+">500+</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-followup">Who usually follows up on missing client documents? <span class="required">*</span></label>
+                            <select id="audit-followup" name="followup_person" required>
+                                <option value="" disabled selected>Select an option</option>
+                                <option value="admin">Admin / Reception</option>
+                                <option value="accountant">Accountant / Bookkeeper</option>
+                                <option value="manager">Manager / Senior Staff</option>
+                                <option value="partner">Partner / Director</option>
+                                <option value="no-one">No one consistently</option>
+                                <option value="mixed">It varies</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-consistency">How consistent are follow-ups currently? <span class="required">*</span></label>
+                            <select id="audit-consistency" name="followup_consistency" required>
+                                <option value="" disabled selected>Select an option</option>
+                                <option value="very">Very consistent — rarely anything falls through</option>
+                                <option value="mostly">Mostly consistent — occasional gaps</option>
+                                <option value="inconsistent">Inconsistent — depends on who handles it</option>
+                                <option value="reactive">Reactive — we follow up when we notice something is missing</option>
+                                <option value="minimal">Minimal — follow-ups often don't happen</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-taxplanning">How do tax planning conversations usually happen? <span class="required">*</span></label>
+                            <select id="audit-taxplanning" name="tax_planning" required>
+                                <option value="" disabled selected>Select an option</option>
+                                <option value="structured">Structured process for all eligible clients</option>
+                                <option value="adhoc">Ad-hoc — only when a client asks</option>
+                                <option value="some">We do it for some clients, not all</option>
+                                <option value="rarely">Rarely — we'd like to do more</option>
+                                <option value="never">We don't currently do tax planning</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-notes">Anything else you'd like us to know?</label>
+                            <textarea id="audit-notes" name="notes" rows="4" placeholder="Feel free to share any additional context about your firm's workflow..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-gold btn-lg btn-block">
+                            Submit Your Audit
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </button>
+                        <p class="form-disclaimer">Your information is kept confidential and will only be used to prepare your audit.</p>
+                    </form>
+                    <div id="audit-success" class="form-success" style="display:none">
+                        <div class="success-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <h2>Audit Submitted!</h2>
+                        <p>Thank you! We'll review your responses and send your personalised audit summary to your email within 24 hours.</p>
+                        <a href="/" class="btn btn-outline">Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2026 Kaiizen AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
