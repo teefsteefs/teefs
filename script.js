@@ -884,40 +884,22 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         if (Array.isArray(data) && data.length > 0) {
             agentAddStep('Found ' + data.length + ' results', 'done');
             await new Promise(r => setTimeout(r, 300));
-            agentAddStep('AI is reading and summarizing...');
+            agentAddStep('Summarizing...', 'done');
 
-            const context = data.slice(0, 5).map(r => r.title + ': ' + (r.description || '')).join('\n');
-            const aiPrompt = 'Based on these web search results, give a direct concise answer to: "' + query + '"\n\nSearch results:\n' + context + '\n\nAnswer directly in 2-3 sentences. Do not mention Kaiizen AI or suggest services.';
-
-            try {
-                const aiRes = await fetch('https://n8n.kaiizen.ai/webhook/kaiizenknowledge', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: aiPrompt })
-                });
-                const aiData = await aiRes.json();
-                const answer = aiData.output || aiData.answer || aiData.message || '';
-
-                agentAddStep('Answer ready', 'done');
-
-                let html = '<div class="kz-agent-answer">' + escHtml(answer) + '</div>';
-                html += '<div class="kz-agent-sources-label">Sources</div>';
-                for (const item of data.slice(0, 4)) {
-                    html += '<a class="kz-agent-source" href="' + escHtml(item.url || '#') + '" target="_blank" rel="noopener">';
-                    html += escHtml(item.title || 'Source');
-                    html += '</a>';
-                }
-                agentResults.innerHTML = html;
-            } catch {
-                let html = '';
-                for (const item of data) {
-                    html += '<a class="kz-agent-result-item" href="' + escHtml(item.url || '#') + '" target="_blank" rel="noopener">';
-                    html += '<div class="kz-agent-result-title">' + escHtml(item.title || 'Result') + '</div>';
-                    if (item.description) html += '<div class="kz-agent-result-desc">' + escHtml(item.description) + '</div>';
-                    html += '</a>';
-                }
-                agentResults.innerHTML = html;
+            const best = data[0];
+            let answer = best.description || best.title || '';
+            if (data[1] && data[1].description) {
+                answer += ' ' + data[1].description;
             }
+
+            let html = '<div class="kz-agent-answer">' + escHtml(answer) + '</div>';
+            html += '<div class="kz-agent-sources-label">Sources</div>';
+            for (const item of data.slice(0, 4)) {
+                html += '<a class="kz-agent-source" href="' + escHtml(item.url || '#') + '" target="_blank" rel="noopener">';
+                html += escHtml(item.title || 'Source');
+                html += '</a>';
+            }
+            agentResults.innerHTML = html;
         } else {
             agentAddStep('No results found', 'error');
             agentResults.innerHTML = '<div class="kz-agent-answer">No results found for this query.</div>';
