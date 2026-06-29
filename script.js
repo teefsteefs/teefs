@@ -781,55 +781,59 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         musicNow.classList.add('active');
         musicInput.value = '';
 
-        const PIPED_INSTANCES = [
-            'https://pipedapi.kavin.rocks',
-            'https://pipedapi.adminforge.de',
-            'https://api.piped.yt'
+        const INVIDIOUS = [
+            'https://inv.nadeko.net',
+            'https://invidious.nerdvpn.de',
+            'https://invidious.jing.rocks',
+            'https://invidious.privacyredirect.com',
+            'https://iv.datura.network'
         ];
 
+        const encoded = encodeURIComponent(query.trim());
         let videoId = null;
-        for (const api of PIPED_INSTANCES) {
+        let embedBase = null;
+
+        for (const instance of INVIDIOUS) {
             try {
-                const res = await fetch(api + '/search?q=' + encodeURIComponent(query.trim()) + '&filter=music_songs');
+                const res = await fetch(instance + '/api/v1/search?q=' + encoded + '&type=video', { signal: AbortSignal.timeout(5000) });
                 const data = await res.json();
-                const items = data.items || data;
-                if (items && items.length > 0) {
-                    const url = items[0].url || items[0].href || '';
-                    videoId = url.replace('/watch?v=', '');
+                if (Array.isArray(data) && data.length > 0 && data[0].videoId) {
+                    videoId = data[0].videoId;
+                    embedBase = instance;
                     break;
                 }
-            } catch (e) {
-                continue;
-            }
+            } catch (e) { continue; }
         }
 
         if (!videoId) {
-            // Fallback: try without filter
-            for (const api of PIPED_INSTANCES) {
+            // Piped API fallback
+            const PIPED = ['https://pipedapi.kavin.rocks', 'https://pipedapi.adminforge.de'];
+            for (const api of PIPED) {
                 try {
-                    const res = await fetch(api + '/search?q=' + encodeURIComponent(query.trim()) + '&filter=videos');
+                    const res = await fetch(api + '/search?q=' + encoded + '&filter=videos', { signal: AbortSignal.timeout(5000) });
                     const data = await res.json();
                     const items = data.items || data;
                     if (items && items.length > 0) {
-                        const url = items[0].url || items[0].href || '';
+                        const url = items[0].url || '';
                         videoId = url.replace('/watch?v=', '');
+                        embedBase = 'https://www.youtube.com';
                         break;
                     }
-                } catch (e) {
-                    continue;
-                }
+                } catch (e) { continue; }
             }
         }
 
         if (videoId) {
             const iframe = document.createElement('iframe');
+            // Try YouTube embed first, fallback to Invidious embed
             iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
             iframe.allow = 'autoplay; encrypted-media';
             iframe.allowFullscreen = true;
             musicFrame.innerHTML = '';
             musicFrame.appendChild(iframe);
         } else {
-            musicFrame.innerHTML = '<div style="padding:30px;text-align:center;color:#888;font-size:0.85rem;">Could not find video. Try a different search.</div>';
+            // Final fallback: open YouTube search in new tab
+            musicFrame.innerHTML = '<div style="padding:20px;text-align:center;"><p style="color:#888;font-size:0.85rem;margin-bottom:12px;">API search unavailable</p><a href="https://www.youtube.com/results?search_query=' + encoded + '" target="_blank" style="color:#c8a84e;font-size:0.88rem;text-decoration:underline;">Open on YouTube</a></div>';
         }
     }
 
