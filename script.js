@@ -30,6 +30,96 @@ backToTop.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
+// === Typing Effect for Hero Title ===
+(function () {
+    const heroTitle = document.querySelector('.hero-title');
+    if (!heroTitle) return;
+    const original = heroTitle.innerHTML;
+    heroTitle.style.visibility = 'hidden';
+
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            heroTitle.style.visibility = 'visible';
+            heroTitle.innerHTML = '';
+            heroTitle.classList.add('kz-typing');
+
+            const temp = document.createElement('div');
+            temp.innerHTML = original;
+            const textContent = temp.textContent;
+            let i = 0;
+
+            function typeNext() {
+                if (i < original.length) {
+                    if (original[i] === '<') {
+                        const tagEnd = original.indexOf('>', i);
+                        heroTitle.innerHTML += original.substring(i, tagEnd + 1);
+                        i = tagEnd + 1;
+                    } else {
+                        heroTitle.innerHTML += original[i];
+                        i++;
+                    }
+                    setTimeout(typeNext, 35);
+                } else {
+                    heroTitle.classList.remove('kz-typing');
+                }
+            }
+            typeNext();
+        }, 1700);
+    });
+})();
+
+// === Service Card Tooltips ===
+(function () {
+    const cards = document.querySelectorAll('.service-card');
+    if (!cards.length) return;
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'kz-tooltip';
+    document.body.appendChild(tooltip);
+
+    cards.forEach(card => {
+        const h3 = card.querySelector('h3');
+        const p = card.querySelector('p');
+        if (!h3 || !p) return;
+
+        card.addEventListener('mouseenter', (e) => {
+            tooltip.innerHTML = '<strong>' + h3.textContent + '</strong><br>' + p.textContent;
+            tooltip.classList.add('visible');
+            positionTooltip(e);
+        });
+
+        card.addEventListener('mousemove', positionTooltip);
+
+        card.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('visible');
+        });
+    });
+
+    function positionTooltip(e) {
+        const x = Math.min(e.clientX + 16, window.innerWidth - tooltip.offsetWidth - 16);
+        const y = e.clientY - tooltip.offsetHeight - 12;
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = (y < 8 ? e.clientY + 16 : y) + 'px';
+    }
+})();
+
+// === Keyboard Shortcut Hint ===
+(function () {
+    const hint = document.createElement('div');
+    hint.className = 'kz-shortcut-hint';
+    hint.innerHTML = 'Press <kbd>Ctrl</kbd><kbd>K</kbd> to search';
+    document.body.appendChild(hint);
+
+    setTimeout(() => hint.classList.add('visible'), 4000);
+    setTimeout(() => hint.classList.remove('visible'), 9000);
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            hint.classList.remove('visible');
+        }
+    });
+})();
+
 // === Command Palette (Ctrl+K) ===
 (function () {
     const COMMANDS = [
