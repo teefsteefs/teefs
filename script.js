@@ -802,62 +802,120 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         agentLog.scrollTop = agentLog.scrollHeight;
     }
 
+    function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    function detectSearchType(q) {
+        const t = q.toLowerCase();
+        if (t.match(/github|repo|repository|trending|open\s*source/)) return 'github';
+        if (t.match(/youtube|video|watch/)) return 'youtube';
+        return 'ai';
+    }
+
+    async function searchGitHub(query) {
+        agentAddStep('Detected: GitHub search');
+        await new Promise(r => setTimeout(r, 300));
+
+        const isTrending = query.toLowerCase().match(/trending|popular|hot|top|best/);
+        let apiUrl;
+        if (isTrending) {
+            const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+            apiUrl = 'https://api.github.com/search/repositories?q=stars:>100+created:>' + weekAgo + '&sort=stars&order=desc&per_page=8';
+            agentAddStep('Searching trending repos this week...');
+        } else {
+            const terms = query.replace(/(?:github|repo|repository|find|search|on)\s*/gi, '').trim() || query;
+            apiUrl = 'https://api.github.com/search/repositories?q=' + encodeURIComponent(terms) + '&sort=stars&order=desc&per_page=8';
+            agentAddStep('Searching GitHub for "' + escHtml(terms) + '"...');
+        }
+
+        await new Promise(r => setTimeout(r, 400));
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+
+        if (data.items && data.items.length > 0) {
+            agentAddStep('Found ' + data.items.length + ' repositories', 'done');
+            let html = '';
+            for (const repo of data.items) {
+                const stars = repo.stargazers_count >= 1000 ? (repo.stargazers_count / 1000).toFixed(1) + 'k' : repo.stargazers_count;
+                html += '<a class="kz-agent-result-item" href="' + escHtml(repo.html_url) + '" target="_blank" rel="noopener">';
+                html += '<div class="kz-agent-result-title">' + escHtml(repo.full_name) + ' <span style="color:var(--text-secondary);font-weight:400;font-size:0.72rem">&#9733; ' + stars + '</span></div>';
+                html += '<div class="kz-agent-result-desc">' + escHtml(repo.description || 'No description') + '</div>';
+                if (repo.language) html += '<div style="font-size:0.7rem;color:var(--gold);margin-top:3px">' + escHtml(repo.language) + '</div>';
+                html += '</a>';
+            }
+            agentResults.innerHTML = html;
+        } else {
+            agentAddStep('No repositories found', 'error');
+            agentResults.innerHTML = '<div class="kz-agent-answer">No matching repositories found. Try different keywords.</div>';
+        }
+    }
+
+    async function searchYouTube(query) {
+        agentAddStep('Detected: YouTube search');
+        await new Promise(r => setTimeout(r, 300));
+        const terms = query.replace(/(?:youtube|video|watch|find|search)\s*/gi, '').trim() || query;
+        agentAddStep('Searching YouTube for "' + escHtml(terms) + '"...');
+
+        const res = await fetch('/api/youtube/?q=' + encodeURIComponent(terms));
+        const data = await res.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+            agentAddStep('Found ' + data.length + ' videos', 'done');
+            let html = '';
+            for (const v of data) {
+                html += '<a class="kz-agent-result-item" href="https://www.youtube.com/watch?v=' + escHtml(v.videoId) + '" target="_blank" rel="noopener">';
+                html += '<div class="kz-agent-result-title">' + escHtml(v.title) + '</div>';
+                html += '<div class="kz-agent-result-desc" style="color:var(--gold)">Click to watch on YouTube</div>';
+                html += '</a>';
+            }
+            agentResults.innerHTML = html;
+        } else {
+            agentAddStep('No videos found', 'error');
+        }
+    }
+
+    async function searchAI(query) {
+        agentAddStep('Sending to AI assistant...');
+        await new Promise(r => setTimeout(r, 300));
+
+        const res = await fetch('https://n8n.kaiizen.ai/webhook/kaiizenknowledge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: query })
+        });
+        const data = await res.json();
+        const answer = data.output || data.answer || data.message || (typeof data === 'string' ? data : JSON.stringify(data));
+
+        agentAddStep('AI responded', 'done');
+        agentResults.innerHTML = '<div class="kz-agent-answer">' + escHtml(answer) + '</div>';
+    }
+
     async function agentSearch(query) {
         openAgentPanel(query);
+        agentAddStep('Received: "' + escHtml(query) + '"');
+        await new Promise(r => setTimeout(r, 400));
 
-        agentAddStep('Received command: "' + query + '"');
-        await new Promise(r => setTimeout(r, 500));
-        agentAddStep('Connecting to AI agent...');
-        await new Promise(r => setTimeout(r, 700));
-        agentAddStep('Searching the web...');
+        const type = detectSearchType(query);
+        agentAddStep('Analyzing query...');
+        await new Promise(r => setTimeout(r, 300));
 
         try {
-            const AGENT_URL = 'https://n8n.kaiizen.ai/webhook/agent_search';
-            const res = await fetch(AGENT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: query })
-            });
-            const data = await res.json();
-
-            agentAddStep('Processing results...', 'done');
-            await new Promise(r => setTimeout(r, 400));
-
-            agentStatus.textContent = 'Done';
-            agentStatus.className = 'kz-agent-status done';
-
-            if (data.steps && Array.isArray(data.steps)) {
-                for (const s of data.steps) {
-                    agentAddStep(s, 'done');
-                    await new Promise(r => setTimeout(r, 200));
-                }
-            }
-
-            if (data.results && Array.isArray(data.results)) {
-                let html = '';
-                for (const item of data.results) {
-                    html += '<a class="kz-agent-result-item" href="' + (item.url || '#') + '" target="_blank" rel="noopener">';
-                    html += '<div class="kz-agent-result-title">' + (item.title || 'Result') + '</div>';
-                    if (item.description) html += '<div class="kz-agent-result-desc">' + item.description + '</div>';
-                    html += '</a>';
-                }
-                agentResults.innerHTML = html;
-            } else if (data.answer || data.message || data.output) {
-                const answer = data.answer || data.message || data.output;
-                agentResults.innerHTML = '<div class="kz-agent-answer">' + answer + '</div>';
-            } else if (typeof data === 'string') {
-                agentResults.innerHTML = '<div class="kz-agent-answer">' + data + '</div>';
+            if (type === 'github') {
+                await searchGitHub(query);
+            } else if (type === 'youtube') {
+                await searchYouTube(query);
             } else {
-                agentResults.innerHTML = '<div class="kz-agent-answer">' + JSON.stringify(data, null, 2) + '</div>';
+                await searchAI(query);
             }
 
             agentAddStep('Task complete', 'done');
+            agentStatus.textContent = 'Done';
+            agentStatus.className = 'kz-agent-status done';
 
         } catch (err) {
-            agentAddStep('Connection failed: ' + err.message, 'error');
+            agentAddStep('Error: ' + err.message, 'error');
             agentStatus.textContent = 'Error';
             agentStatus.className = 'kz-agent-status error';
-            agentResults.innerHTML = '<div class="kz-agent-answer" style="color:#f87171">Could not complete the search. Make sure the AI agent webhook is configured.</div>';
+            agentResults.innerHTML = '<div class="kz-agent-answer" style="color:#f87171">Something went wrong. Please try again.</div>';
         }
     }
 
