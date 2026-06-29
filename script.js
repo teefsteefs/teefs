@@ -975,7 +975,7 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             }
         }
 
-        // Scroll
+        // Scroll to top/bottom
         if (text.match(/(?:scroll|go|cuộn|move)\s*(?:to\s*)?(?:the\s*)?(?:up|lên|top|đầu|beginning)/)) {
             showToast(transcript, 'Scrolling to top');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -987,7 +987,46 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             return;
         }
 
-        showToast(transcript, 'Try: "play [song]", "go to [page]", "show voice demo", "open chat"');
+        // Scroll to section — "scroll to FAQ", "go to pricing", "cuộn tới contact"
+        const SECTION_MAP = [
+            { words: ['hero', 'banner', 'top'], selector: '.hero, .page-hero' },
+            { words: ['capability', 'capabilities', 'accordion'], selector: '.img-accordion-section' },
+            { words: ['scaling', 'scale', 'firm'], selector: '#scaling' },
+            { words: ['audit', 'kiểm tra'], selector: '#audit, .audit-cta' },
+            { words: ['support', 'hỗ trợ', 'benefit'], selector: '#firm-support' },
+            { words: ['why', 'tại sao', 'why kaiizen', 'choose'], selector: '#why' },
+            { words: ['faq', 'question', 'câu hỏi'], selector: '#faq' },
+            { words: ['contact', 'liên hệ', 'cta'], selector: '#contact, .cta-section' },
+            { words: ['footer', 'chân trang'], selector: '.footer' },
+            { words: ['pricing', 'giá', 'price'], selector: '.pricing-grid' },
+            { words: ['testimonial', 'review', 'đánh giá'], selector: '.testimonials-grid' },
+            { words: ['timeline', 'step', 'bước'], selector: '.process-timeline' },
+        ];
+
+        for (const sec of SECTION_MAP) {
+            if (sec.words.some(w => text.includes(w))) {
+                const el = document.querySelector(sec.selector);
+                if (el) {
+                    showToast(transcript, 'Scrolling to ' + sec.words[0]);
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
+            }
+        }
+
+        // Fallback: try to find any section/heading matching what user said
+        const allSections = document.querySelectorAll('section, .section-header, h2, h3');
+        for (const el of allSections) {
+            const elText = el.textContent.toLowerCase();
+            const userWords = text.replace(/(?:scroll|go|cuộn|move|to|the|tới|đến|phần)\s*/g, '').trim();
+            if (userWords.length > 2 && elText.includes(userWords)) {
+                showToast(transcript, 'Found: ' + userWords);
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+        }
+
+        showToast(transcript, 'Try: "play [song]", "go to [page]", "scroll to FAQ", "show voice demo"');
     }
 
     if (SpeechRecognition) {
