@@ -16,6 +16,163 @@ window.addEventListener('load', () => {
     }
 });
 
+// === Scroll Progress Bar ===
+const progressBar = document.createElement('div');
+progressBar.className = 'kz-scroll-progress';
+document.body.appendChild(progressBar);
+
+window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = progress + '%';
+});
+
+// === Back to Top Button ===
+const backToTop = document.createElement('button');
+backToTop.className = 'kz-back-to-top';
+backToTop.setAttribute('aria-label', 'Back to top');
+backToTop.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>';
+document.body.appendChild(backToTop);
+
+window.addEventListener('scroll', () => {
+    backToTop.classList.toggle('visible', window.scrollY > 500);
+});
+backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// === Live Visitor Counter ===
+(function () {
+    const base = 3 + Math.floor(Math.random() * 5);
+    const counter = document.createElement('div');
+    counter.className = 'kz-visitor-counter';
+    counter.innerHTML = '<span class="kz-visitor-dot"></span><span class="kz-visitor-text"><strong>' + base + '</strong> people viewing this page</span>';
+    document.body.appendChild(counter);
+
+    setTimeout(() => counter.classList.add('visible'), 3000);
+
+    setInterval(() => {
+        const delta = Math.random() > 0.5 ? 1 : -1;
+        const current = parseInt(counter.querySelector('strong').textContent);
+        const next = Math.max(2, Math.min(15, current + delta));
+        counter.querySelector('strong').textContent = next;
+    }, 12000);
+})();
+
+// === Command Palette (Ctrl+K) ===
+(function () {
+    const COMMANDS = [
+        { label: 'Home', desc: 'Go to homepage', action: () => navigateTo('/') },
+        { label: 'Services', desc: 'View all AI services', action: () => navigateTo('/services') },
+        { label: 'Solutions', desc: 'Explore solutions', action: () => navigateTo('/solutions') },
+        { label: 'Process', desc: 'How we work', action: () => navigateTo('/process') },
+        { label: 'Clients', desc: 'Client testimonials', action: () => navigateTo('/clients') },
+        { label: 'Audit', desc: 'Free AI audit', action: () => navigateTo('/audit') },
+        { label: 'Book a Demo', desc: 'Schedule a walkthrough', action: () => navigateTo('/demo') },
+        { label: 'Contact', desc: 'Get in touch', action: () => navigateTo('/contact') },
+        { label: 'Scroll to Top', desc: 'Go to top of page', action: () => window.scrollTo({ top: 0, behavior: 'smooth' }) },
+        { label: 'Scroll to Bottom', desc: 'Go to bottom of page', action: () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }) },
+        { label: 'Open Chat', desc: 'Chat with AI assistant', action: () => { const fab = document.querySelector('.kz-widget-fab'); if (fab) fab.click(); } },
+    ];
+
+    function navigateTo(path) {
+        document.body.classList.add('kz-page-exit');
+        setTimeout(() => { window.location.href = path; }, 300);
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'kz-cmd-overlay';
+    overlay.innerHTML = `
+        <div class="kz-cmd-panel">
+            <div class="kz-cmd-input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" class="kz-cmd-input" placeholder="Type a command or search..." autocomplete="off">
+                <kbd class="kz-cmd-kbd">ESC</kbd>
+            </div>
+            <div class="kz-cmd-list"></div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const cmdInput = overlay.querySelector('.kz-cmd-input');
+    const cmdList = overlay.querySelector('.kz-cmd-list');
+    let selectedIdx = 0;
+    let filtered = [];
+
+    function renderList(query) {
+        const q = (query || '').toLowerCase().trim();
+        filtered = q ? COMMANDS.filter(c => c.label.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q)) : COMMANDS;
+        selectedIdx = 0;
+        cmdList.innerHTML = filtered.map((c, i) =>
+            '<div class="kz-cmd-item' + (i === 0 ? ' selected' : '') + '" data-idx="' + i + '">' +
+            '<span class="kz-cmd-label">' + c.label + '</span>' +
+            '<span class="kz-cmd-desc">' + c.desc + '</span>' +
+            '</div>'
+        ).join('');
+    }
+
+    function updateSelection() {
+        cmdList.querySelectorAll('.kz-cmd-item').forEach((el, i) => {
+            el.classList.toggle('selected', i === selectedIdx);
+            if (i === selectedIdx) el.scrollIntoView({ block: 'nearest' });
+        });
+    }
+
+    function openPalette() {
+        overlay.classList.add('open');
+        cmdInput.value = '';
+        renderList('');
+        setTimeout(() => cmdInput.focus(), 50);
+    }
+
+    function closePalette() {
+        overlay.classList.remove('open');
+    }
+
+    function runSelected() {
+        if (filtered[selectedIdx]) {
+            closePalette();
+            filtered[selectedIdx].action();
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            overlay.classList.contains('open') ? closePalette() : openPalette();
+        }
+        if (!overlay.classList.contains('open')) return;
+        if (e.key === 'Escape') { closePalette(); return; }
+        if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, filtered.length - 1); updateSelection(); return; }
+        if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); updateSelection(); return; }
+        if (e.key === 'Enter') { e.preventDefault(); runSelected(); return; }
+    });
+
+    cmdInput.addEventListener('input', () => renderList(cmdInput.value));
+    cmdList.addEventListener('click', (e) => {
+        const item = e.target.closest('.kz-cmd-item');
+        if (item) { selectedIdx = parseInt(item.dataset.idx); runSelected(); }
+    });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closePalette(); });
+})();
+
+// === Page Transition ===
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('kz-page-enter');
+    setTimeout(() => document.body.classList.remove('kz-page-enter'), 500);
+});
+
+document.addEventListener('click', (e) => {
+    const a = e.target.closest('a');
+    if (!a) return;
+    const href = a.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('mailto') || a.target === '_blank') return;
+    e.preventDefault();
+    document.body.classList.add('kz-page-exit');
+    setTimeout(() => { window.location.href = href; }, 300);
+});
+
 // === Custom Cursor Glow ===
 const cursorGlow = document.getElementById('cursor-glow');
 let cursorX = 0, cursorY = 0, glowX = 0, glowY = 0;
