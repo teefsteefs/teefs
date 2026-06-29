@@ -3156,7 +3156,7 @@ body::before {
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    margin: 12px 0 6px;
+    margin: 16px 0 10px;
 }
 
 .kz-agent-source {
@@ -3164,20 +3164,24 @@ body::before {
     font-size: 0.75rem;
     color: var(--gold);
     text-decoration: none;
-    padding: 8px 12px;
-    margin-bottom: 6px;
-    border-left: 2px solid var(--border);
-    border-radius: 0 6px 6px 0;
-    background: rgba(255,255,255,0.02);
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
     transition: all 0.2s;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
+.kz-agent-source:last-child {
+    margin-bottom: 0;
+}
+
 .kz-agent-source:hover {
-    border-left-color: var(--gold);
-    background: rgba(200, 168, 78, 0.06);
+    border-color: var(--gold);
+    background: rgba(200, 168, 78, 0.08);
 }
 
 @media (max-width: 480px) {
