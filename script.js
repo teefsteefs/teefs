@@ -6,6 +6,16 @@ if (preloader) {
     });
 }
 
+// === Auto-scroll to booking form on demo page ===
+window.addEventListener('load', () => {
+    const demoBooking = document.getElementById('demo-booking');
+    if (demoBooking) {
+        setTimeout(() => {
+            demoBooking.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 1800);
+    }
+});
+
 // === Custom Cursor Glow ===
 const cursorGlow = document.getElementById('cursor-glow');
 let cursorX = 0, cursorY = 0, glowX = 0, glowY = 0;
