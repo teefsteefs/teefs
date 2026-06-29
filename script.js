@@ -16,18 +16,6 @@ window.addEventListener('load', () => {
     }
 });
 
-// === Scroll Progress Bar ===
-const progressBar = document.createElement('div');
-progressBar.className = 'kz-scroll-progress';
-document.body.appendChild(progressBar);
-
-window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-    progressBar.style.height = progress + '%';
-});
-
 // === Back to Top Button ===
 const backToTop = document.createElement('button');
 backToTop.className = 'kz-back-to-top';
