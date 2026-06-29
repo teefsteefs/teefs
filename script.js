@@ -772,20 +772,65 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         musicNow.classList.remove('active');
     }
 
-    function searchMusic(query) {
+    async function searchMusic(query) {
         if (!query.trim()) return;
         openMusicPlayer();
-        const encoded = encodeURIComponent(query.trim());
-        const iframe = document.createElement('iframe');
-        iframe.src = 'https://www.youtube.com/embed?listType=search&list=' + encoded;
-        iframe.allow = 'autoplay; encrypted-media';
-        iframe.allowFullscreen = true;
-        musicFrame.innerHTML = '';
-        musicFrame.appendChild(iframe);
+        musicFrame.innerHTML = '<div style="padding:40px;text-align:center;color:#888;font-size:0.85rem;">Searching...</div>';
         musicFrame.classList.add('has-video');
         musicNowText.textContent = query.trim();
         musicNow.classList.add('active');
         musicInput.value = '';
+
+        const PIPED_INSTANCES = [
+            'https://pipedapi.kavin.rocks',
+            'https://pipedapi.adminforge.de',
+            'https://api.piped.yt'
+        ];
+
+        let videoId = null;
+        for (const api of PIPED_INSTANCES) {
+            try {
+                const res = await fetch(api + '/search?q=' + encodeURIComponent(query.trim()) + '&filter=music_songs');
+                const data = await res.json();
+                const items = data.items || data;
+                if (items && items.length > 0) {
+                    const url = items[0].url || items[0].href || '';
+                    videoId = url.replace('/watch?v=', '');
+                    break;
+                }
+            } catch (e) {
+                continue;
+            }
+        }
+
+        if (!videoId) {
+            // Fallback: try without filter
+            for (const api of PIPED_INSTANCES) {
+                try {
+                    const res = await fetch(api + '/search?q=' + encodeURIComponent(query.trim()) + '&filter=videos');
+                    const data = await res.json();
+                    const items = data.items || data;
+                    if (items && items.length > 0) {
+                        const url = items[0].url || items[0].href || '';
+                        videoId = url.replace('/watch?v=', '');
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+        }
+
+        if (videoId) {
+            const iframe = document.createElement('iframe');
+            iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
+            iframe.allow = 'autoplay; encrypted-media';
+            iframe.allowFullscreen = true;
+            musicFrame.innerHTML = '';
+            musicFrame.appendChild(iframe);
+        } else {
+            musicFrame.innerHTML = '<div style="padding:30px;text-align:center;color:#888;font-size:0.85rem;">Could not find video. Try a different search.</div>';
+        }
     }
 
     musicSearchBtn.addEventListener('click', () => searchMusic(musicInput.value));
@@ -874,47 +919,64 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
     function handleVoiceCommand(transcript) {
         const text = transcript.toLowerCase().trim();
 
-        // Play music
-        const playMatch = text.match(/(?:play|mở|phát|nghe|bật)\s+(.+)/);
+        // Play music — match flexibly: "play X", "can you play X", "I want to listen to X"
+        const playMatch = text.match(/(?:play|mở|phát|nghe|bật|listen\s*(?:to)?|put\s*on)\s+(.+)/);
         if (playMatch) {
-            const song = playMatch[1];
-            showToast(transcript, '🎵 Playing: ' + song);
-            searchMusic(song);
-            return;
+            let song = playMatch[1].replace(/(?:music|nhạc|song|bài|for me|please)$/i, '').trim();
+            if (song) {
+                showToast(transcript, 'Playing: ' + song);
+                searchMusic(song);
+                return;
+            }
         }
 
         // Stop/pause music
-        if (text.match(/(?:stop|pause|tắt|dừng|ngừng)\s*(?:music|nhạc|player)?/)) {
-            showToast(transcript, '⏸ Music stopped');
-            closeMusicPlayer();
-            return;
+        if (text.match(/(?:stop|pause|close|tắt|dừng|ngừng|shut)\s*(?:the\s*)?(?:music|nhạc|player|song|video)?/)) {
+            if (musicOpen) {
+                showToast(transcript, 'Music stopped');
+                closeMusicPlayer();
+                return;
+            }
         }
 
-        // Open chat
-        if (text.match(/(?:open|mở)\s*chat/)) {
-            showToast(transcript, '💬 Opening chat...');
+        // Open/close chat
+        if (text.match(/(?:open|mở|show|start)\s*(?:the\s*)?chat/)) {
+            showToast(transcript, 'Opening chat...');
             const chatFab = document.querySelector('.kz-widget-fab');
             if (chatFab) chatFab.click();
             return;
         }
 
-        // Navigate
-        for (const [keyword, path] of Object.entries(NAV_COMMANDS)) {
-            if (text.includes(keyword)) {
-                showToast(transcript, '→ Navigating to ' + keyword);
-                setTimeout(() => window.location.href = path, 600);
-                return;
+        // Navigate — flexible matching: "go to services", "take me to services", "can you go to service tab", "open services"
+        const NAV_KEYWORDS = [
+            { words: ['home', 'trang chủ', 'main', 'homepage'], path: '/', label: 'Home' },
+            { words: ['service', 'dịch vụ'], path: '/services', label: 'Services' },
+            { words: ['solution', 'giải pháp'], path: '/solutions', label: 'Solutions' },
+            { words: ['process', 'quy trình', 'how it work'], path: '/process', label: 'Process' },
+            { words: ['client', 'khách hàng', 'testimonial'], path: '/clients', label: 'Clients' },
+            { words: ['audit', 'kiểm tra'], path: '/audit', label: 'Audit' },
+            { words: ['demo', 'book', 'đặt lịch', 'booking'], path: '/demo', label: 'Book a Demo' },
+            { words: ['contact', 'liên hệ'], path: '/contact', label: 'Contact' },
+        ];
+
+        for (const nav of NAV_KEYWORDS) {
+            for (const word of nav.words) {
+                if (text.includes(word)) {
+                    showToast(transcript, 'Going to ' + nav.label);
+                    setTimeout(() => window.location.href = nav.path, 600);
+                    return;
+                }
             }
         }
 
-        // Scroll to top/bottom
-        if (text.match(/(?:scroll|cuộn)\s*(?:up|lên|top|đầu)/)) {
-            showToast(transcript, '↑ Scrolling to top');
+        // Scroll
+        if (text.match(/(?:scroll|go|cuộn|move)\s*(?:to\s*)?(?:the\s*)?(?:up|lên|top|đầu|beginning)/)) {
+            showToast(transcript, 'Scrolling to top');
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
-        if (text.match(/(?:scroll|cuộn)\s*(?:down|xuống|bottom|cuối)/)) {
-            showToast(transcript, '↓ Scrolling to bottom');
+        if (text.match(/(?:scroll|go|cuộn|move)\s*(?:to\s*)?(?:the\s*)?(?:down|xuống|bottom|cuối|end)/)) {
+            showToast(transcript, 'Scrolling to bottom');
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             return;
         }
