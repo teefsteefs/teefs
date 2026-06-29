@@ -770,21 +770,25 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         musicFrame.innerHTML = '';
         musicFrame.classList.remove('has-video');
         musicNow.classList.remove('active');
+        if (musicPopup && !musicPopup.closed) musicPopup.close();
     }
+
+    let musicPopup = null;
 
     function searchMusic(query) {
         if (!query.trim()) return;
-        openMusicPlayer();
         const encoded = encodeURIComponent(query.trim());
-        const iframe = document.createElement('iframe');
-        iframe.src = 'https://www.youtube.com/results?search_query=' + encoded + '&igu=1';
-        iframe.allow = 'autoplay; encrypted-media; fullscreen';
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.border = 'none';
-        musicFrame.innerHTML = '';
-        musicFrame.appendChild(iframe);
-        musicFrame.classList.add('has-video');
+        const url = 'https://www.youtube.com/results?search_query=' + encoded;
+
+        if (musicPopup && !musicPopup.closed) {
+            musicPopup.location.href = url;
+            musicPopup.focus();
+        } else {
+            musicPopup = window.open(url, 'kz_music', 'width=480,height=600,left=100,top=200,toolbar=no,menubar=no,scrollbars=yes,resizable=yes');
+        }
+
+        openMusicPlayer();
+        musicFrame.classList.remove('has-video');
         musicNowText.textContent = query.trim();
         musicNow.classList.add('active');
         musicInput.value = '';
