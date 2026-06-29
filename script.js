@@ -887,7 +887,9 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
     };
 
     function handleVoiceCommand(transcript) {
-        const text = transcript.toLowerCase().trim();
+        const text = transcript.toLowerCase().trim()
+            .replace(/[-]/g, '')
+            .replace(/\s+/g, ' ');
 
         // Play music — match flexibly: "play X", "can you play X", "I want to listen to X"
         const playMatch = text.match(/(?:play|mở|phát|nghe|bật|listen\s*(?:to)?|put\s*on)\s+(.+)/);
@@ -917,34 +919,36 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             return;
         }
 
-        // Demo commands — BEFORE navigation so "demo" keyword doesn't trigger nav
+        // Demo commands — match service keywords flexibly, no prefix required
         const DEMO_MAP = [
-            { words: ['voice ai', 'voice agent', 'voice demo'], name: 'Voice AI Agent' },
-            { words: ['facebook', 'instagram', 'fb', 'ig', 'social media'], name: 'Facebook & Instagram Agent' },
-            { words: ['email agent', 'email demo', 'email ai'], name: 'Email AI Agent' },
-            { words: ['xero', 'accounting', 'accountant'], name: 'Xero AI' },
-            { words: ['media agent', 'media ai', 'media demo'], name: 'Media AI Agent' },
-            { words: ['android', 'app dev', 'mobile app'], name: 'Android App' },
-            { words: ['multi agent', 'librechat', 'libre chat', 'multi-agent'], name: 'Multi-Agent Chat' },
+            { words: ['voice'], search: 'voice', name: 'Voice AI Agent' },
+            { words: ['facebook', 'instagram', 'fb', 'ig'], search: 'facebook', name: 'Facebook & Instagram Agent' },
+            { words: ['email', 'mail'], search: 'email', name: 'Email AI Agent' },
+            { words: ['xero', 'accounting', 'accountant'], search: 'xero', name: 'Xero AI' },
+            { words: ['media agent', 'media ai', 'media demo'], search: 'media', name: 'Media AI Agent' },
+            { words: ['android', 'app dev', 'mobile app'], search: 'android', name: 'Android App' },
+            { words: ['multi agent', 'librechat', 'libre chat', 'multiagent'], search: 'multi-agent', name: 'Multi-Agent Chat' },
         ];
 
-        if (text.match(/(?:demo|show|watch|xem|mở demo|phát demo)/)) {
+        const isDemoRequest = text.match(/(?:demo|show|watch|xem|mở|phát|open|play)\b/);
+        if (isDemoRequest) {
             for (const demo of DEMO_MAP) {
-                for (const word of demo.words) {
-                    if (text.includes(word)) {
-                        const btn = Array.from(document.querySelectorAll('.service-card h3')).find(h => h.textContent.toLowerCase().includes(demo.words[0]));
-                        if (btn) {
-                            const card = btn.closest('.service-card');
-                            const demoBtn = card?.querySelector('[data-demo]');
+                const matched = demo.words.some(w => text.includes(w));
+                if (matched) {
+                    const cards = document.querySelectorAll('.service-card');
+                    for (const card of cards) {
+                        const h3 = card.querySelector('h3');
+                        if (h3 && h3.textContent.toLowerCase().includes(demo.search)) {
+                            const demoBtn = card.querySelector('[data-demo]');
                             if (demoBtn) {
                                 showToast(transcript, 'Opening ' + demo.name + ' demo...');
                                 demoBtn.click();
                                 return;
                             }
                         }
-                        showToast(transcript, 'Navigate to Services page first to watch demos');
-                        return;
                     }
+                    showToast(transcript, 'Go to Services page first to watch demos');
+                    return;
                 }
             }
         }
