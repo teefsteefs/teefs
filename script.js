@@ -747,6 +747,159 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
     `;
     document.body.appendChild(musicPlayer);
 
+    // --- AI Agent Panel ---
+    const agentPanel = document.createElement('div');
+    agentPanel.className = 'kz-agent-panel';
+    agentPanel.innerHTML = `
+        <div class="kz-agent-header" id="kz-agent-drag">
+            <div class="kz-agent-header-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <span>AI Agent</span>
+                <span class="kz-agent-status" id="kz-agent-status">Ready</span>
+            </div>
+            <div class="kz-agent-controls">
+                <button class="kz-agent-ctrl-btn" id="kz-agent-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="kz-agent-query" id="kz-agent-query"></div>
+        <div class="kz-agent-log" id="kz-agent-log"></div>
+        <div class="kz-agent-results" id="kz-agent-results"></div>
+    `;
+    document.body.appendChild(agentPanel);
+
+    const agentLog = agentPanel.querySelector('#kz-agent-log');
+    const agentResults = agentPanel.querySelector('#kz-agent-results');
+    const agentQuery = agentPanel.querySelector('#kz-agent-query');
+    const agentStatus = agentPanel.querySelector('#kz-agent-status');
+    const agentClose = agentPanel.querySelector('#kz-agent-close');
+    let agentOpen = false;
+
+    function openAgentPanel(query) {
+        agentOpen = true;
+        agentPanel.classList.add('open');
+        agentLog.innerHTML = '';
+        agentResults.innerHTML = '';
+        agentQuery.textContent = query;
+        agentStatus.textContent = 'Working';
+        agentStatus.className = 'kz-agent-status working';
+    }
+
+    function closeAgentPanel() {
+        agentOpen = false;
+        agentPanel.classList.remove('open');
+    }
+
+    function agentAddStep(text, type) {
+        const step = document.createElement('div');
+        step.className = 'kz-agent-step ' + (type || '');
+        const icon = type === 'done' ? '<svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>'
+            : type === 'error' ? '<svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+        step.innerHTML = '<span class="kz-step-icon">' + icon + '</span><span class="kz-step-text">' + text + '</span>';
+        agentLog.appendChild(step);
+        agentLog.scrollTop = agentLog.scrollHeight;
+    }
+
+    async function agentSearch(query) {
+        openAgentPanel(query);
+
+        agentAddStep('Received command: "' + query + '"');
+        await new Promise(r => setTimeout(r, 500));
+        agentAddStep('Connecting to AI agent...');
+        await new Promise(r => setTimeout(r, 700));
+        agentAddStep('Searching the web...');
+
+        try {
+            const AGENT_URL = 'https://n8n.kaiizen.ai/webhook/agent_search';
+            const res = await fetch(AGENT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query })
+            });
+            const data = await res.json();
+
+            agentAddStep('Processing results...', 'done');
+            await new Promise(r => setTimeout(r, 400));
+
+            agentStatus.textContent = 'Done';
+            agentStatus.className = 'kz-agent-status done';
+
+            if (data.steps && Array.isArray(data.steps)) {
+                for (const s of data.steps) {
+                    agentAddStep(s, 'done');
+                    await new Promise(r => setTimeout(r, 200));
+                }
+            }
+
+            if (data.results && Array.isArray(data.results)) {
+                let html = '';
+                for (const item of data.results) {
+                    html += '<a class="kz-agent-result-item" href="' + (item.url || '#') + '" target="_blank" rel="noopener">';
+                    html += '<div class="kz-agent-result-title">' + (item.title || 'Result') + '</div>';
+                    if (item.description) html += '<div class="kz-agent-result-desc">' + item.description + '</div>';
+                    html += '</a>';
+                }
+                agentResults.innerHTML = html;
+            } else if (data.answer || data.message || data.output) {
+                const answer = data.answer || data.message || data.output;
+                agentResults.innerHTML = '<div class="kz-agent-answer">' + answer + '</div>';
+            } else if (typeof data === 'string') {
+                agentResults.innerHTML = '<div class="kz-agent-answer">' + data + '</div>';
+            } else {
+                agentResults.innerHTML = '<div class="kz-agent-answer">' + JSON.stringify(data, null, 2) + '</div>';
+            }
+
+            agentAddStep('Task complete', 'done');
+
+        } catch (err) {
+            agentAddStep('Connection failed: ' + err.message, 'error');
+            agentStatus.textContent = 'Error';
+            agentStatus.className = 'kz-agent-status error';
+            agentResults.innerHTML = '<div class="kz-agent-answer" style="color:#f87171">Could not complete the search. Make sure the AI agent webhook is configured.</div>';
+        }
+    }
+
+    agentClose.addEventListener('click', closeAgentPanel);
+
+    // Draggable agent panel
+    const agentDragHandle = agentPanel.querySelector('#kz-agent-drag');
+    let agentDragging = false, agentDragX = 0, agentDragY = 0;
+
+    agentDragHandle.addEventListener('mousedown', (e) => {
+        agentDragging = true;
+        const rect = agentPanel.getBoundingClientRect();
+        agentDragX = e.clientX - rect.left;
+        agentDragY = e.clientY - rect.top;
+        agentPanel.style.transition = 'none';
+    });
+    document.addEventListener('mousemove', (e) => {
+        if (!agentDragging) return;
+        agentPanel.style.left = Math.max(0, Math.min(e.clientX - agentDragX, window.innerWidth - agentPanel.offsetWidth)) + 'px';
+        agentPanel.style.top = Math.max(0, Math.min(e.clientY - agentDragY, window.innerHeight - agentPanel.offsetHeight)) + 'px';
+        agentPanel.style.bottom = 'auto';
+        agentPanel.style.right = 'auto';
+    });
+    document.addEventListener('mouseup', () => { if (agentDragging) { agentDragging = false; agentPanel.style.transition = ''; } });
+
+    agentDragHandle.addEventListener('touchstart', (e) => {
+        agentDragging = true;
+        const t = e.touches[0], rect = agentPanel.getBoundingClientRect();
+        agentDragX = t.clientX - rect.left;
+        agentDragY = t.clientY - rect.top;
+        agentPanel.style.transition = 'none';
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+        if (!agentDragging) return;
+        const t = e.touches[0];
+        agentPanel.style.left = Math.max(0, Math.min(t.clientX - agentDragX, window.innerWidth - agentPanel.offsetWidth)) + 'px';
+        agentPanel.style.top = Math.max(0, Math.min(t.clientY - agentDragY, window.innerHeight - agentPanel.offsetHeight)) + 'px';
+        agentPanel.style.bottom = 'auto';
+        agentPanel.style.right = 'auto';
+    }, { passive: true });
+    document.addEventListener('touchend', () => { agentDragging = false; agentPanel.style.transition = ''; });
+
     // --- Voice Button ---
     const voiceFab = document.createElement('button');
     voiceFab.className = 'kz-voice-fab';
@@ -930,6 +1083,17 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             }
         }
 
+        // AI Agent search — "search for X", "find X", "look up X", "tìm X"
+        const searchMatch = text.match(/(?:search|find|look\s*up|tìm|tra\s*cứu|research|google)\s*(?:for\s*|about\s*)?(.+)/);
+        if (searchMatch) {
+            const query = searchMatch[1].replace(/(?:please|for me|giúp tôi|đi)$/i, '').trim();
+            if (query.length > 1) {
+                showToast(transcript, 'Searching: ' + query);
+                agentSearch(query);
+                return;
+            }
+        }
+
         // Stop/pause music
         if (text.match(/(?:stop|pause|close|tắt|dừng|ngừng|shut)\s*(?:the\s*)?(?:music|nhạc|player|song|video)?/)) {
             if (musicOpen) {
@@ -1054,7 +1218,7 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             }
         }
 
-        showToast(transcript, 'Try: "play [song]", "go to [page]", "scroll to FAQ", "show voice demo"');
+        showToast(transcript, 'Try: "search [topic]", "play [song]", "go to [page]", "scroll to FAQ"');
     }
 
     if (SpeechRecognition) {
