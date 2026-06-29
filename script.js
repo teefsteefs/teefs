@@ -446,7 +446,7 @@ const highlightObserver = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.5 });
 
-document.querySelectorAll('.gold-text, .section-title, .hero-subtitle, .cta-content h2, .cta-content p').forEach(el => {
+document.querySelectorAll('.section-title, .hero-subtitle, .cta-content h2, .cta-content p').forEach(el => {
     el.classList.add('kz-highlight-text');
     highlightObserver.observe(el);
 });
