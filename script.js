@@ -705,3 +705,260 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         }
     }
 })();
+
+// === Voice Command + Music Player ===
+(function () {
+    // --- Music Player DOM ---
+    const musicPlayer = document.createElement('div');
+    musicPlayer.className = 'kz-music-player';
+    musicPlayer.innerHTML = `
+        <div class="kz-music-header" id="kz-music-drag">
+            <div class="kz-music-header-title">
+                <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                Music Player
+            </div>
+            <div class="kz-music-controls">
+                <button class="kz-music-ctrl-btn close-btn" id="kz-music-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="kz-music-search">
+            <input type="text" id="kz-music-input" placeholder="Search a song..." autocomplete="off">
+            <button id="kz-music-search-btn" aria-label="Search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke="#0a0a0a" stroke-width="2" fill="none"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="#0a0a0a" stroke-width="2"/></svg>
+            </button>
+        </div>
+        <div class="kz-music-frame" id="kz-music-frame"></div>
+        <div class="kz-music-now" id="kz-music-now">
+            <div class="kz-eq-bars"><span></span><span></span><span></span><span></span></div>
+            <span id="kz-music-now-text">Now playing...</span>
+        </div>
+    `;
+    document.body.appendChild(musicPlayer);
+
+    // --- Voice Button ---
+    const voiceFab = document.createElement('button');
+    voiceFab.className = 'kz-voice-fab';
+    voiceFab.setAttribute('aria-label', 'Voice command');
+    voiceFab.innerHTML = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+    document.body.appendChild(voiceFab);
+
+    // --- Voice Toast ---
+    const voiceToast = document.createElement('div');
+    voiceToast.className = 'kz-voice-toast';
+    voiceToast.innerHTML = '<div class="kz-voice-heard">Heard: <span id="kz-voice-text">...</span></div><div class="kz-voice-action" id="kz-voice-action"></div>';
+    document.body.appendChild(voiceToast);
+
+    // --- Music Player Logic ---
+    const musicInput = musicPlayer.querySelector('#kz-music-input');
+    const musicSearchBtn = musicPlayer.querySelector('#kz-music-search-btn');
+    const musicFrame = musicPlayer.querySelector('#kz-music-frame');
+    const musicNow = musicPlayer.querySelector('#kz-music-now');
+    const musicNowText = musicPlayer.querySelector('#kz-music-now-text');
+    const musicClose = musicPlayer.querySelector('#kz-music-close');
+    let musicOpen = false;
+
+    function openMusicPlayer() {
+        musicOpen = true;
+        musicPlayer.classList.add('open');
+    }
+
+    function closeMusicPlayer() {
+        musicOpen = false;
+        musicPlayer.classList.remove('open');
+        musicFrame.innerHTML = '';
+        musicFrame.classList.remove('has-video');
+        musicNow.classList.remove('active');
+    }
+
+    function searchMusic(query) {
+        if (!query.trim()) return;
+        openMusicPlayer();
+        const encoded = encodeURIComponent(query.trim());
+        const iframe = document.createElement('iframe');
+        iframe.src = 'https://www.youtube.com/embed?listType=search&list=' + encoded;
+        iframe.allow = 'autoplay; encrypted-media';
+        iframe.allowFullscreen = true;
+        musicFrame.innerHTML = '';
+        musicFrame.appendChild(iframe);
+        musicFrame.classList.add('has-video');
+        musicNowText.textContent = query.trim();
+        musicNow.classList.add('active');
+        musicInput.value = '';
+    }
+
+    musicSearchBtn.addEventListener('click', () => searchMusic(musicInput.value));
+    musicInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchMusic(musicInput.value);
+    });
+    musicClose.addEventListener('click', closeMusicPlayer);
+
+    // --- Draggable Music Player ---
+    const dragHandle = musicPlayer.querySelector('#kz-music-drag');
+    let isDragging = false, dragOffX = 0, dragOffY = 0;
+
+    dragHandle.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        const rect = musicPlayer.getBoundingClientRect();
+        dragOffX = e.clientX - rect.left;
+        dragOffY = e.clientY - rect.top;
+        musicPlayer.style.transition = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const x = Math.max(0, Math.min(e.clientX - dragOffX, window.innerWidth - musicPlayer.offsetWidth));
+        const y = Math.max(0, Math.min(e.clientY - dragOffY, window.innerHeight - musicPlayer.offsetHeight));
+        musicPlayer.style.left = x + 'px';
+        musicPlayer.style.top = y + 'px';
+        musicPlayer.style.bottom = 'auto';
+        musicPlayer.style.right = 'auto';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            musicPlayer.style.transition = '';
+        }
+    });
+
+    // Touch drag support
+    dragHandle.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        const touch = e.touches[0];
+        const rect = musicPlayer.getBoundingClientRect();
+        dragOffX = touch.clientX - rect.left;
+        dragOffY = touch.clientY - rect.top;
+        musicPlayer.style.transition = 'none';
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        const x = Math.max(0, Math.min(touch.clientX - dragOffX, window.innerWidth - musicPlayer.offsetWidth));
+        const y = Math.max(0, Math.min(touch.clientY - dragOffY, window.innerHeight - musicPlayer.offsetHeight));
+        musicPlayer.style.left = x + 'px';
+        musicPlayer.style.top = y + 'px';
+        musicPlayer.style.bottom = 'auto';
+        musicPlayer.style.right = 'auto';
+    }, { passive: true });
+
+    document.addEventListener('touchend', () => { isDragging = false; musicPlayer.style.transition = ''; });
+
+    // --- Voice Recognition ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isListening = false;
+    let toastTimer = null;
+
+    function showToast(heard, action) {
+        document.getElementById('kz-voice-text').textContent = heard;
+        document.getElementById('kz-voice-action').textContent = action;
+        voiceToast.classList.add('visible');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => voiceToast.classList.remove('visible'), 4000);
+    }
+
+    const NAV_COMMANDS = {
+        'home': '/', 'trang chủ': '/',
+        'services': '/services', 'dịch vụ': '/services',
+        'solutions': '/solutions', 'giải pháp': '/solutions',
+        'process': '/process', 'quy trình': '/process',
+        'clients': '/clients', 'khách hàng': '/clients',
+        'audit': '/audit', 'kiểm tra': '/audit',
+        'demo': '/demo', 'book': '/demo', 'đặt lịch': '/demo',
+        'contact': '/contact', 'liên hệ': '/contact',
+    };
+
+    function handleVoiceCommand(transcript) {
+        const text = transcript.toLowerCase().trim();
+
+        // Play music
+        const playMatch = text.match(/(?:play|mở|phát|nghe|bật)\s+(.+)/);
+        if (playMatch) {
+            const song = playMatch[1];
+            showToast(transcript, '🎵 Playing: ' + song);
+            searchMusic(song);
+            return;
+        }
+
+        // Stop/pause music
+        if (text.match(/(?:stop|pause|tắt|dừng|ngừng)\s*(?:music|nhạc|player)?/)) {
+            showToast(transcript, '⏸ Music stopped');
+            closeMusicPlayer();
+            return;
+        }
+
+        // Open chat
+        if (text.match(/(?:open|mở)\s*chat/)) {
+            showToast(transcript, '💬 Opening chat...');
+            const chatFab = document.querySelector('.kz-widget-fab');
+            if (chatFab) chatFab.click();
+            return;
+        }
+
+        // Navigate
+        for (const [keyword, path] of Object.entries(NAV_COMMANDS)) {
+            if (text.includes(keyword)) {
+                showToast(transcript, '→ Navigating to ' + keyword);
+                setTimeout(() => window.location.href = path, 600);
+                return;
+            }
+        }
+
+        // Scroll to top/bottom
+        if (text.match(/(?:scroll|cuộn)\s*(?:up|lên|top|đầu)/)) {
+            showToast(transcript, '↑ Scrolling to top');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+        if (text.match(/(?:scroll|cuộn)\s*(?:down|xuống|bottom|cuối)/)) {
+            showToast(transcript, '↓ Scrolling to bottom');
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            return;
+        }
+
+        showToast(transcript, 'Command not recognized. Try: "play [song]", "go to services", "open chat"');
+    }
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            handleVoiceCommand(transcript);
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            voiceFab.classList.remove('listening');
+        };
+
+        recognition.onerror = () => {
+            isListening = false;
+            voiceFab.classList.remove('listening');
+            showToast('...', 'Could not hear you. Try again.');
+        };
+
+        voiceFab.addEventListener('click', () => {
+            if (isListening) {
+                recognition.stop();
+                isListening = false;
+                voiceFab.classList.remove('listening');
+            } else {
+                recognition.start();
+                isListening = true;
+                voiceFab.classList.add('listening');
+                showToast('Listening...', 'Say a command: "play [song]", "go to [page]"');
+            }
+        });
+    } else {
+        voiceFab.addEventListener('click', () => {
+            showToast('Not supported', 'Voice commands require Chrome or Edge browser.');
+        });
+    }
+})();
