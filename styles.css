@@ -3150,6 +3150,33 @@ body::before {
     word-break: break-word;
 }
 
+.kz-agent-sources-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin: 12px 0 6px;
+}
+
+.kz-agent-source {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--gold);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-left: 2px solid var(--border);
+    transition: all 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kz-agent-source:hover {
+    border-left-color: var(--gold);
+    background: rgba(200, 168, 78, 0.06);
+}
+
 @media (max-width: 480px) {
     .kz-agent-panel {
         right: 8px;
