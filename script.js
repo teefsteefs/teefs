@@ -754,10 +754,28 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
     voiceFab.innerHTML = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
     document.body.appendChild(voiceFab);
 
+    // --- Language Toggle ---
+    let voiceLang = 'en-US';
+    const langBtn = document.createElement('button');
+    langBtn.className = 'kz-lang-toggle';
+    langBtn.textContent = 'EN';
+    langBtn.setAttribute('aria-label', 'Toggle voice language');
+    langBtn.addEventListener('click', () => {
+        if (voiceLang === 'en-US') {
+            voiceLang = 'vi-VN';
+            langBtn.textContent = 'VI';
+        } else {
+            voiceLang = 'en-US';
+            langBtn.textContent = 'EN';
+        }
+        if (recognition) recognition.lang = voiceLang;
+    });
+    document.body.appendChild(langBtn);
+
     // --- Voice Toast ---
     const voiceToast = document.createElement('div');
     voiceToast.className = 'kz-voice-toast';
-    voiceToast.innerHTML = '<div class="kz-voice-heard">Heard: <span id="kz-voice-text">...</span></div><div class="kz-voice-action" id="kz-voice-action"></div>';
+    voiceToast.innerHTML = '<div class="kz-voice-heard"><span id="kz-voice-text">...</span></div><div class="kz-voice-action" id="kz-voice-action"></div>';
     document.body.appendChild(voiceToast);
 
     // --- Music Player Logic ---
@@ -1042,12 +1060,33 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 3;
+        recognition.lang = voiceLang;
 
+        let interimTimer = null;
         recognition.onresult = (e) => {
-            const transcript = e.results[0][0].transcript;
-            handleVoiceCommand(transcript);
+            let interim = '';
+            let finalTranscript = '';
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+                const t = e.results[i][0].transcript;
+                if (e.results[i].isFinal) {
+                    finalTranscript = t;
+                } else {
+                    interim = t;
+                }
+            }
+            if (interim && !finalTranscript) {
+                const textEl = document.getElementById('kz-voice-text');
+                if (textEl) textEl.textContent = interim;
+                voiceToast.classList.add('visible');
+                clearTimeout(interimTimer);
+                interimTimer = setTimeout(() => voiceToast.classList.remove('visible'), 4000);
+            }
+            if (finalTranscript) {
+                clearTimeout(interimTimer);
+                handleVoiceCommand(finalTranscript);
+            }
         };
 
         recognition.onend = () => {
@@ -1055,10 +1094,12 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
             voiceFab.classList.remove('listening');
         };
 
-        recognition.onerror = () => {
+        recognition.onerror = (e) => {
             isListening = false;
             voiceFab.classList.remove('listening');
-            showToast('...', 'Could not hear you. Try again.');
+            if (e.error !== 'aborted') {
+                showToast('...', 'Could not hear you. Try again.');
+            }
         };
 
         voiceFab.addEventListener('click', () => {
@@ -1067,10 +1108,11 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
                 isListening = false;
                 voiceFab.classList.remove('listening');
             } else {
+                recognition.lang = voiceLang;
                 recognition.start();
                 isListening = true;
                 voiceFab.classList.add('listening');
-                showToast('Listening...', 'Say a command: "play [song]", "go to [page]"');
+                showToast('Listening...', 'Say a command (' + (voiceLang === 'en-US' ? 'English' : 'Tiếng Việt') + ')');
             }
         });
     } else {

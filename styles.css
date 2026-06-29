@@ -2870,6 +2870,35 @@ body::before {
     50% { box-shadow: 0 0 0 12px rgba(200, 168, 78, 0); }
 }
 
+/* Language Toggle */
+.kz-lang-toggle {
+    position: fixed;
+    bottom: 86px;
+    left: 38px;
+    z-index: 9999;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(20, 20, 20, 0.9);
+    border: 1px solid var(--border);
+    color: var(--gold);
+    font-size: 0.65rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s var(--ease-out-expo);
+    letter-spacing: 0.5px;
+}
+
+.kz-lang-toggle:hover {
+    border-color: var(--gold);
+    background: rgba(200, 168, 78, 0.15);
+}
+
 /* Voice Feedback Toast */
 .kz-voice-toast {
     position: fixed;
@@ -3096,6 +3125,10 @@ body::before {
         left: 20px;
         width: 46px;
         height: 46px;
+    }
+    .kz-lang-toggle {
+        bottom: 72px;
+        left: 28px;
     }
     .kz-voice-toast {
         left: 12px;
