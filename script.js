@@ -772,69 +772,22 @@ document.querySelectorAll('.process-timeline-card').forEach(card => {
         musicNow.classList.remove('active');
     }
 
-    async function searchMusic(query) {
+    function searchMusic(query) {
         if (!query.trim()) return;
         openMusicPlayer();
-        musicFrame.innerHTML = '<div style="padding:40px;text-align:center;color:#888;font-size:0.85rem;">Searching...</div>';
+        const encoded = encodeURIComponent(query.trim());
+        const iframe = document.createElement('iframe');
+        iframe.src = 'https://www.youtube.com/results?search_query=' + encoded + '&igu=1';
+        iframe.allow = 'autoplay; encrypted-media; fullscreen';
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        musicFrame.innerHTML = '';
+        musicFrame.appendChild(iframe);
         musicFrame.classList.add('has-video');
         musicNowText.textContent = query.trim();
         musicNow.classList.add('active');
         musicInput.value = '';
-
-        const INVIDIOUS = [
-            'https://inv.nadeko.net',
-            'https://invidious.nerdvpn.de',
-            'https://invidious.jing.rocks',
-            'https://invidious.privacyredirect.com',
-            'https://iv.datura.network'
-        ];
-
-        const encoded = encodeURIComponent(query.trim());
-        let videoId = null;
-        let embedBase = null;
-
-        for (const instance of INVIDIOUS) {
-            try {
-                const res = await fetch(instance + '/api/v1/search?q=' + encoded + '&type=video', { signal: AbortSignal.timeout(5000) });
-                const data = await res.json();
-                if (Array.isArray(data) && data.length > 0 && data[0].videoId) {
-                    videoId = data[0].videoId;
-                    embedBase = instance;
-                    break;
-                }
-            } catch (e) { continue; }
-        }
-
-        if (!videoId) {
-            // Piped API fallback
-            const PIPED = ['https://pipedapi.kavin.rocks', 'https://pipedapi.adminforge.de'];
-            for (const api of PIPED) {
-                try {
-                    const res = await fetch(api + '/search?q=' + encoded + '&filter=videos', { signal: AbortSignal.timeout(5000) });
-                    const data = await res.json();
-                    const items = data.items || data;
-                    if (items && items.length > 0) {
-                        const url = items[0].url || '';
-                        videoId = url.replace('/watch?v=', '');
-                        embedBase = 'https://www.youtube.com';
-                        break;
-                    }
-                } catch (e) { continue; }
-            }
-        }
-
-        if (videoId) {
-            const iframe = document.createElement('iframe');
-            // Try YouTube embed first, fallback to Invidious embed
-            iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
-            iframe.allow = 'autoplay; encrypted-media';
-            iframe.allowFullscreen = true;
-            musicFrame.innerHTML = '';
-            musicFrame.appendChild(iframe);
-        } else {
-            // Final fallback: open YouTube search in new tab
-            musicFrame.innerHTML = '<div style="padding:20px;text-align:center;"><p style="color:#888;font-size:0.85rem;margin-bottom:12px;">API search unavailable</p><a href="https://www.youtube.com/results?search_query=' + encoded + '" target="_blank" style="color:#c8a84e;font-size:0.88rem;text-decoration:underline;">Open on YouTube</a></div>';
-        }
     }
 
     musicSearchBtn.addEventListener('click', () => searchMusic(musicInput.value));

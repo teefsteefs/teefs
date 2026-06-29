@@ -3040,7 +3040,7 @@ body::before {
     transition: height 0.3s var(--ease-out-expo);
 }
 
-.kz-music-frame.has-video { height: 200px; }
+.kz-music-frame.has-video { height: 320px; }
 
 .kz-music-frame iframe {
     width: 100%;
