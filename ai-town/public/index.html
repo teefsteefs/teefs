@@ -6,547 +6,139 @@
   <title>AI Town</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0b0b1e;
+      background: #0a0a1a;
       overflow: hidden;
       height: 100vh;
       color: #e0e0e0;
     }
-
     #app { display: flex; height: 100vh; }
+    #game-container { flex: 1; position: relative; }
+    canvas { display: block; }
 
-    #scene-container {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-      perspective: 1000px;
-      background: radial-gradient(ellipse at 50% 30%, #161640 0%, #0b0b1e 60%);
-    }
-
-    #world {
-      position: absolute;
-      width: 1000px;
-      height: 800px;
-      left: 50%;
-      top: 48%;
-      transform: translate(-50%, -50%) rotateX(50deg) rotateZ(-45deg);
-      transform-style: preserve-3d;
-    }
-
-    .floor {
-      position: absolute;
-      width: 1000px;
-      height: 800px;
-      background:
-        repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(100,120,255,0.04) 79px, rgba(100,120,255,0.04) 80px),
-        repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(100,120,255,0.04) 79px, rgba(100,120,255,0.04) 80px),
-        #0e0e24;
-      border-radius: 8px;
-    }
-
-    /* ===== 3D BUILDING ===== */
-    .bldg {
-      position: absolute;
-      transform-style: preserve-3d;
-      cursor: pointer;
-      width: var(--w);
-      height: var(--d);
-    }
-
-    .bldg:hover .wall-top { filter: brightness(1.2); }
-    .bldg.active .wall-top { filter: brightness(1.4); }
-
-    .wall-top {
-      position: absolute;
-      width: var(--w);
-      height: var(--d);
-      transform: translateZ(var(--h));
-      background: var(--c1);
-      border-radius: 3px;
-      transition: filter 0.3s;
-    }
-
-    .wall-front {
-      position: absolute;
-      width: var(--w);
-      height: var(--h);
-      bottom: 0;
-      transform-origin: bottom center;
-      transform: rotateX(-90deg);
-      background: var(--c2);
-    }
-
-    .wall-right {
-      position: absolute;
-      width: var(--h);
-      height: var(--d);
-      right: 0;
-      transform-origin: center right;
-      transform: rotateY(90deg);
-      background: var(--c3);
-    }
-
-    .wall-back {
-      position: absolute;
-      width: var(--w);
-      height: var(--h);
-      top: 0;
-      transform-origin: top center;
-      transform: rotateX(90deg);
-      background: var(--c2);
-      filter: brightness(0.7);
-    }
-
-    .wall-left {
-      position: absolute;
-      width: var(--h);
-      height: var(--d);
-      left: 0;
-      transform-origin: center left;
-      transform: rotateY(-90deg);
-      background: var(--c3);
-      filter: brightness(0.7);
-    }
-
-    /* Windows on front wall */
-    .win-row {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .win {
-      width: 16px;
-      height: 20px;
-      background: rgba(255, 230, 150, 0.85);
-      border-radius: 2px 2px 0 0;
-      box-shadow: 0 0 10px rgba(255, 230, 150, 0.4), inset 0 0 3px rgba(255,255,255,0.3);
-      position: relative;
-    }
-
-    .win::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      top: 0;
-      width: 1px;
-      height: 100%;
-      background: rgba(0,0,0,0.15);
-    }
-
-    .win.off {
-      background: rgba(40, 50, 80, 0.6);
-      box-shadow: none;
-    }
-
-    /* Door */
-    .door {
-      width: 18px;
-      height: 28px;
-      background: linear-gradient(180deg, rgba(255,230,150,0.6) 0%, rgba(180,140,80,0.8) 100%);
-      border-radius: 3px 3px 0 0;
-      margin: 8px auto 0;
-      position: relative;
-      box-shadow: 0 0 12px rgba(255,200,100,0.3);
-    }
-
-    .door::after {
-      content: '';
-      position: absolute;
-      right: 4px;
-      top: 50%;
-      width: 3px;
-      height: 3px;
-      border-radius: 50%;
-      background: #ffd700;
-    }
-
-    /* Side windows */
-    .side-wins {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding-top: 12px;
-    }
-
-    .side-win {
-      width: 20px;
-      height: 16px;
-      background: rgba(255, 230, 150, 0.75);
-      border-radius: 2px;
-      box-shadow: 0 0 8px rgba(255, 230, 150, 0.3);
-    }
-
-    /* Roof accent */
-    .roof-stripe {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: var(--accent);
-      border-radius: 0 0 3px 3px;
-    }
-
-    .wall-top .roof-stripe {
-      bottom: auto;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--c1);
-      border: 3px solid var(--accent);
-      border-radius: 3px;
-      box-sizing: border-box;
-    }
-
-    /* Roof icon */
-    .roof-icon {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) translateZ(2px);
-      font-size: 28px;
-      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
-    }
-
-    /* Label floating above building */
-    .bldg-label {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translateZ(calc(var(--h) + 30px)) rotateZ(45deg) rotateX(-50deg) translate(-50%, -50%);
-      text-align: center;
-      pointer-events: none;
-      white-space: nowrap;
-    }
-
-    .bldg-label .name {
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.9), 0 0 20px var(--accent);
-      letter-spacing: 0.5px;
-    }
-
-    .bldg-label .status {
-      font-size: 10px;
-      color: rgba(255,255,255,0.55);
-      text-shadow: 0 1px 6px rgba(0,0,0,0.8);
-      margin-top: 2px;
-    }
-
-    /* Ground glow under buildings */
-    .ground-glow {
-      position: absolute;
-      width: calc(var(--w) + 40px);
-      height: calc(var(--d) + 40px);
-      left: -20px;
-      top: -20px;
-      background: radial-gradient(ellipse, var(--accent) 0%, transparent 70%);
-      opacity: 0.08;
-      border-radius: 50%;
-      transform: translateZ(0.5px);
-    }
-
-    /* Player */
-    #player {
-      position: absolute;
-      transform-style: preserve-3d;
-      transition: left 0.8s ease-out, top 0.8s ease-out;
-      z-index: 10;
-    }
-
-    .player-shadow {
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.4);
-      filter: blur(4px);
-      transform: translateZ(0.5px);
-    }
-
-    .player-body {
-      position: absolute;
-      width: 14px;
-      height: 24px;
-      left: 2px;
-      background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
-      border-radius: 4px 4px 2px 2px;
-      transform: translateZ(12px);
-      box-shadow: 0 0 8px rgba(59,130,246,0.4);
-    }
-
-    .player-head {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      left: 1px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-      transform: translateZ(30px);
-      box-shadow: 0 0 12px rgba(251,191,36,0.4);
-    }
-
-    .player-name {
-      position: absolute;
-      left: 50%;
-      transform: translateZ(48px) rotateZ(45deg) rotateX(-50deg) translateX(-50%);
-      font-size: 11px;
-      color: #fbbf24;
-      font-weight: 700;
-      text-shadow: 0 1px 8px rgba(0,0,0,0.8);
-      white-space: nowrap;
-    }
-
-    /* HUD */
     #hud {
-      position: absolute;
-      top: 20px;
-      left: 24px;
-      z-index: 30;
+      position: absolute; top: 16px; left: 20px; z-index: 10;
+      pointer-events: none;
     }
-
     #hud h1 {
-      font-size: 26px;
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: 3px;
-      text-shadow: 0 2px 20px rgba(100,100,255,0.3);
+      font-size: 22px; font-weight: 800; color: #fff;
+      letter-spacing: 2px; text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+    }
+    #hud p {
+      font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px;
     }
 
-    #hud p {
-      font-size: 12px;
-      color: rgba(255,255,255,0.35);
-      margin-top: 4px;
+    #proximity-hint {
+      position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+      padding: 8px 20px; border-radius: 8px;
+      font-size: 13px; color: rgba(255,255,255,0.8); z-index: 10;
+      pointer-events: none; opacity: 0; transition: opacity 0.3s;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    #proximity-hint.show { opacity: 1; }
+
+    #minimap {
+      position: absolute; bottom: 16px; right: 16px; z-index: 10;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+      overflow: hidden; background: rgba(0,0,0,0.5);
     }
 
     #toolbar {
-      position: absolute;
-      bottom: 24px;
-      left: 24px;
-      z-index: 30;
+      position: absolute; bottom: 16px; left: 16px; z-index: 10;
+      display: flex; gap: 8px;
     }
-
     .tool-btn {
-      background: rgba(255,255,255,0.06);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 10px;
-      padding: 10px 20px;
-      color: rgba(255,255,255,0.7);
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
+      background: rgba(255,255,255,0.07); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+      padding: 8px 16px; color: rgba(255,255,255,0.7); font-size: 12px;
+      cursor: pointer; transition: all 0.2s;
     }
+    .tool-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
 
-    .tool-btn:hover {
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-    }
-
-    /* Stars */
-    .stars {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none;
-    }
-
-    .star {
-      position: absolute;
-      background: #fff;
-      border-radius: 50%;
-      animation: twinkle 4s ease-in-out infinite;
-    }
-
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.15; }
-      50% { opacity: 0.7; }
-    }
-
-    /* ===== CHAT PANEL ===== */
+    /* Chat panel */
     #chat-panel {
-      width: 0;
-      overflow: hidden;
-      background: #0d0d20;
-      border-left: 1px solid rgba(255,255,255,0.05);
-      display: flex;
-      flex-direction: column;
-      transition: width 0.3s ease;
-      z-index: 40;
+      width: 0; overflow: hidden;
+      background: #0c0c1e; border-left: 1px solid rgba(255,255,255,0.05);
+      display: flex; flex-direction: column;
+      transition: width 0.3s ease; z-index: 40;
     }
-
-    #chat-panel.open { width: 400px; }
+    #chat-panel.open { width: 380px; }
 
     .chat-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 400px;
+      padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex; align-items: center; gap: 10px; min-width: 380px;
     }
-
     .chat-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
+      width: 34px; height: 34px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
     }
-
-    .chat-header-info h3 { font-size: 15px; color: #fff; }
-    .chat-header-info p { font-size: 11px; color: rgba(255,255,255,0.35); }
-
+    .chat-header-info h3 { font-size: 14px; color: #fff; }
+    .chat-header-info p { font-size: 10px; color: rgba(255,255,255,0.35); }
     .chat-close {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: rgba(255,255,255,0.3);
-      font-size: 18px;
-      cursor: pointer;
-      padding: 4px 8px;
+      margin-left: auto; background: none; border: none;
+      color: rgba(255,255,255,0.3); font-size: 16px; cursor: pointer; padding: 4px 8px;
     }
-
     .chat-close:hover { color: #fff; }
 
     #chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      min-width: 400px;
+      flex: 1; overflow-y: auto; padding: 14px;
+      display: flex; flex-direction: column; gap: 8px; min-width: 380px;
     }
-
     .msg {
-      max-width: 85%;
-      padding: 10px 14px;
-      border-radius: 14px;
-      font-size: 13.5px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-      word-break: break-word;
+      max-width: 85%; padding: 9px 13px; border-radius: 12px;
+      font-size: 13px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
     }
+    .msg.user { align-self: flex-end; background: #3b82f6; color: #fff; border-bottom-right-radius: 3px; }
+    .msg.agent { align-self: flex-start; background: rgba(255,255,255,0.06); color: #ddd; border-bottom-left-radius: 3px; }
+    .msg.system { align-self: center; background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.3); font-size: 11px; }
+    .msg.meeting { align-self: center; max-width: 95%; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.15); color: #ddd; }
 
-    .msg.user {
-      align-self: flex-end;
-      background: #3b82f6;
-      color: #fff;
-      border-bottom-right-radius: 4px;
-    }
-
-    .msg.agent {
-      align-self: flex-start;
-      background: rgba(255,255,255,0.06);
-      color: #ddd;
-      border-bottom-left-radius: 4px;
-    }
-
-    .msg.system {
-      align-self: center;
-      background: rgba(255,255,255,0.03);
-      color: rgba(255,255,255,0.3);
-      font-size: 12px;
-    }
-
-    .msg.meeting {
-      align-self: center;
-      max-width: 95%;
-      background: rgba(139,92,246,0.08);
-      border: 1px solid rgba(139,92,246,0.15);
-      color: #ddd;
-    }
-
-    .typing { display: flex; gap: 4px; padding: 10px 14px; align-self: flex-start; }
-    .typing span {
-      width: 5px; height: 5px; border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-      animation: bounce 1.4s infinite;
-    }
+    .typing { display: flex; gap: 4px; padding: 9px 13px; align-self: flex-start; }
+    .typing span { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.3); animation: bounce 1.4s infinite; }
     .typing span:nth-child(2) { animation-delay: 0.2s; }
     .typing span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+    @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
 
     #chat-input-area {
-      padding: 12px 16px;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      display: flex;
-      gap: 8px;
-      min-width: 400px;
+      padding: 10px 14px; border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex; gap: 8px; min-width: 380px;
     }
-
     #chat-input {
-      flex: 1;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 10px;
-      padding: 10px 14px;
-      color: #fff;
-      font-size: 13.5px;
-      outline: none;
+      flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px; padding: 9px 12px; color: #fff; font-size: 13px; outline: none;
     }
-
     #chat-input:focus { border-color: rgba(255,255,255,0.15); }
     #chat-input::placeholder { color: rgba(255,255,255,0.2); }
-
     #send-btn {
-      background: #3b82f6;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 16px;
-      color: #fff;
-      font-size: 13px;
-      cursor: pointer;
+      background: #3b82f6; border: none; border-radius: 8px;
+      padding: 9px 14px; color: #fff; font-size: 12px; cursor: pointer;
     }
-
     #send-btn:hover { background: #2563eb; }
     #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
     /* Meeting modal */
     #meeting-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center;
     }
-
     #meeting-modal.show { display: flex; }
-
     .modal {
-      background: rgba(16,16,34,0.97);
-      backdrop-filter: blur(20px);
-      border-radius: 16px;
-      padding: 28px;
-      width: 360px;
-      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(14,14,30,0.97); backdrop-filter: blur(20px);
+      border-radius: 14px; padding: 24px; width: 340px; border: 1px solid rgba(255,255,255,0.06);
     }
-
-    .modal h3 { color: #fff; margin-bottom: 18px; }
-    .modal label { display: block; color: rgba(255,255,255,0.4); font-size: 12px; margin-bottom: 6px; }
-
+    .modal h3 { color: #fff; margin-bottom: 16px; font-size: 16px; }
+    .modal label { display: block; color: rgba(255,255,255,0.4); font-size: 11px; margin-bottom: 5px; }
     .modal select, .modal input[type="text"] {
-      width: 100%; padding: 10px 12px; margin-bottom: 14px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px; color: #fff; font-size: 13px; outline: none;
+      width: 100%; padding: 9px 11px; margin-bottom: 12px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 7px; color: #fff; font-size: 13px; outline: none;
     }
-
-    .modal select option { background: #101022; }
-    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
-    .modal-actions button { padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; }
+    .modal select option { background: #0e0e1e; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+    .modal-actions button { padding: 8px 16px; border-radius: 7px; border: none; cursor: pointer; font-size: 12px; }
     .btn-cancel { background: rgba(255,255,255,0.06); color: #ccc; }
     .btn-primary { background: #7c3aed; color: #fff; }
     .btn-primary:hover { background: #6d28d9; }
@@ -556,307 +148,663 @@
   </style>
 </head>
 <body>
-  <div id="app">
-    <div id="scene-container">
-      <div class="stars" id="stars"></div>
-      <div id="world">
-        <div class="floor"></div>
-        <div id="buildings"></div>
-        <div id="player">
-          <div class="player-shadow"></div>
-          <div class="player-body"></div>
-          <div class="player-head"></div>
-          <div class="player-name">You</div>
-        </div>
-      </div>
+<div id="app">
+  <div id="game-container">
+    <canvas id="game"></canvas>
+    <canvas id="minimap" width="160" height="120"></canvas>
 
-      <div id="hud">
-        <h1>AI TOWN</h1>
-        <p>Click a building to enter &bull; Each department is an AI agent</p>
-      </div>
-
-      <div id="toolbar">
-        <button class="tool-btn" id="meeting-btn">🤝 Schedule Meeting</button>
-      </div>
+    <div id="hud">
+      <h1>AI TOWN</h1>
+      <p>Arrow keys to move &bull; Enter to chat &bull; Space near a building to enter</p>
     </div>
 
-    <div id="chat-panel">
-      <div class="chat-header">
-        <div class="chat-icon" id="chat-icon"></div>
-        <div class="chat-header-info">
-          <h3 id="chat-name"></h3>
-          <p id="chat-status"></p>
-        </div>
-        <button class="chat-close" onclick="closeChat()">✕</button>
-      </div>
-      <div id="chat-messages"></div>
-      <div id="chat-input-area">
-        <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
-        <button id="send-btn" onclick="sendMessage()">Send</button>
-      </div>
+    <div id="proximity-hint"></div>
+
+    <div id="toolbar">
+      <button class="tool-btn" id="meeting-btn">🤝 Meeting</button>
     </div>
   </div>
 
-  <div id="meeting-modal">
-    <div class="modal">
-      <h3>🤝 Schedule a Meeting</h3>
-      <label>Department 1</label>
-      <select id="meet-from"></select>
-      <label>Department 2</label>
-      <select id="meet-to"></select>
-      <label>Topic</label>
-      <input type="text" id="meet-topic" placeholder="e.g. Product launch strategy">
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeMeetingModal()">Cancel</button>
-        <button class="btn-primary" onclick="startMeeting()">Start</button>
+  <div id="chat-panel">
+    <div class="chat-header">
+      <div class="chat-icon" id="chat-icon"></div>
+      <div class="chat-header-info">
+        <h3 id="chat-name"></h3>
+        <p id="chat-status"></p>
       </div>
+      <button class="chat-close" onclick="closeChat()">✕</button>
+    </div>
+    <div id="chat-messages"></div>
+    <div id="chat-input-area">
+      <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+      <button id="send-btn" onclick="sendMessage()">Send</button>
     </div>
   </div>
+</div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-    let departments = {};
-    let currentDept = null;
-    let chatHistories = {};
+<div id="meeting-modal">
+  <div class="modal">
+    <h3>🤝 Schedule a Meeting</h3>
+    <label>Department 1</label><select id="meet-from"></select>
+    <label>Department 2</label><select id="meet-to"></select>
+    <label>Topic</label><input type="text" id="meet-topic" placeholder="e.g. Product launch strategy">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeMeetingModal()">Cancel</button>
+      <button class="btn-primary" onclick="startMeeting()">Start</button>
+    </div>
+  </div>
+</div>
 
-    const layout = {
-      ceo:         { left: 420, top: 80,  w: 140, d: 120, h: 130 },
-      engineering: { left: 100, top: 250, w: 130, d: 110, h: 100 },
-      marketing:   { left: 700, top: 200, w: 130, d: 110, h: 90 },
-      design:      { left: 100, top: 500, w: 120, d: 100, h: 80 },
-      data:        { left: 700, top: 450, w: 130, d: 110, h: 100 },
-      hr:          { left: 420, top: 580, w: 120, d: 100, h: 80 },
-    };
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const miniCanvas = document.getElementById('minimap');
+const miniCtx = miniCanvas.getContext('2d');
 
-    const deptMeta = {
-      ceo:         { icon: '👔', winRows: 3 },
-      engineering: { icon: '💻', winRows: 2 },
-      marketing:   { icon: '📢', winRows: 2 },
-      design:      { icon: '🎨', winRows: 2 },
-      data:        { icon: '📊', winRows: 2 },
-      hr:          { icon: '🤝', winRows: 2 },
-    };
+let W, H;
+function resize() {
+  const container = document.getElementById('game-container');
+  W = container.clientWidth;
+  H = container.clientHeight;
+  canvas.width = W;
+  canvas.height = H;
+}
+resize();
+window.addEventListener('resize', resize);
 
-    function darken(hex, factor) {
-      const r = Math.round(parseInt(hex.slice(1,3),16) * factor);
-      const g = Math.round(parseInt(hex.slice(3,5),16) * factor);
-      const b = Math.round(parseInt(hex.slice(5,7),16) * factor);
-      return `rgb(${r},${g},${b})`;
-    }
+// Isometric helpers
+function toIso(x, y) {
+  return {
+    sx: (x - y) * 0.5,
+    sy: (x + y) * 0.25
+  };
+}
 
-    function makeWindows(count, hasOff) {
-      let html = '';
-      for (let i = 0; i < count; i++) {
-        const off = hasOff && Math.random() > 0.7 ? ' off' : '';
-        html += `<div class="win${off}"></div>`;
+// Camera
+const cam = { x: 0, y: 0 };
+
+function worldToScreen(wx, wy) {
+  const iso = toIso(wx, wy);
+  return {
+    sx: iso.sx - cam.x + W / 2,
+    sy: iso.sy - cam.y + H / 2
+  };
+}
+
+// Departments
+let departments = {};
+let currentDept = null;
+let chatHistories = {};
+let nearbyDept = null;
+
+const deptLayout = {
+  ceo:         { wx: 0,    wy: 0,    bw: 160, bd: 140, bh: 110, icon: '👔', floors: 4 },
+  engineering: { wx: -300, wy: 100,  bw: 150, bd: 130, bh: 90,  icon: '💻', floors: 3 },
+  marketing:   { wx: 300,  wy: 100,  bw: 140, bd: 120, bh: 80,  icon: '📢', floors: 3 },
+  design:      { wx: -300, wy: -200, bw: 130, bd: 110, bh: 70,  icon: '🎨', floors: 2 },
+  data:        { wx: 300,  wy: -200, bw: 140, bd: 120, bh: 85,  icon: '📊', floors: 3 },
+  hr:          { wx: 0,    wy: -350, bw: 130, bd: 110, bh: 65,  icon: '🤝', floors: 2 },
+};
+
+// Player
+const player = { wx: 0, wy: 200, speed: 3 };
+const keys = {};
+
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if (e.key === ' ' && nearbyDept) {
+    e.preventDefault();
+    openChat(nearbyDept);
+  }
+  if (e.key === 'Enter' && currentDept) {
+    e.preventDefault();
+    document.getElementById('chat-input').focus();
+  }
+  if (e.key === 'Escape' && currentDept) {
+    closeChat();
+  }
+});
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// Stars
+const stars = [];
+for (let i = 0; i < 120; i++) {
+  stars.push({
+    x: Math.random() * 3000 - 1500,
+    y: Math.random() * 2000 - 1000,
+    size: Math.random() * 1.5 + 0.5,
+    twinkle: Math.random() * Math.PI * 2,
+    speed: Math.random() * 0.02 + 0.005
+  });
+}
+
+// Draw isometric building
+function drawBuilding(ctx, dept, layout, screenX, screenY, scale) {
+  const { bw, bd, bh, icon, floors } = layout;
+  const w = bw * scale;
+  const d = bd * scale;
+  const h = bh * scale;
+  const color = dept.color;
+
+  const r = parseInt(color.slice(1,3),16);
+  const g = parseInt(color.slice(3,5),16);
+  const b = parseInt(color.slice(5,7),16);
+
+  const halfW = w * 0.5;
+  const halfD = d * 0.25;
+  const isoW = halfW;
+  const isoD = d * 0.25;
+
+  // Left wall
+  ctx.beginPath();
+  ctx.moveTo(screenX - isoW, screenY);
+  ctx.lineTo(screenX, screenY + isoD);
+  ctx.lineTo(screenX, screenY + isoD - h);
+  ctx.lineTo(screenX - isoW, screenY - h);
+  ctx.closePath();
+  ctx.fillStyle = `rgb(${Math.floor(r*0.45)},${Math.floor(g*0.45)},${Math.floor(b*0.45)})`;
+  ctx.fill();
+  ctx.strokeStyle = `rgba(${r},${g},${b},0.3)`;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Right wall
+  ctx.beginPath();
+  ctx.moveTo(screenX + isoW, screenY);
+  ctx.lineTo(screenX, screenY + isoD);
+  ctx.lineTo(screenX, screenY + isoD - h);
+  ctx.lineTo(screenX + isoW, screenY - h);
+  ctx.closePath();
+  ctx.fillStyle = `rgb(${Math.floor(r*0.35)},${Math.floor(g*0.35)},${Math.floor(b*0.35)})`;
+  ctx.fill();
+  ctx.strokeStyle = `rgba(${r},${g},${b},0.3)`;
+  ctx.stroke();
+
+  // Roof
+  ctx.beginPath();
+  ctx.moveTo(screenX, screenY - isoD - h);
+  ctx.lineTo(screenX + isoW, screenY - h);
+  ctx.lineTo(screenX, screenY + isoD - h);
+  ctx.lineTo(screenX - isoW, screenY - h);
+  ctx.closePath();
+  ctx.fillStyle = `rgb(${Math.floor(r*0.65)},${Math.floor(g*0.65)},${Math.floor(b*0.65)})`;
+  ctx.fill();
+  ctx.strokeStyle = `rgba(${r},${g},${b},0.5)`;
+  ctx.stroke();
+
+  // Roof accent line
+  ctx.beginPath();
+  ctx.moveTo(screenX, screenY - isoD - h);
+  ctx.lineTo(screenX + isoW, screenY - h);
+  ctx.lineTo(screenX, screenY + isoD - h);
+  ctx.lineTo(screenX - isoW, screenY - h);
+  ctx.closePath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.lineWidth = 1;
+
+  if (scale < 0.5) return;
+
+  // Windows on left wall
+  const winRows = floors;
+  const winCols = 3;
+  for (let row = 0; row < winRows; row++) {
+    for (let col = 0; col < winCols; col++) {
+      const fy = (row + 0.5) / winRows;
+      const fx = (col + 0.5) / (winCols + 0.5);
+      const wy = screenY + isoD - h + h * fy * 0.85 + h * 0.05;
+      const baseX = screenX - isoW + isoW * fx;
+      const shiftY = isoD * fx;
+      const winW = isoW / (winCols + 1) * 0.5;
+      const winH = h / winRows * 0.4;
+
+      const lit = Math.sin(row * 3 + col * 7 + Date.now() * 0.001) > -0.3;
+      ctx.fillStyle = lit ? 'rgba(255,230,150,0.8)' : 'rgba(30,30,60,0.5)';
+      ctx.fillRect(baseX - winW/2, wy + shiftY - winH/2, winW, winH);
+      if (lit) {
+        ctx.shadowColor = 'rgba(255,230,150,0.4)';
+        ctx.shadowBlur = 6;
+        ctx.fillRect(baseX - winW/2, wy + shiftY - winH/2, winW, winH);
+        ctx.shadowBlur = 0;
       }
-      return html;
     }
+  }
 
-    function renderBuildings() {
-      const container = document.getElementById('buildings');
-      container.innerHTML = '';
+  // Windows on right wall
+  for (let row = 0; row < winRows; row++) {
+    for (let col = 0; col < winCols; col++) {
+      const fy = (row + 0.5) / winRows;
+      const fx = (col + 0.5) / (winCols + 0.5);
+      const wy = screenY + isoD - h + h * fy * 0.85 + h * 0.05;
+      const baseX = screenX + isoW * (1 - fx);
+      const shiftY = isoD * (1 - fx);
+      const winW = isoW / (winCols + 1) * 0.5;
+      const winH = h / winRows * 0.4;
 
-      for (const [id, dept] of Object.entries(departments)) {
-        const L = layout[id];
-        const M = deptMeta[id];
-        if (!L || !M) continue;
-
-        const c1 = darken(dept.color, 0.65);
-        const c2 = darken(dept.color, 0.50);
-        const c3 = darken(dept.color, 0.40);
-
-        let frontHTML = '';
-        for (let r = 0; r < M.winRows; r++) {
-          frontHTML += `<div class="win-row">${makeWindows(4, true)}</div>`;
-        }
-        frontHTML += `<div class="door"></div>`;
-
-        const sideWinCount = M.winRows;
-        let sideHTML = '<div class="side-wins">';
-        for (let r = 0; r < sideWinCount; r++) {
-          sideHTML += `<div class="side-win"></div>`;
-        }
-        sideHTML += '</div>';
-
-        const el = document.createElement('div');
-        el.className = 'bldg';
-        el.dataset.dept = id;
-        el.style.cssText = `left:${L.left}px;top:${L.top}px;--w:${L.w}px;--d:${L.d}px;--h:${L.h}px;--c1:${c1};--c2:${c2};--c3:${c3};--accent:${dept.color};`;
-
-        el.innerHTML = `
-          <div class="ground-glow"></div>
-          <div class="wall-top">
-            <div class="roof-stripe"></div>
-            <span class="roof-icon">${M.icon}</span>
-          </div>
-          <div class="wall-front">${frontHTML}<div class="roof-stripe" style="top:0;bottom:auto;background:${dept.color}"></div></div>
-          <div class="wall-back"><div class="roof-stripe" style="top:0;bottom:auto;background:${dept.color}"></div></div>
-          <div class="wall-right">${sideHTML}<div class="roof-stripe" style="position:absolute;top:0;left:0;width:100%;height:4px;background:${dept.color};border-radius:0"></div></div>
-          <div class="wall-left"><div class="roof-stripe" style="position:absolute;top:0;left:0;width:100%;height:4px;background:${dept.color};border-radius:0"></div></div>
-          <div class="bldg-label">
-            <div class="name">${dept.name}</div>
-            <div class="status" id="status-${id}">${dept.status}</div>
-          </div>
-        `;
-
-        el.addEventListener('click', () => {
-          movePlayer(L.left + L.w / 2 - 9, L.top + L.d + 20);
-          document.querySelectorAll('.bldg').forEach(b => b.classList.remove('active'));
-          el.classList.add('active');
-          setTimeout(() => openChat(id), 500);
-        });
-
-        container.appendChild(el);
+      const lit = Math.sin(row * 5 + col * 11 + Date.now() * 0.0008) > -0.2;
+      ctx.fillStyle = lit ? 'rgba(255,220,130,0.7)' : 'rgba(25,25,50,0.5)';
+      ctx.fillRect(baseX - winW/2, wy + shiftY - winH/2, winW, winH);
+      if (lit) {
+        ctx.shadowColor = 'rgba(255,220,130,0.3)';
+        ctx.shadowBlur = 4;
+        ctx.fillRect(baseX - winW/2, wy + shiftY - winH/2, winW, winH);
+        ctx.shadowBlur = 0;
       }
     }
+  }
 
-    function movePlayer(x, y) {
-      const p = document.getElementById('player');
-      p.style.left = x + 'px';
-      p.style.top = y + 'px';
+  // Door on front (left wall bottom)
+  const doorW = isoW * 0.12;
+  const doorH = h * 0.22;
+  const doorX = screenX - isoW * 0.5;
+  const doorShiftY = isoD * 0.5;
+  const doorY = screenY + doorShiftY - doorH * 0.2;
+  ctx.fillStyle = 'rgba(255,230,150,0.5)';
+  ctx.fillRect(doorX - doorW/2, doorY - doorH, doorW, doorH);
+  ctx.shadowColor = 'rgba(255,200,100,0.4)';
+  ctx.shadowBlur = 8;
+  ctx.fillRect(doorX - doorW/2, doorY - doorH, doorW, doorH);
+  ctx.shadowBlur = 0;
+
+  // Ground glow
+  ctx.save();
+  const grd = ctx.createRadialGradient(screenX, screenY + isoD * 0.5, 0, screenX, screenY + isoD * 0.5, isoW * 1.2);
+  grd.addColorStop(0, `rgba(${r},${g},${b},0.12)`);
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.fillRect(screenX - isoW * 1.5, screenY - isoD * 2, isoW * 3, isoD * 5);
+  ctx.restore();
+}
+
+// Draw player
+function drawPlayer(ctx, sx, sy) {
+  // Shadow
+  ctx.beginPath();
+  ctx.ellipse(sx, sy + 4, 10, 5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fill();
+
+  // Body
+  ctx.beginPath();
+  ctx.roundRect(sx - 6, sy - 22, 12, 18, 3);
+  ctx.fillStyle = '#3b82f6';
+  ctx.fill();
+  ctx.strokeStyle = '#2563eb';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Head
+  ctx.beginPath();
+  ctx.arc(sx, sy - 28, 7, 0, Math.PI * 2);
+  ctx.fillStyle = '#fbbf24';
+  ctx.fill();
+  ctx.strokeStyle = '#f59e0b';
+  ctx.stroke();
+
+  // Eyes
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(sx - 3, sy - 30, 2, 2);
+  ctx.fillRect(sx + 1, sy - 30, 2, 2);
+
+  // Name tag
+  ctx.font = '10px "Segoe UI", sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.textAlign = 'center';
+  ctx.fillText('You', sx, sy - 40);
+}
+
+// Draw ground grid
+function drawGround(ctx) {
+  const gridSize = 80;
+  const range = 10;
+
+  for (let i = -range; i <= range; i++) {
+    const x1 = i * gridSize;
+    const p1 = worldToScreen(x1, -range * gridSize);
+    const p2 = worldToScreen(x1, range * gridSize);
+    ctx.beginPath();
+    ctx.moveTo(p1.sx, p1.sy);
+    ctx.lineTo(p2.sx, p2.sy);
+    ctx.strokeStyle = 'rgba(80,100,200,0.06)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    const p3 = worldToScreen(-range * gridSize, x1);
+    const p4 = worldToScreen(range * gridSize, x1);
+    ctx.beginPath();
+    ctx.moveTo(p3.sx, p3.sy);
+    ctx.lineTo(p4.sx, p4.sy);
+    ctx.stroke();
+  }
+}
+
+// Draw label
+function drawLabel(ctx, text, status, sx, sy, color) {
+  ctx.font = 'bold 13px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#fff';
+  ctx.shadowColor = 'rgba(0,0,0,0.8)';
+  ctx.shadowBlur = 6;
+  ctx.fillText(text, sx, sy);
+  ctx.shadowBlur = 0;
+
+  ctx.font = '10px "Segoe UI", sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.fillText(status, sx, sy + 14);
+
+  // Dot
+  ctx.beginPath();
+  ctx.arc(sx - ctx.measureText(text).width / 2 - 8, sy - 4, 3, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 6;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// Main loop
+let time = 0;
+function gameLoop() {
+  requestAnimationFrame(gameLoop);
+  time += 0.016;
+
+  // Input
+  const chatOpen = document.getElementById('chat-panel').classList.contains('open');
+  const chatFocused = document.activeElement === document.getElementById('chat-input');
+
+  if (!chatFocused) {
+    let dx = 0, dy = 0;
+    if (keys['ArrowUp'] || keys['w'] || keys['W']) { dx -= player.speed; dy -= player.speed; }
+    if (keys['ArrowDown'] || keys['s'] || keys['S']) { dx += player.speed; dy += player.speed; }
+    if (keys['ArrowLeft'] || keys['a'] || keys['A']) { dx -= player.speed; dy += player.speed; }
+    if (keys['ArrowRight'] || keys['d'] || keys['D']) { dx += player.speed; dy -= player.speed; }
+    if (dx !== 0 && dy !== 0) { dx *= 0.707; dy *= 0.707; }
+    player.wx += dx;
+    player.wy += dy;
+  }
+
+  // Camera follow
+  const pIso = toIso(player.wx, player.wy);
+  cam.x += (pIso.sx - cam.x) * 0.08;
+  cam.y += (pIso.sy - cam.y) * 0.08;
+
+  // Check proximity
+  nearbyDept = null;
+  let nearestDist = 150;
+  for (const [id, layout] of Object.entries(deptLayout)) {
+    const dist = Math.hypot(player.wx - layout.wx, player.wy - layout.wy);
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearbyDept = id;
     }
+  }
 
-    function initStars() {
-      const c = document.getElementById('stars');
-      for (let i = 0; i < 60; i++) {
-        const s = document.createElement('div');
-        s.className = 'star';
-        s.style.left = Math.random() * 100 + '%';
-        s.style.top = Math.random() * 55 + '%';
-        s.style.width = s.style.height = (Math.random() * 2 + 0.5) + 'px';
-        s.style.animationDelay = (Math.random() * 4) + 's';
-        c.appendChild(s);
+  const hint = document.getElementById('proximity-hint');
+  if (nearbyDept && !currentDept) {
+    hint.textContent = `Press SPACE to enter ${departments[nearbyDept]?.name || nearbyDept}`;
+    hint.classList.add('show');
+  } else {
+    hint.classList.remove('show');
+  }
+
+  // Clear
+  ctx.fillStyle = '#0a0a1a';
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars
+  for (const star of stars) {
+    const sp = worldToScreen(star.x, star.y);
+    const alpha = 0.15 + 0.35 * Math.sin(time * star.speed * 60 + star.twinkle);
+    ctx.beginPath();
+    ctx.arc(sp.sx, sp.sy - 400, star.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fill();
+  }
+
+  // Ground
+  drawGround(ctx);
+
+  // Collect drawable objects and sort by depth
+  const drawables = [];
+
+  for (const [id, layout] of Object.entries(deptLayout)) {
+    const dept = departments[id];
+    if (!dept) continue;
+    drawables.push({
+      type: 'building',
+      id, dept, layout,
+      wy: layout.wy,
+      wx: layout.wx,
+      depth: layout.wx + layout.wy
+    });
+  }
+
+  drawables.push({
+    type: 'player',
+    depth: player.wx + player.wy
+  });
+
+  drawables.sort((a, b) => a.depth - b.depth);
+
+  for (const obj of drawables) {
+    if (obj.type === 'building') {
+      const sp = worldToScreen(obj.layout.wx, obj.layout.wy);
+      const isActive = currentDept === obj.id;
+      const isNear = nearbyDept === obj.id;
+
+      drawBuilding(ctx, obj.dept, obj.layout, sp.sx, sp.sy, 1);
+
+      // Active/near highlight
+      if (isActive || isNear) {
+        ctx.save();
+        const r = parseInt(obj.dept.color.slice(1,3),16);
+        const g = parseInt(obj.dept.color.slice(3,5),16);
+        const b = parseInt(obj.dept.color.slice(5,7),16);
+        const isoW = obj.layout.bw * 0.5;
+        const isoD = obj.layout.bd * 0.25;
+        ctx.beginPath();
+        ctx.moveTo(sp.sx, sp.sy - isoD);
+        ctx.lineTo(sp.sx + isoW, sp.sy);
+        ctx.lineTo(sp.sx, sp.sy + isoD);
+        ctx.lineTo(sp.sx - isoW, sp.sy);
+        ctx.closePath();
+        ctx.strokeStyle = isActive ? `rgba(${r},${g},${b},0.8)` : `rgba(${r},${g},${b},0.4)`;
+        ctx.lineWidth = isActive ? 2.5 : 1.5;
+        ctx.setLineDash(isActive ? [] : [6, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.lineWidth = 1;
+        ctx.restore();
       }
+
+      // Label above building
+      const labelY = sp.sy - obj.layout.bh - obj.layout.bd * 0.25 - 20;
+      drawLabel(ctx, obj.dept.name, obj.dept.status, sp.sx, labelY, obj.dept.color);
+
+    } else if (obj.type === 'player') {
+      const pp = worldToScreen(player.wx, player.wy);
+      drawPlayer(ctx, pp.sx, pp.sy);
     }
+  }
 
-    // Socket events
-    socket.on('init', (data) => {
-      departments = data.departments;
-      renderBuildings();
-      populateMeetingSelects();
-      movePlayer(470, 380);
-    });
+  // Minimap
+  miniCtx.fillStyle = 'rgba(10,10,30,0.9)';
+  miniCtx.fillRect(0, 0, 160, 120);
 
-    socket.on('agent-status', ({ id, status }) => {
-      if (departments[id]) {
-        departments[id].status = status;
-        const el = document.getElementById('status-' + id);
-        if (el) el.textContent = status;
-        if (currentDept === id) document.getElementById('chat-status').textContent = status;
-      }
-    });
+  const miniScale = 0.15;
+  const miniCX = 80, miniCY = 60;
 
-    socket.on('chat-reply', ({ departmentId, message }) => {
-      if (!chatHistories[departmentId]) chatHistories[departmentId] = [];
-      chatHistories[departmentId].push({ role: 'agent', content: message });
-      if (currentDept === departmentId) { removeTyping(); addMsg('agent', message); }
-      document.getElementById('send-btn').disabled = false;
-    });
+  for (const [id, layout] of Object.entries(deptLayout)) {
+    const dept = departments[id];
+    if (!dept) continue;
+    const iso = toIso(layout.wx, layout.wy);
+    const mx = miniCX + iso.sx * miniScale;
+    const my = miniCY + iso.sy * miniScale;
+    miniCtx.beginPath();
+    miniCtx.arc(mx, my, 4, 0, Math.PI * 2);
+    miniCtx.fillStyle = dept.color;
+    miniCtx.fill();
 
-    socket.on('meeting-result', ({ from, to, topic, conversation }) => {
-      if (!currentDept) return;
-      if (!chatHistories[currentDept]) chatHistories[currentDept] = [];
-      const header = `📋 Meeting: ${departments[from].name} × ${departments[to].name}\n📌 Topic: ${topic}\n\n`;
-      chatHistories[currentDept].push({ role: 'meeting', content: header + conversation });
-      removeTyping();
-      addMsg('meeting', header + conversation);
-      closeMeetingModal();
-    });
+    miniCtx.font = '7px sans-serif';
+    miniCtx.fillStyle = 'rgba(255,255,255,0.5)';
+    miniCtx.textAlign = 'center';
+    miniCtx.fillText(dept.name.split(' ')[0], mx, my + 10);
+  }
 
-    // Chat
-    function openChat(id) {
-      currentDept = id;
-      const dept = departments[id];
-      const icon = document.getElementById('chat-icon');
-      icon.textContent = deptMeta[id].icon;
-      icon.style.background = dept.color + '22';
-      document.getElementById('chat-name').textContent = dept.name;
-      document.getElementById('chat-status').textContent = dept.status;
-      document.getElementById('chat-panel').classList.add('open');
-      const el = document.getElementById('chat-messages');
-      el.innerHTML = '';
-      addMsg('system', `You entered ${dept.name}`);
-      if (chatHistories[id]) chatHistories[id].forEach(m => addMsg(m.role, m.content));
-      document.getElementById('chat-input').focus();
+  // Player on minimap
+  const pMini = toIso(player.wx, player.wy);
+  miniCtx.beginPath();
+  miniCtx.arc(miniCX + pMini.sx * miniScale, miniCY + pMini.sy * miniScale, 3, 0, Math.PI * 2);
+  miniCtx.fillStyle = '#fbbf24';
+  miniCtx.fill();
+  miniCtx.strokeStyle = '#fff';
+  miniCtx.lineWidth = 1;
+  miniCtx.stroke();
+}
+
+// Socket events
+socket.on('init', (data) => {
+  departments = data.departments;
+  populateMeetingSelects();
+  gameLoop();
+});
+
+socket.on('agent-status', ({ id, status }) => {
+  if (departments[id]) {
+    departments[id].status = status;
+    if (currentDept === id) document.getElementById('chat-status').textContent = status;
+  }
+});
+
+socket.on('chat-reply', ({ departmentId, message }) => {
+  if (!chatHistories[departmentId]) chatHistories[departmentId] = [];
+  chatHistories[departmentId].push({ role: 'agent', content: message });
+  if (currentDept === departmentId) { removeTyping(); addMsg('agent', message); }
+  document.getElementById('send-btn').disabled = false;
+});
+
+socket.on('meeting-result', ({ from, to, topic, conversation }) => {
+  if (!currentDept) return;
+  if (!chatHistories[currentDept]) chatHistories[currentDept] = [];
+  const header = `📋 ${departments[from].name} × ${departments[to].name}\n📌 ${topic}\n\n`;
+  chatHistories[currentDept].push({ role: 'meeting', content: header + conversation });
+  removeTyping(); addMsg('meeting', header + conversation);
+  closeMeetingModal();
+});
+
+// Chat functions
+function openChat(id) {
+  currentDept = id;
+  const dept = departments[id];
+  const meta = deptLayout[id];
+  const icon = document.getElementById('chat-icon');
+  icon.textContent = meta.icon;
+  icon.style.background = dept.color + '22';
+  document.getElementById('chat-name').textContent = dept.name;
+  document.getElementById('chat-status').textContent = dept.status;
+  document.getElementById('chat-panel').classList.add('open');
+  document.getElementById('chat-messages').innerHTML = '';
+  addMsg('system', `You entered ${dept.name}`);
+  if (chatHistories[id]) chatHistories[id].forEach(m => addMsg(m.role, m.content));
+  setTimeout(resize, 350);
+}
+
+function closeChat() {
+  document.getElementById('chat-panel').classList.remove('open');
+  currentDept = null;
+  setTimeout(resize, 350);
+  canvas.focus();
+}
+
+function addMsg(role, text) {
+  const el = document.getElementById('chat-messages');
+  const d = document.createElement('div');
+  d.className = 'msg ' + role; d.textContent = text;
+  el.appendChild(d); el.scrollTop = el.scrollHeight;
+}
+
+function addTyping() {
+  const el = document.getElementById('chat-messages');
+  const d = document.createElement('div');
+  d.className = 'typing'; d.id = 'typing-ind';
+  d.innerHTML = '<span></span><span></span><span></span>';
+  el.appendChild(d); el.scrollTop = el.scrollHeight;
+}
+
+function removeTyping() { const e = document.getElementById('typing-ind'); if (e) e.remove(); }
+
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg || !currentDept) return;
+  if (!chatHistories[currentDept]) chatHistories[currentDept] = [];
+  chatHistories[currentDept].push({ role: 'user', content: msg });
+  addMsg('user', msg); addTyping();
+  document.getElementById('send-btn').disabled = true;
+  socket.emit('chat', { departmentId: currentDept, message: msg });
+  input.value = '';
+}
+
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  e.stopPropagation();
+  if (e.key === 'Enter') sendMessage();
+  if (e.key === 'Escape') { closeChat(); }
+});
+
+// Meeting
+document.getElementById('meeting-btn').addEventListener('click', () => {
+  document.getElementById('meeting-modal').classList.add('show');
+});
+
+function closeMeetingModal() { document.getElementById('meeting-modal').classList.remove('show'); }
+
+function populateMeetingSelects() {
+  const f = document.getElementById('meet-from'), t = document.getElementById('meet-to');
+  f.innerHTML = ''; t.innerHTML = '';
+  for (const [id, dept] of Object.entries(departments)) {
+    f.innerHTML += `<option value="${id}">${dept.name}</option>`;
+    t.innerHTML += `<option value="${id}">${dept.name}</option>`;
+  }
+  if (t.options.length > 1) t.selectedIndex = 1;
+}
+
+function startMeeting() {
+  const from = document.getElementById('meet-from').value;
+  const to = document.getElementById('meet-to').value;
+  const topic = document.getElementById('meet-topic').value.trim();
+  if (from === to) { alert('Pick two different departments!'); return; }
+  if (!topic) { alert('Enter a meeting topic!'); return; }
+  if (!currentDept) openChat(from);
+  addMsg('system', '🤝 Meeting in progress...'); addTyping();
+  socket.emit('agent-meeting', { from, to, topic });
+}
+
+document.getElementById('meeting-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeMeetingModal();
+});
+
+// Click on canvas to move
+canvas.addEventListener('click', (e) => {
+  if (currentDept) return;
+  const rect = canvas.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const clickY = e.clientY - rect.top;
+
+  // Check if clicked on a building
+  for (const [id, layout] of Object.entries(deptLayout)) {
+    const sp = worldToScreen(layout.wx, layout.wy);
+    const dist = Math.hypot(clickX - sp.sx, clickY - sp.sy);
+    if (dist < 80) {
+      player.wx = layout.wx;
+      player.wy = layout.wy + 80;
+      setTimeout(() => openChat(id), 300);
+      return;
     }
-
-    function closeChat() {
-      document.getElementById('chat-panel').classList.remove('open');
-      document.querySelectorAll('.bldg').forEach(b => b.classList.remove('active'));
-      currentDept = null;
-    }
-
-    function addMsg(role, text) {
-      const el = document.getElementById('chat-messages');
-      const d = document.createElement('div');
-      d.className = 'msg ' + role;
-      d.textContent = text;
-      el.appendChild(d);
-      el.scrollTop = el.scrollHeight;
-    }
-
-    function addTyping() {
-      const el = document.getElementById('chat-messages');
-      const d = document.createElement('div');
-      d.className = 'typing'; d.id = 'typing-ind';
-      d.innerHTML = '<span></span><span></span><span></span>';
-      el.appendChild(d);
-      el.scrollTop = el.scrollHeight;
-    }
-
-    function removeTyping() { const e = document.getElementById('typing-ind'); if (e) e.remove(); }
-
-    function sendMessage() {
-      const input = document.getElementById('chat-input');
-      const msg = input.value.trim();
-      if (!msg || !currentDept) return;
-      if (!chatHistories[currentDept]) chatHistories[currentDept] = [];
-      chatHistories[currentDept].push({ role: 'user', content: msg });
-      addMsg('user', msg);
-      addTyping();
-      document.getElementById('send-btn').disabled = true;
-      socket.emit('chat', { departmentId: currentDept, message: msg });
-      input.value = '';
-    }
-
-    document.getElementById('chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
-
-    // Meeting
-    document.getElementById('meeting-btn').addEventListener('click', () => {
-      document.getElementById('meeting-modal').classList.add('show');
-    });
-
-    function closeMeetingModal() { document.getElementById('meeting-modal').classList.remove('show'); }
-
-    function populateMeetingSelects() {
-      const f = document.getElementById('meet-from'), t = document.getElementById('meet-to');
-      f.innerHTML = ''; t.innerHTML = '';
-      for (const [id, dept] of Object.entries(departments)) {
-        f.innerHTML += `<option value="${id}">${dept.name}</option>`;
-        t.innerHTML += `<option value="${id}">${dept.name}</option>`;
-      }
-      if (t.options.length > 1) t.selectedIndex = 1;
-    }
-
-    function startMeeting() {
-      const from = document.getElementById('meet-from').value;
-      const to = document.getElementById('meet-to').value;
-      const topic = document.getElementById('meet-topic').value.trim();
-      if (from === to) { alert('Pick two different departments!'); return; }
-      if (!topic) { alert('Enter a meeting topic!'); return; }
-      if (!currentDept) openChat(from);
-      addMsg('system', '🤝 Meeting in progress...');
-      addTyping();
-      socket.emit('agent-meeting', { from, to, topic });
-    }
-
-    document.getElementById('meeting-modal').addEventListener('click', e => {
-      if (e.target === e.currentTarget) closeMeetingModal();
-    });
-
-    initStars();
-  </script>
+  }
+});
+</script>
 </body>
 </html>
