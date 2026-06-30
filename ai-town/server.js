@@ -130,13 +130,62 @@ Keep replies under 3 sentences.`,
 
 const tasks = {};
 
-const fallbackTaskResponses = {
-  ceo: "Got it. I'll review this and align it with our strategic priorities. Expect an update by end of day.",
-  engineering: "Understood. I'll break this down into tickets and assign it to the team. ETA: end of sprint.",
-  marketing: "On it! I'll draft a plan and loop in the content team. Should have something by tomorrow.",
-  design: "Thanks for the brief! I'll sketch out some concepts and share mockups within 48 hours.",
-  data: "I'll pull the relevant data and run the analysis. Dashboard will be ready by end of week.",
-  hr: "Noted! I'll coordinate with the team and get this scheduled. Will follow up shortly.",
+const fallbackTaskWork = {
+  ceo: {
+    accept: "Got it. I'll review this and align it with our strategic priorities.",
+    progress: [
+      "Reviewing strategic alignment with company goals...",
+      "Drafting executive summary and key action items...",
+      "Consulting with leadership team on resource allocation...",
+    ],
+    done: "✅ Done! I've prepared an executive brief with strategic recommendations and resource plan. Key takeaway: this aligns well with our Q3 objectives. I've scheduled a follow-up review for next week.",
+  },
+  engineering: {
+    accept: "Understood. I'll break this down into tickets and start working on it.",
+    progress: [
+      "Breaking down requirements into technical specs...",
+      "Setting up the project structure and dependencies...",
+      "Writing core logic and unit tests...",
+      "Running CI pipeline and code review...",
+    ],
+    done: "✅ Done! Implementation is complete — all tests passing, code reviewed, and deployed to staging. PR #42 is ready for review. Performance benchmarks look good: 200ms avg response time.",
+  },
+  marketing: {
+    accept: "On it! I'll draft a plan and loop in the content team.",
+    progress: [
+      "Researching target audience and competitive landscape...",
+      "Creating content brief and campaign assets...",
+      "Setting up A/B test variants and tracking pixels...",
+    ],
+    done: "✅ Done! Campaign is live with 3 variants. Landing page copy is finalized, social assets are scheduled for the next 2 weeks. Estimated reach: 50K impressions. Tracking dashboard is set up.",
+  },
+  design: {
+    accept: "Thanks for the brief! I'll start sketching out concepts.",
+    progress: [
+      "Creating wireframes and user flow diagrams...",
+      "Exploring visual directions and color palettes...",
+      "Building high-fidelity mockups in Figma...",
+    ],
+    done: "✅ Done! Final designs are in Figma — 3 screens with responsive variants. Used our updated design system tokens. User flow reduces clicks by 40% compared to current. Ready for dev handoff!",
+  },
+  data: {
+    accept: "I'll pull the relevant data and start the analysis.",
+    progress: [
+      "Querying data warehouse and cleaning datasets...",
+      "Running statistical analysis and building models...",
+      "Creating visualization dashboard with key metrics...",
+    ],
+    done: "✅ Done! Analysis complete — dashboard is live with real-time metrics. Key finding: 23% improvement opportunity identified. Confidence interval: 95%. Full report with methodology attached.",
+  },
+  hr: {
+    accept: "Noted! I'll coordinate with the team right away.",
+    progress: [
+      "Reviewing team capacity and availability...",
+      "Drafting communication plan and scheduling...",
+      "Coordinating with stakeholders and getting approvals...",
+    ],
+    done: "✅ Done! Everything is coordinated — team is aligned, schedule is set, and all stakeholders have confirmed. Sent calendar invites and updated the team wiki. Feedback survey will go out next week.",
+  },
 };
 
 const activities = [
@@ -260,39 +309,100 @@ ${toDept.name} (${toDept.emoji}): ${toDept.system}`,
     const toDept = departments[to];
     if (!fromDept || !toDept) return;
 
-    const task = { from, to, description, priority, status: 'pending', time: Date.now() };
+    const taskId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const task = { id: taskId, from, to, description, priority, status: 'pending', time: Date.now(), progress: 0 };
     if (!tasks[to]) tasks[to] = [];
     tasks[to].push(task);
-    if (!tasks[from]) tasks[from] = [];
-    tasks[from].push({ ...task, status: 'assigned' });
+
+    const speedMs = priority === 'urgent' ? 3000 : priority === 'high' ? 5000 : 8000;
 
     if (!HAS_AI) {
-      const response = fallbackTaskResponses[to] || fallbackTaskResponses.ceo;
-      task.response = response;
+      const work = fallbackTaskWork[to] || fallbackTaskWork.ceo;
+
+      // Step 1: Accept
       setTimeout(() => {
-        task.status = 'in-progress';
-        socket.emit('task-assigned', { task: { ...task, response } });
-      }, 800 + Math.random() * 1200);
+        task.status = 'accepted';
+        socket.emit('task-update', { taskId, departmentId: to, status: 'accepted', message: work.accept });
+        toDept.status = `Working on: ${description.slice(0, 30)}...`;
+        io.emit('agent-status', { id: to, status: toDept.status });
+      }, 800 + Math.random() * 500);
+
+      // Step 2: Progress updates
+      work.progress.forEach((msg, i) => {
+        setTimeout(() => {
+          task.status = 'in-progress';
+          task.progress = Math.round(((i + 1) / work.progress.length) * 80);
+          socket.emit('task-update', { taskId, departmentId: to, status: 'in-progress', message: msg, progress: task.progress });
+        }, speedMs * (i + 1) + Math.random() * 1000);
+      });
+
+      // Step 3: Complete
+      setTimeout(() => {
+        task.status = 'done';
+        task.progress = 100;
+        task.result = work.done;
+        socket.emit('task-update', { taskId, departmentId: to, status: 'done', message: work.done, progress: 100 });
+        toDept.status = activities[Math.floor(Math.random() * activities.length)];
+        io.emit('agent-status', { id: to, status: toDept.status });
+      }, speedMs * (work.progress.length + 1) + 1000);
+
       return;
     }
 
     try {
-      const response = await openai.chat.completions.create({
+      // AI mode: accept
+      const acceptRes = await openai.chat.completions.create({
         model: MODEL,
         messages: [
-          { role: 'system', content: toDept.system + '\nYou just received a task assignment. Acknowledge it professionally and briefly explain your approach.' },
+          { role: 'system', content: toDept.system + '\nYou just received a task. Acknowledge it briefly (1 sentence) and say you are starting.' },
           { role: 'user', content: `Task from ${fromDept.name} (${priority} priority): ${description}` },
         ],
-        max_tokens: 200,
+        max_tokens: 100,
       });
-      const reply = response.choices[0].message.content;
-      task.status = 'in-progress';
-      task.response = reply;
-      socket.emit('task-assigned', { task: { ...task, response: reply } });
+      task.status = 'accepted';
+      socket.emit('task-update', { taskId, departmentId: to, status: 'accepted', message: acceptRes.choices[0].message.content });
+      toDept.status = `Working on: ${description.slice(0, 30)}...`;
+      io.emit('agent-status', { id: to, status: toDept.status });
+
+      // AI mode: progress updates
+      const progressSteps = ['analyzing requirements', 'working on implementation', 'reviewing and finalizing'];
+      for (let i = 0; i < progressSteps.length; i++) {
+        await new Promise(r => setTimeout(r, speedMs));
+        const progRes = await openai.chat.completions.create({
+          model: MODEL,
+          messages: [
+            { role: 'system', content: toDept.system + `\nYou are ${progressSteps[i]} for this task. Give a 1-sentence progress update.` },
+            { role: 'user', content: `Task: ${description}` },
+          ],
+          max_tokens: 80,
+        });
+        task.status = 'in-progress';
+        task.progress = Math.round(((i + 1) / progressSteps.length) * 80);
+        socket.emit('task-update', { taskId, departmentId: to, status: 'in-progress', message: progRes.choices[0].message.content, progress: task.progress });
+      }
+
+      // AI mode: complete
+      await new Promise(r => setTimeout(r, speedMs));
+      const doneRes = await openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          { role: 'system', content: toDept.system + '\nYou just finished a task. Summarize what you delivered in 2-3 sentences. Start with ✅.' },
+          { role: 'user', content: `Completed task: ${description}` },
+        ],
+        max_tokens: 150,
+      });
+      task.status = 'done';
+      task.progress = 100;
+      task.result = doneRes.choices[0].message.content;
+      socket.emit('task-update', { taskId, departmentId: to, status: 'done', message: task.result, progress: 100 });
+      toDept.status = activities[Math.floor(Math.random() * activities.length)];
+      io.emit('agent-status', { id: to, status: toDept.status });
     } catch (err) {
-      const response = fallbackTaskResponses[to] || fallbackTaskResponses.ceo;
-      task.response = response;
-      socket.emit('task-assigned', { task: { ...task, response } });
+      console.error('Task AI Error:', err.message);
+      const work = fallbackTaskWork[to] || fallbackTaskWork.ceo;
+      task.status = 'done';
+      task.result = work.done;
+      socket.emit('task-update', { taskId, departmentId: to, status: 'done', message: work.done, progress: 100 });
     }
   });
 

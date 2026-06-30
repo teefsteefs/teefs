@@ -873,7 +873,8 @@ function assignTask() {
   if (!desc) { alert('Enter a task description!'); return; }
   socket.emit('assign-task', { from, to, description: desc, priority });
   closeTaskModal();
-  addMsg('system', `📋 Task assigned to ${departments[to].name}: "${desc}"`);
+  const priorityIcon = priority === 'urgent' ? '🔥' : priority === 'high' ? '⚡' : '📋';
+  addMsg('system', `${priorityIcon} Task assigned to ${departments[to].name}: "${desc}"`);
   addTyping();
 }
 
@@ -882,18 +883,39 @@ function viewTasks() {
   socket.emit('get-tasks', { departmentId: currentDept });
 }
 
-socket.on('task-assigned', ({ task }) => {
-  const fromName = departments[task.from]?.name || task.from;
-  const toName = departments[task.to]?.name || task.to;
-  const priorityIcon = task.priority === 'urgent' ? '🔥' : task.priority === 'high' ? '⚡' : '📋';
-  if (currentDept === task.to) {
+socket.on('task-update', ({ taskId, departmentId, status, message, progress }) => {
+  const deptName = departments[departmentId]?.name || departmentId;
+  const statusIcon = status === 'done' ? '✅' : status === 'in-progress' ? '🔄' : status === 'accepted' ? '👍' : '📋';
+  const progressBar = progress != null ? ` [${progress}%]` : '';
+
+  if (currentDept === departmentId || currentDept) {
     removeTyping();
-    addMsg('agent', `${priorityIcon} New task from ${fromName}: "${task.description}"\n\n${task.response}`);
-  } else if (currentDept === task.from) {
-    removeTyping();
-    addMsg('agent', `${priorityIcon} ${toName} received your task: "${task.description}"\n\nTheir response: ${task.response}`);
+    if (status === 'done') {
+      addMsg('agent', message);
+    } else {
+      addMsg('system', `${statusIcon} ${deptName}${progressBar}: ${message}`);
+      if (status !== 'done') addTyping();
+    }
+    updateProgressBar(taskId, progress || 0);
   }
 });
+
+function updateProgressBar(taskId, progress) {
+  let bar = document.getElementById('progress-' + taskId);
+  if (!bar && progress < 100) {
+    const el = document.getElementById('chat-messages');
+    bar = document.createElement('div');
+    bar.id = 'progress-' + taskId;
+    bar.style.cssText = 'background:rgba(255,255,255,0.06);border-radius:4px;height:6px;margin:4px 0 8px;overflow:hidden;max-width:85%;';
+    bar.innerHTML = '<div style="height:100%;background:#3b82f6;border-radius:4px;transition:width 0.5s ease;width:0%"></div>';
+    el.appendChild(bar);
+    el.scrollTop = el.scrollHeight;
+  }
+  if (bar) {
+    bar.firstChild.style.width = progress + '%';
+    if (progress >= 100) setTimeout(() => bar.remove(), 1500);
+  }
+}
 
 socket.on('tasks-list', ({ departmentId, tasks }) => {
   if (currentDept !== departmentId) return;
@@ -902,11 +924,12 @@ socket.on('tasks-list', ({ departmentId, tasks }) => {
     return;
   }
   let list = `📊 Tasks for ${departments[departmentId]?.name}:\n\n`;
-  tasks.forEach((t, i) => {
+  tasks.forEach((t) => {
     const icon = t.priority === 'urgent' ? '🔥' : t.priority === 'high' ? '⚡' : '📋';
-    const status = t.status === 'done' ? '✅' : t.status === 'in-progress' ? '🔄' : '⏳';
+    const status = t.status === 'done' ? '✅ Done' : t.status === 'in-progress' ? `🔄 ${t.progress || 0}%` : t.status === 'accepted' ? '👍 Accepted' : '⏳ Pending';
     const from = departments[t.from]?.name || t.from;
-    list += `${icon} ${status} "${t.description}" (from ${from})\n`;
+    list += `${icon} [${status}] "${t.description}" (from ${from})\n`;
+    if (t.result) list += `   → ${t.result.slice(0, 80)}...\n`;
   });
   addMsg('system', list);
 });
