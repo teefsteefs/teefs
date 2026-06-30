@@ -155,7 +155,7 @@
 
     <div id="hud">
       <h1>AI TOWN</h1>
-      <p>Arrow keys to move &bull; Enter to chat &bull; Space near a building to enter</p>
+      <p>Arrow keys to move &bull; Walk to a building &bull; Press Enter or Space to chat</p>
     </div>
 
     <div id="proximity-hint"></div>
@@ -254,7 +254,7 @@ const keys = {};
 
 document.addEventListener('keydown', e => {
   keys[e.key] = true;
-  if (e.key === ' ' && nearbyDept) {
+  if ((e.key === ' ' || e.key === 'Enter') && nearbyDept && !currentDept) {
     e.preventDefault();
     openChat(nearbyDept);
   }
@@ -533,7 +533,7 @@ function gameLoop() {
 
   // Check proximity
   nearbyDept = null;
-  let nearestDist = 150;
+  let nearestDist = 200;
   for (const [id, layout] of Object.entries(deptLayout)) {
     const dist = Math.hypot(player.wx - layout.wx, player.wy - layout.wy);
     if (dist < nearestDist) {
@@ -544,7 +544,7 @@ function gameLoop() {
 
   const hint = document.getElementById('proximity-hint');
   if (nearbyDept && !currentDept) {
-    hint.textContent = `Press SPACE to enter ${departments[nearbyDept]?.name || nearbyDept}`;
+    hint.textContent = `Press ENTER or SPACE to enter ${departments[nearbyDept]?.name || nearbyDept}`;
     hint.classList.add('show');
   } else {
     hint.classList.remove('show');
@@ -797,7 +797,7 @@ canvas.addEventListener('click', (e) => {
   for (const [id, layout] of Object.entries(deptLayout)) {
     const sp = worldToScreen(layout.wx, layout.wy);
     const dist = Math.hypot(clickX - sp.sx, clickY - sp.sy);
-    if (dist < 80) {
+    if (dist < 120) {
       player.wx = layout.wx;
       player.wy = layout.wy + 80;
       setTimeout(() => openChat(id), 300);
