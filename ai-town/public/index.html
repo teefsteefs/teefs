@@ -8,218 +8,303 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: #080818;
-      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0b0b1e;
       overflow: hidden;
       height: 100vh;
+      color: #e0e0e0;
     }
 
-    #app {
-      display: flex;
-      height: 100vh;
-    }
+    #app { display: flex; height: 100vh; }
 
     #scene-container {
       flex: 1;
       position: relative;
-      perspective: 1200px;
       overflow: hidden;
-      background: radial-gradient(ellipse at 50% 40%, #12122e 0%, #080818 70%);
+      perspective: 1000px;
+      background: radial-gradient(ellipse at 50% 30%, #161640 0%, #0b0b1e 60%);
     }
 
-    #scene {
+    #world {
       position: absolute;
-      width: 900px;
-      height: 700px;
+      width: 1000px;
+      height: 800px;
       left: 50%;
-      top: 50%;
+      top: 48%;
+      transform: translate(-50%, -50%) rotateX(50deg) rotateZ(-45deg);
       transform-style: preserve-3d;
-      transform: translate(-50%, -50%) rotateX(55deg) rotateZ(-45deg);
     }
 
-    .ground {
+    .floor {
       position: absolute;
-      width: 900px;
-      height: 700px;
+      width: 1000px;
+      height: 800px;
       background:
-        repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(255,255,255,0.03) 49px, rgba(255,255,255,0.03) 50px),
-        repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(255,255,255,0.03) 49px, rgba(255,255,255,0.03) 50px),
-        linear-gradient(135deg, #0d0d22 0%, #0a0a1a 100%);
-      transform: translateZ(0px);
+        repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(100,120,255,0.04) 79px, rgba(100,120,255,0.04) 80px),
+        repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(100,120,255,0.04) 79px, rgba(100,120,255,0.04) 80px),
+        #0e0e24;
+      border-radius: 8px;
     }
 
-    .building {
+    /* ===== 3D BUILDING ===== */
+    .bldg {
       position: absolute;
       transform-style: preserve-3d;
       cursor: pointer;
-      transition: transform 0.3s ease;
+      width: var(--w);
+      height: var(--d);
     }
 
-    .building:hover {
-      transform: translateZ(8px);
-    }
+    .bldg:hover .wall-top { filter: brightness(1.2); }
+    .bldg.active .wall-top { filter: brightness(1.4); }
 
-    .building.active {
-      transform: translateZ(12px);
-    }
-
-    .building .top {
+    .wall-top {
       position: absolute;
-      width: 120px;
-      height: 120px;
-      transform: translateZ(var(--height));
-      border-radius: 4px;
+      width: var(--w);
+      height: var(--d);
+      transform: translateZ(var(--h));
+      background: var(--c1);
+      border-radius: 3px;
+      transition: filter 0.3s;
     }
 
-    .building .front {
+    .wall-front {
       position: absolute;
-      width: 120px;
-      height: var(--height);
+      width: var(--w);
+      height: var(--h);
       bottom: 0;
-      transform-origin: bottom;
+      transform-origin: bottom center;
       transform: rotateX(-90deg);
-      border-radius: 0 0 4px 4px;
+      background: var(--c2);
     }
 
-    .building .side {
+    .wall-right {
       position: absolute;
-      width: var(--height);
-      height: 120px;
+      width: var(--h);
+      height: var(--d);
       right: 0;
-      transform-origin: right;
+      transform-origin: center right;
       transform: rotateY(90deg);
-      border-radius: 0 4px 4px 0;
+      background: var(--c3);
     }
 
-    .building .top { background: var(--color-top); }
-    .building .front { background: var(--color-front); }
-    .building .side { background: var(--color-side); }
-
-    .building .windows {
+    .wall-back {
       position: absolute;
+      width: var(--w);
+      height: var(--h);
+      top: 0;
+      transform-origin: top center;
+      transform: rotateX(90deg);
+      background: var(--c2);
+      filter: brightness(0.7);
+    }
+
+    .wall-left {
+      position: absolute;
+      width: var(--h);
+      height: var(--d);
+      left: 0;
+      transform-origin: center left;
+      transform: rotateY(-90deg);
+      background: var(--c3);
+      filter: brightness(0.7);
+    }
+
+    /* Windows on front wall */
+    .win-row {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .win {
+      width: 16px;
+      height: 20px;
+      background: rgba(255, 230, 150, 0.85);
+      border-radius: 2px 2px 0 0;
+      box-shadow: 0 0 10px rgba(255, 230, 150, 0.4), inset 0 0 3px rgba(255,255,255,0.3);
+      position: relative;
+    }
+
+    .win::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 1px;
+      height: 100%;
+      background: rgba(0,0,0,0.15);
+    }
+
+    .win.off {
+      background: rgba(40, 50, 80, 0.6);
+      box-shadow: none;
+    }
+
+    /* Door */
+    .door {
+      width: 18px;
+      height: 28px;
+      background: linear-gradient(180deg, rgba(255,230,150,0.6) 0%, rgba(180,140,80,0.8) 100%);
+      border-radius: 3px 3px 0 0;
+      margin: 8px auto 0;
+      position: relative;
+      box-shadow: 0 0 12px rgba(255,200,100,0.3);
+    }
+
+    .door::after {
+      content: '';
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: #ffd700;
+    }
+
+    /* Side windows */
+    .side-wins {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding-top: 12px;
+    }
+
+    .side-win {
+      width: 20px;
+      height: 16px;
+      background: rgba(255, 230, 150, 0.75);
+      border-radius: 2px;
+      box-shadow: 0 0 8px rgba(255, 230, 150, 0.3);
+    }
+
+    /* Roof accent */
+    .roof-stripe {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 0 0 3px 3px;
+    }
+
+    .wall-top .roof-stripe {
+      bottom: auto;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 10px;
+      background: var(--c1);
+      border: 3px solid var(--accent);
+      border-radius: 3px;
+      box-sizing: border-box;
     }
 
-    .building .win {
-      width: 14px;
-      height: 18px;
-      background: rgba(255, 238, 170, 0.7);
-      border-radius: 2px;
-      box-shadow: 0 0 8px rgba(255, 238, 170, 0.4);
-    }
-
-    .building .roof-light {
+    /* Roof icon */
+    .roof-icon {
       position: absolute;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%) translateZ(1px);
-      background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
-      opacity: 0.6;
-      animation: pulse-glow 3s ease-in-out infinite;
+      transform: translate(-50%, -50%) translateZ(2px);
+      font-size: 28px;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
     }
 
-    @keyframes pulse-glow {
-      0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) translateZ(1px) scale(1); }
-      50% { opacity: 0.8; transform: translate(-50%, -50%) translateZ(1px) scale(1.3); }
-    }
-
-    .building .label-3d {
+    /* Label floating above building */
+    .bldg-label {
       position: absolute;
-      width: 160px;
       left: 50%;
+      top: 50%;
+      transform: translateZ(calc(var(--h) + 30px)) rotateZ(45deg) rotateX(-50deg) translate(-50%, -50%);
       text-align: center;
-      transform: translateZ(calc(var(--height) + 20px)) rotateZ(45deg) rotateX(-55deg) translateX(-50%);
       pointer-events: none;
+      white-space: nowrap;
     }
 
-    .building .label-3d .dept-name {
+    .bldg-label .name {
       font-size: 14px;
       font-weight: 700;
       color: #fff;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-      white-space: nowrap;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.9), 0 0 20px var(--accent);
+      letter-spacing: 0.5px;
     }
 
-    .building .label-3d .dept-status {
-      font-size: 11px;
-      color: rgba(255,255,255,0.5);
-      text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+    .bldg-label .status {
+      font-size: 10px;
+      color: rgba(255,255,255,0.55);
+      text-shadow: 0 1px 6px rgba(0,0,0,0.8);
       margin-top: 2px;
-      white-space: nowrap;
     }
 
-    .building .label-3d .dept-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin: 0 auto 4px;
-      animation: pulse-dot 2s infinite;
-    }
-
-    @keyframes pulse-dot {
-      0%, 100% { box-shadow: 0 0 4px 2px currentColor; opacity: 1; }
-      50% { box-shadow: 0 0 10px 4px currentColor; opacity: 0.6; }
-    }
-
-    .path-line {
+    /* Ground glow under buildings */
+    .ground-glow {
       position: absolute;
-      height: 2px;
-      background: rgba(255,255,255,0.04);
-      transform-origin: left center;
-      transform: translateZ(1px);
+      width: calc(var(--w) + 40px);
+      height: calc(var(--d) + 40px);
+      left: -20px;
+      top: -20px;
+      background: radial-gradient(ellipse, var(--accent) 0%, transparent 70%);
+      opacity: 0.08;
+      border-radius: 50%;
+      transform: translateZ(0.5px);
     }
 
+    /* Player */
     #player {
       position: absolute;
-      width: 20px;
-      height: 20px;
       transform-style: preserve-3d;
-      transition: left 0.8s ease, top 0.8s ease;
+      transition: left 0.8s ease-out, top 0.8s ease-out;
       z-index: 10;
     }
 
-    #player .player-body {
+    .player-shadow {
       position: absolute;
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      background: #fbbf24;
-      transform: translateZ(30px);
-      box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+      background: rgba(0,0,0,0.4);
+      filter: blur(4px);
+      transform: translateZ(0.5px);
     }
 
-    #player .player-shadow {
+    .player-body {
+      position: absolute;
+      width: 14px;
+      height: 24px;
+      left: 2px;
+      background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
+      border-radius: 4px 4px 2px 2px;
+      transform: translateZ(12px);
+      box-shadow: 0 0 8px rgba(59,130,246,0.4);
+    }
+
+    .player-head {
       position: absolute;
       width: 16px;
       height: 16px;
+      left: 1px;
       border-radius: 50%;
-      background: rgba(0,0,0,0.3);
-      left: 2px;
-      top: 2px;
-      transform: translateZ(1px);
-      filter: blur(4px);
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      transform: translateZ(30px);
+      box-shadow: 0 0 12px rgba(251,191,36,0.4);
     }
 
-    #player .player-label {
+    .player-name {
       position: absolute;
-      transform: translateZ(50px) rotateZ(45deg) rotateX(-55deg);
+      left: 50%;
+      transform: translateZ(48px) rotateZ(45deg) rotateX(-50deg) translateX(-50%);
+      font-size: 11px;
+      color: #fbbf24;
+      font-weight: 700;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.8);
       white-space: nowrap;
-      font-size: 16px;
-      left: -4px;
-      top: -10px;
     }
 
+    /* HUD */
     #hud {
       position: absolute;
       top: 20px;
@@ -228,16 +313,16 @@
     }
 
     #hud h1 {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 800;
       color: #fff;
-      letter-spacing: 2px;
-      text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+      letter-spacing: 3px;
+      text-shadow: 0 2px 20px rgba(100,100,255,0.3);
     }
 
     #hud p {
-      font-size: 13px;
-      color: rgba(255,255,255,0.4);
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
       margin-top: 4px;
     }
 
@@ -246,66 +331,86 @@
       bottom: 24px;
       left: 24px;
       z-index: 30;
-      display: flex;
-      gap: 10px;
     }
 
     .tool-btn {
-      background: rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.06);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
       padding: 10px 20px;
-      color: rgba(255,255,255,0.75);
+      color: rgba(255,255,255,0.7);
       font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
     }
 
     .tool-btn:hover {
-      background: rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.1);
       color: #fff;
-      border-color: rgba(255,255,255,0.2);
     }
 
+    /* Stars */
+    .stars {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      background: #fff;
+      border-radius: 50%;
+      animation: twinkle 4s ease-in-out infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.7; }
+    }
+
+    /* ===== CHAT PANEL ===== */
     #chat-panel {
       width: 0;
       overflow: hidden;
-      background: rgba(12, 12, 28, 0.96);
-      border-left: 1px solid rgba(255,255,255,0.06);
+      background: #0d0d20;
+      border-left: 1px solid rgba(255,255,255,0.05);
       display: flex;
       flex-direction: column;
-      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: width 0.3s ease;
       z-index: 40;
     }
 
-    #chat-panel.open {
-      width: 400px;
-    }
+    #chat-panel.open { width: 400px; }
 
     .chat-header {
-      padding: 18px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
       display: flex;
       align-items: center;
       gap: 12px;
       min-width: 400px;
     }
 
-    .chat-header-dot {
-      width: 12px; height: 12px;
-      border-radius: 50%;
+    .chat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
       flex-shrink: 0;
     }
 
     .chat-header-info h3 { font-size: 15px; color: #fff; }
-    .chat-header-info p { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .chat-header-info p { font-size: 11px; color: rgba(255,255,255,0.35); }
 
     .chat-close {
       margin-left: auto;
       background: none;
       border: none;
-      color: rgba(255,255,255,0.35);
+      color: rgba(255,255,255,0.3);
       font-size: 18px;
       cursor: pointer;
       padding: 4px 8px;
@@ -342,7 +447,7 @@
 
     .msg.agent {
       align-self: flex-start;
-      background: rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.06);
       color: #ddd;
       border-bottom-left-radius: 4px;
     }
@@ -350,43 +455,31 @@
     .msg.system {
       align-self: center;
       background: rgba(255,255,255,0.03);
-      color: rgba(255,255,255,0.35);
+      color: rgba(255,255,255,0.3);
       font-size: 12px;
     }
 
     .msg.meeting {
       align-self: center;
       max-width: 95%;
-      background: rgba(139, 92, 246, 0.1);
-      border: 1px solid rgba(139, 92, 246, 0.2);
+      background: rgba(139,92,246,0.08);
+      border: 1px solid rgba(139,92,246,0.15);
       color: #ddd;
     }
 
-    .typing {
-      display: flex;
-      gap: 4px;
-      padding: 10px 14px;
-      align-self: flex-start;
-    }
-
+    .typing { display: flex; gap: 4px; padding: 10px 14px; align-self: flex-start; }
     .typing span {
-      width: 6px; height: 6px;
-      border-radius: 50%;
+      width: 5px; height: 5px; border-radius: 50%;
       background: rgba(255,255,255,0.3);
       animation: bounce 1.4s infinite;
     }
-
     .typing span:nth-child(2) { animation-delay: 0.2s; }
     .typing span:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes bounce {
-      0%, 60%, 100% { transform: translateY(0); }
-      30% { transform: translateY(-6px); }
-    }
+    @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
 
     #chat-input-area {
       padding: 12px 16px;
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(255,255,255,0.05);
       display: flex;
       gap: 8px;
       min-width: 400px;
@@ -394,8 +487,8 @@
 
     #chat-input {
       flex: 1;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 10px;
       padding: 10px 14px;
       color: #fff;
@@ -403,7 +496,7 @@
       outline: none;
     }
 
-    #chat-input:focus { border-color: rgba(255,255,255,0.2); }
+    #chat-input:focus { border-color: rgba(255,255,255,0.15); }
     #chat-input::placeholder { color: rgba(255,255,255,0.2); }
 
     #send-btn {
@@ -419,6 +512,7 @@
     #send-btn:hover { background: #2563eb; }
     #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+    /* Meeting modal */
     #meeting-modal {
       display: none;
       position: fixed;
@@ -432,86 +526,53 @@
     #meeting-modal.show { display: flex; }
 
     .modal {
-      background: rgba(18, 18, 36, 0.97);
+      background: rgba(16,16,34,0.97);
       backdrop-filter: blur(20px);
       border-radius: 16px;
       padding: 28px;
       width: 360px;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.06);
     }
 
-    .modal h3 { color: #fff; margin-bottom: 18px; font-size: 17px; }
-
-    .modal label {
-      display: block;
-      color: rgba(255,255,255,0.45);
-      font-size: 12px;
-      margin-bottom: 6px;
-    }
+    .modal h3 { color: #fff; margin-bottom: 18px; }
+    .modal label { display: block; color: rgba(255,255,255,0.4); font-size: 12px; margin-bottom: 6px; }
 
     .modal select, .modal input[type="text"] {
-      width: 100%;
-      padding: 10px 12px;
-      margin-bottom: 14px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      color: #fff;
-      font-size: 13.5px;
-      outline: none;
+      width: 100%; padding: 10px 12px; margin-bottom: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px; color: #fff; font-size: 13px; outline: none;
     }
 
-    .modal select option { background: #121224; }
-
+    .modal select option { background: #101022; }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
     .modal-actions button { padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; }
-    .btn-cancel { background: rgba(255,255,255,0.07); color: #ccc; }
+    .btn-cancel { background: rgba(255,255,255,0.06); color: #ccc; }
     .btn-primary { background: #7c3aed; color: #fff; }
     .btn-primary:hover { background: #6d28d9; }
 
-    .stars {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .star {
-      position: absolute;
-      width: 2px; height: 2px;
-      background: #fff;
-      border-radius: 50%;
-      animation: twinkle 3s ease-in-out infinite;
-    }
-
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.2; }
-      50% { opacity: 0.8; }
-    }
-
     #chat-messages::-webkit-scrollbar { width: 3px; }
-    #chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+    #chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
   </style>
 </head>
 <body>
   <div id="app">
     <div id="scene-container">
       <div class="stars" id="stars"></div>
-
-      <div id="scene">
-        <div class="ground"></div>
-        <div id="buildings-container"></div>
+      <div id="world">
+        <div class="floor"></div>
+        <div id="buildings"></div>
         <div id="player">
           <div class="player-shadow"></div>
           <div class="player-body"></div>
-          <div class="player-label">🧑‍💼</div>
+          <div class="player-head"></div>
+          <div class="player-name">You</div>
         </div>
       </div>
 
       <div id="hud">
         <h1>AI TOWN</h1>
-        <p>Click a department to chat &bull; Each room is an AI agent</p>
+        <p>Click a building to enter &bull; Each department is an AI agent</p>
       </div>
 
       <div id="toolbar">
@@ -521,7 +582,7 @@
 
     <div id="chat-panel">
       <div class="chat-header">
-        <div class="chat-header-dot" id="chat-dot"></div>
+        <div class="chat-icon" id="chat-icon"></div>
         <div class="chat-header-info">
           <h3 id="chat-name"></h3>
           <p id="chat-status"></p>
@@ -559,118 +620,123 @@
     let currentDept = null;
     let chatHistories = {};
 
-    const layoutPositions = {
-      ceo:         { left: 390, top: 160 },
-      engineering: { left: 140, top: 300 },
-      marketing:   { left: 640, top: 300 },
-      design:      { left: 140, top: 480 },
-      data:        { left: 640, top: 480 },
-      hr:          { left: 390, top: 560 },
+    const layout = {
+      ceo:         { left: 420, top: 80,  w: 140, d: 120, h: 130 },
+      engineering: { left: 100, top: 250, w: 130, d: 110, h: 100 },
+      marketing:   { left: 700, top: 200, w: 130, d: 110, h: 90 },
+      design:      { left: 100, top: 500, w: 120, d: 100, h: 80 },
+      data:        { left: 700, top: 450, w: 130, d: 110, h: 100 },
+      hr:          { left: 420, top: 580, w: 120, d: 100, h: 80 },
     };
 
-    const buildingHeights = {
-      ceo: 80,
-      engineering: 60,
-      marketing: 55,
-      design: 50,
-      data: 65,
-      hr: 50,
+    const deptMeta = {
+      ceo:         { icon: '👔', winRows: 3 },
+      engineering: { icon: '💻', winRows: 2 },
+      marketing:   { icon: '📢', winRows: 2 },
+      design:      { icon: '🎨', winRows: 2 },
+      data:        { icon: '📊', winRows: 2 },
+      hr:          { icon: '🤝', winRows: 2 },
     };
 
-    function initStars() {
-      const container = document.getElementById('stars');
-      for (let i = 0; i < 80; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.style.left = Math.random() * 100 + '%';
-        star.style.top = Math.random() * 60 + '%';
-        star.style.animationDelay = Math.random() * 3 + 's';
-        star.style.opacity = Math.random() * 0.5 + 0.1;
-        star.style.width = star.style.height = (Math.random() * 2 + 1) + 'px';
-        container.appendChild(star);
-      }
+    function darken(hex, factor) {
+      const r = Math.round(parseInt(hex.slice(1,3),16) * factor);
+      const g = Math.round(parseInt(hex.slice(3,5),16) * factor);
+      const b = Math.round(parseInt(hex.slice(5,7),16) * factor);
+      return `rgb(${r},${g},${b})`;
     }
 
-    function hexToHSL(hex) {
-      let r = parseInt(hex.slice(1,3), 16) / 255;
-      let g = parseInt(hex.slice(3,5), 16) / 255;
-      let b = parseInt(hex.slice(5,7), 16) / 255;
-      const max = Math.max(r,g,b), min = Math.min(r,g,b);
-      let h, s, l = (max + min) / 2;
-      if (max === min) { h = s = 0; }
-      else {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-        else if (max === g) h = ((b - r) / d + 2) / 6;
-        else h = ((r - g) / d + 4) / 6;
+    function makeWindows(count, hasOff) {
+      let html = '';
+      for (let i = 0; i < count; i++) {
+        const off = hasOff && Math.random() > 0.7 ? ' off' : '';
+        html += `<div class="win${off}"></div>`;
       }
-      return { h: h * 360, s: s * 100, l: l * 100 };
+      return html;
     }
 
     function renderBuildings() {
-      const container = document.getElementById('buildings-container');
+      const container = document.getElementById('buildings');
       container.innerHTML = '';
 
       for (const [id, dept] of Object.entries(departments)) {
-        const pos = layoutPositions[id];
-        if (!pos) continue;
+        const L = layout[id];
+        const M = deptMeta[id];
+        if (!L || !M) continue;
 
-        const h = buildingHeights[id] || 55;
-        const hsl = hexToHSL(dept.color);
+        const c1 = darken(dept.color, 0.65);
+        const c2 = darken(dept.color, 0.50);
+        const c3 = darken(dept.color, 0.40);
 
-        const building = document.createElement('div');
-        building.className = 'building';
-        building.dataset.dept = id;
-        building.style.left = pos.left + 'px';
-        building.style.top = pos.top + 'px';
-        building.style.setProperty('--height', h + 'px');
-        building.style.setProperty('--color-top', `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l * 0.7}%)`);
-        building.style.setProperty('--color-front', `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l * 0.45}%)`);
-        building.style.setProperty('--color-side', `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l * 0.35}%)`);
-        building.style.setProperty('--glow', dept.color + '66');
+        let frontHTML = '';
+        for (let r = 0; r < M.winRows; r++) {
+          frontHTML += `<div class="win-row">${makeWindows(4, true)}</div>`;
+        }
+        frontHTML += `<div class="door"></div>`;
 
-        const windowsHTML = Array(6).fill('<div class="win"></div>').join('');
+        const sideWinCount = M.winRows;
+        let sideHTML = '<div class="side-wins">';
+        for (let r = 0; r < sideWinCount; r++) {
+          sideHTML += `<div class="side-win"></div>`;
+        }
+        sideHTML += '</div>';
 
-        building.innerHTML = `
-          <div class="top">
-            <div class="roof-light"></div>
+        const el = document.createElement('div');
+        el.className = 'bldg';
+        el.dataset.dept = id;
+        el.style.cssText = `left:${L.left}px;top:${L.top}px;--w:${L.w}px;--d:${L.d}px;--h:${L.h}px;--c1:${c1};--c2:${c2};--c3:${c3};--accent:${dept.color};`;
+
+        el.innerHTML = `
+          <div class="ground-glow"></div>
+          <div class="wall-top">
+            <div class="roof-stripe"></div>
+            <span class="roof-icon">${M.icon}</span>
           </div>
-          <div class="front">
-            <div class="windows">${windowsHTML}</div>
-          </div>
-          <div class="side">
-            <div class="windows">${windowsHTML}</div>
-          </div>
-          <div class="label-3d">
-            <div class="dept-dot" style="color:${dept.color};background:${dept.color}"></div>
-            <div class="dept-name">${dept.name}</div>
-            <div class="dept-status" id="status-${id}">${dept.status}</div>
+          <div class="wall-front">${frontHTML}<div class="roof-stripe" style="top:0;bottom:auto;background:${dept.color}"></div></div>
+          <div class="wall-back"><div class="roof-stripe" style="top:0;bottom:auto;background:${dept.color}"></div></div>
+          <div class="wall-right">${sideHTML}<div class="roof-stripe" style="position:absolute;top:0;left:0;width:100%;height:4px;background:${dept.color};border-radius:0"></div></div>
+          <div class="wall-left"><div class="roof-stripe" style="position:absolute;top:0;left:0;width:100%;height:4px;background:${dept.color};border-radius:0"></div></div>
+          <div class="bldg-label">
+            <div class="name">${dept.name}</div>
+            <div class="status" id="status-${id}">${dept.status}</div>
           </div>
         `;
 
-        building.addEventListener('click', () => {
-          movePlayerTo(pos.left + 50, pos.top + 50);
-          document.querySelectorAll('.building').forEach(b => b.classList.remove('active'));
-          building.classList.add('active');
+        el.addEventListener('click', () => {
+          movePlayer(L.left + L.w / 2 - 9, L.top + L.d + 20);
+          document.querySelectorAll('.bldg').forEach(b => b.classList.remove('active'));
+          el.classList.add('active');
           setTimeout(() => openChat(id), 500);
         });
 
-        container.appendChild(building);
+        container.appendChild(el);
       }
     }
 
-    function movePlayerTo(x, y) {
-      const player = document.getElementById('player');
-      player.style.left = (x - 10) + 'px';
-      player.style.top = (y - 10) + 'px';
+    function movePlayer(x, y) {
+      const p = document.getElementById('player');
+      p.style.left = x + 'px';
+      p.style.top = y + 'px';
     }
 
+    function initStars() {
+      const c = document.getElementById('stars');
+      for (let i = 0; i < 60; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = Math.random() * 55 + '%';
+        s.style.width = s.style.height = (Math.random() * 2 + 0.5) + 'px';
+        s.style.animationDelay = (Math.random() * 4) + 's';
+        c.appendChild(s);
+      }
+    }
+
+    // Socket events
     socket.on('init', (data) => {
       departments = data.departments;
       renderBuildings();
       populateMeetingSelects();
-      movePlayerTo(450, 400);
+      movePlayer(470, 380);
     });
 
     socket.on('agent-status', ({ id, status }) => {
@@ -678,19 +744,14 @@
         departments[id].status = status;
         const el = document.getElementById('status-' + id);
         if (el) el.textContent = status;
-        if (currentDept === id) {
-          document.getElementById('chat-status').textContent = status;
-        }
+        if (currentDept === id) document.getElementById('chat-status').textContent = status;
       }
     });
 
     socket.on('chat-reply', ({ departmentId, message }) => {
       if (!chatHistories[departmentId]) chatHistories[departmentId] = [];
       chatHistories[departmentId].push({ role: 'agent', content: message });
-      if (currentDept === departmentId) {
-        removeTyping();
-        addMsg('agent', message);
-      }
+      if (currentDept === departmentId) { removeTyping(); addMsg('agent', message); }
       document.getElementById('send-btn').disabled = false;
     });
 
@@ -704,59 +765,53 @@
       closeMeetingModal();
     });
 
+    // Chat
     function openChat(id) {
       currentDept = id;
       const dept = departments[id];
-      document.getElementById('chat-dot').style.background = dept.color;
+      const icon = document.getElementById('chat-icon');
+      icon.textContent = deptMeta[id].icon;
+      icon.style.background = dept.color + '22';
       document.getElementById('chat-name').textContent = dept.name;
       document.getElementById('chat-status').textContent = dept.status;
       document.getElementById('chat-panel').classList.add('open');
-
       const el = document.getElementById('chat-messages');
       el.innerHTML = '';
       addMsg('system', `You entered ${dept.name}`);
-
-      if (chatHistories[id]) {
-        chatHistories[id].forEach(m => addMsg(m.role, m.content));
-      }
+      if (chatHistories[id]) chatHistories[id].forEach(m => addMsg(m.role, m.content));
       document.getElementById('chat-input').focus();
     }
 
     function closeChat() {
       document.getElementById('chat-panel').classList.remove('open');
-      document.querySelectorAll('.building').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.bldg').forEach(b => b.classList.remove('active'));
       currentDept = null;
     }
 
-    function addMsg(role, content) {
+    function addMsg(role, text) {
       const el = document.getElementById('chat-messages');
-      const div = document.createElement('div');
-      div.className = `msg ${role}`;
-      div.textContent = content;
-      el.appendChild(div);
+      const d = document.createElement('div');
+      d.className = 'msg ' + role;
+      d.textContent = text;
+      el.appendChild(d);
       el.scrollTop = el.scrollHeight;
     }
 
     function addTyping() {
       const el = document.getElementById('chat-messages');
-      const div = document.createElement('div');
-      div.className = 'typing';
-      div.id = 'typing-ind';
-      div.innerHTML = '<span></span><span></span><span></span>';
-      el.appendChild(div);
+      const d = document.createElement('div');
+      d.className = 'typing'; d.id = 'typing-ind';
+      d.innerHTML = '<span></span><span></span><span></span>';
+      el.appendChild(d);
       el.scrollTop = el.scrollHeight;
     }
 
-    function removeTyping() {
-      const el = document.getElementById('typing-ind');
-      if (el) el.remove();
-    }
+    function removeTyping() { const e = document.getElementById('typing-ind'); if (e) e.remove(); }
 
     function sendMessage() {
       const input = document.getElementById('chat-input');
       const msg = input.value.trim();
       if (!msg || !currentDept) return;
-
       if (!chatHistories[currentDept]) chatHistories[currentDept] = [];
       chatHistories[currentDept].push({ role: 'user', content: msg });
       addMsg('user', msg);
@@ -766,23 +821,18 @@
       input.value = '';
     }
 
-    document.getElementById('chat-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') sendMessage();
-    });
+    document.getElementById('chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
 
+    // Meeting
     document.getElementById('meeting-btn').addEventListener('click', () => {
       document.getElementById('meeting-modal').classList.add('show');
     });
 
-    function closeMeetingModal() {
-      document.getElementById('meeting-modal').classList.remove('show');
-    }
+    function closeMeetingModal() { document.getElementById('meeting-modal').classList.remove('show'); }
 
     function populateMeetingSelects() {
-      const f = document.getElementById('meet-from');
-      const t = document.getElementById('meet-to');
-      f.innerHTML = '';
-      t.innerHTML = '';
+      const f = document.getElementById('meet-from'), t = document.getElementById('meet-to');
+      f.innerHTML = ''; t.innerHTML = '';
       for (const [id, dept] of Object.entries(departments)) {
         f.innerHTML += `<option value="${id}">${dept.name}</option>`;
         t.innerHTML += `<option value="${id}">${dept.name}</option>`;
@@ -802,7 +852,7 @@
       socket.emit('agent-meeting', { from, to, topic });
     }
 
-    document.getElementById('meeting-modal').addEventListener('click', (e) => {
+    document.getElementById('meeting-modal').addEventListener('click', e => {
       if (e.target === e.currentTarget) closeMeetingModal();
     });
 
