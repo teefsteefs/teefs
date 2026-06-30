@@ -14,7 +14,7 @@
       color: #e0e0e0;
     }
     #app { display: flex; height: 100vh; }
-    #game-container { flex: 1; position: relative; }
+    #game-container { flex: 1; min-width: 0; overflow: hidden; position: relative; }
     canvas { display: block; }
 
     #hud {
@@ -59,12 +59,12 @@
 
     /* Chat panel */
     #chat-panel {
-      width: 0; overflow: hidden;
+      width: 0; min-width: 0; flex-shrink: 0; overflow: hidden;
       background: #0c0c1e; border-left: 1px solid rgba(255,255,255,0.05);
       display: flex; flex-direction: column;
-      transition: width 0.3s ease; z-index: 40;
+      transition: width 0.3s ease, min-width 0.3s ease; z-index: 40;
     }
-    #chat-panel.open { width: 380px; }
+    #chat-panel.open { width: 380px; min-width: 380px; }
 
     .chat-header {
       padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05);
