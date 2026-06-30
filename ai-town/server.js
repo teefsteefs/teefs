@@ -128,6 +128,17 @@ Keep replies under 3 sentences.`,
   },
 };
 
+const tasks = {};
+
+const fallbackTaskResponses = {
+  ceo: "Got it. I'll review this and align it with our strategic priorities. Expect an update by end of day.",
+  engineering: "Understood. I'll break this down into tickets and assign it to the team. ETA: end of sprint.",
+  marketing: "On it! I'll draft a plan and loop in the content team. Should have something by tomorrow.",
+  design: "Thanks for the brief! I'll sketch out some concepts and share mockups within 48 hours.",
+  data: "I'll pull the relevant data and run the analysis. Dashboard will be ready by end of week.",
+  hr: "Noted! I'll coordinate with the team and get this scheduled. Will follow up shortly.",
+};
+
 const activities = [
   'In a meeting',
   'Coffee break',
@@ -242,6 +253,52 @@ ${toDept.name} (${toDept.emoji}): ${toDept.system}`,
         conversation: `[Error: ${err.message}]`,
       });
     }
+  });
+
+  socket.on('assign-task', async ({ from, to, description, priority }) => {
+    const fromDept = departments[from];
+    const toDept = departments[to];
+    if (!fromDept || !toDept) return;
+
+    const task = { from, to, description, priority, status: 'pending', time: Date.now() };
+    if (!tasks[to]) tasks[to] = [];
+    tasks[to].push(task);
+    if (!tasks[from]) tasks[from] = [];
+    tasks[from].push({ ...task, status: 'assigned' });
+
+    if (!HAS_AI) {
+      const response = fallbackTaskResponses[to] || fallbackTaskResponses.ceo;
+      task.response = response;
+      setTimeout(() => {
+        task.status = 'in-progress';
+        socket.emit('task-assigned', { task: { ...task, response } });
+      }, 800 + Math.random() * 1200);
+      return;
+    }
+
+    try {
+      const response = await openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          { role: 'system', content: toDept.system + '\nYou just received a task assignment. Acknowledge it professionally and briefly explain your approach.' },
+          { role: 'user', content: `Task from ${fromDept.name} (${priority} priority): ${description}` },
+        ],
+        max_tokens: 200,
+      });
+      const reply = response.choices[0].message.content;
+      task.status = 'in-progress';
+      task.response = reply;
+      socket.emit('task-assigned', { task: { ...task, response: reply } });
+    } catch (err) {
+      const response = fallbackTaskResponses[to] || fallbackTaskResponses.ceo;
+      task.response = response;
+      socket.emit('task-assigned', { task: { ...task, response } });
+    }
+  });
+
+  socket.on('get-tasks', ({ departmentId }) => {
+    const deptTasks = tasks[departmentId] || [];
+    socket.emit('tasks-list', { departmentId, tasks: deptTasks.slice(-10) });
   });
 
   socket.on('disconnect', () => {

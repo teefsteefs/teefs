@@ -102,6 +102,36 @@
     .typing span:nth-child(3) { animation-delay: 0.4s; }
     @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
 
+    .chat-actions {
+      padding: 6px 14px; border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex; gap: 6px; min-width: 380px;
+    }
+    .chat-action-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px; padding: 5px 10px; color: rgba(255,255,255,0.5);
+      font-size: 11px; cursor: pointer; transition: all 0.2s;
+    }
+    .chat-action-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    #task-modal {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center;
+    }
+    #task-modal.show { display: flex; }
+
+    .task-item {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; font-size: 12px;
+    }
+    .task-item .task-title { color: #fff; font-weight: 500; }
+    .task-item .task-meta { color: rgba(255,255,255,0.35); font-size: 10px; margin-top: 4px; }
+    .task-item .task-status {
+      display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; margin-top: 4px;
+    }
+    .task-status.pending { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .task-status.in-progress { background: rgba(59,130,246,0.15); color: #3b82f6; }
+    .task-status.done { background: rgba(34,197,94,0.15); color: #22c55e; }
+
     #chat-input-area {
       padding: 10px 14px; border-top: 1px solid rgba(255,255,255,0.05);
       display: flex; gap: 8px; min-width: 380px;
@@ -175,6 +205,10 @@
       <button class="chat-close" onclick="closeChat()">✕</button>
     </div>
     <div id="chat-messages"></div>
+    <div class="chat-actions">
+      <button class="chat-action-btn" onclick="openTaskModal()">📋 Assign Task</button>
+      <button class="chat-action-btn" onclick="viewTasks()">📊 View Tasks</button>
+    </div>
     <div id="chat-input-area">
       <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
       <button id="send-btn" onclick="sendMessage()">Send</button>
@@ -191,6 +225,25 @@
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeMeetingModal()">Cancel</button>
       <button class="btn-primary" onclick="startMeeting()">Start</button>
+    </div>
+  </div>
+</div>
+
+<div id="task-modal">
+  <div class="modal">
+    <h3>📋 Assign Task</h3>
+    <label>From</label><select id="task-from"></select>
+    <label>Assign To</label><select id="task-to"></select>
+    <label>Task Description</label><input type="text" id="task-desc" placeholder="e.g. Build landing page by Friday">
+    <label>Priority</label>
+    <select id="task-priority">
+      <option value="normal">Normal</option>
+      <option value="high">High ⚡</option>
+      <option value="urgent">Urgent 🔥</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeTaskModal()">Cancel</button>
+      <button class="btn-primary" onclick="assignTask()">Assign</button>
     </div>
   </div>
 </div>
@@ -254,7 +307,11 @@ const keys = {};
 
 document.addEventListener('keydown', e => {
   keys[e.key] = true;
-  if ((e.key === ' ' || e.key === 'Enter') && nearbyDept && !currentDept) {
+  if ((e.key === ' ') && nearbyDept && nearbyDept !== currentDept) {
+    e.preventDefault();
+    openChat(nearbyDept);
+  }
+  if (e.key === 'Enter' && nearbyDept && !currentDept) {
     e.preventDefault();
     openChat(nearbyDept);
   }
@@ -543,8 +600,8 @@ function gameLoop() {
   }
 
   const hint = document.getElementById('proximity-hint');
-  if (nearbyDept && !currentDept) {
-    hint.textContent = `Press ENTER or SPACE to enter ${departments[nearbyDept]?.name || nearbyDept}`;
+  if (nearbyDept && nearbyDept !== currentDept) {
+    hint.textContent = `Press SPACE to enter ${departments[nearbyDept]?.name || nearbyDept}`;
     hint.classList.add('show');
   } else {
     hint.classList.remove('show');
@@ -784,6 +841,74 @@ function startMeeting() {
 
 document.getElementById('meeting-modal').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeMeetingModal();
+});
+
+// Task system
+function openTaskModal() {
+  if (!currentDept) return;
+  const f = document.getElementById('task-from'), t = document.getElementById('task-to');
+  f.innerHTML = ''; t.innerHTML = '';
+  for (const [id, dept] of Object.entries(departments)) {
+    f.innerHTML += `<option value="${id}" ${id === currentDept ? 'selected' : ''}>${dept.name}</option>`;
+    t.innerHTML += `<option value="${id}">${dept.name}</option>`;
+  }
+  for (let i = 0; i < t.options.length; i++) {
+    if (t.options[i].value !== currentDept) { t.selectedIndex = i; break; }
+  }
+  document.getElementById('task-desc').value = '';
+  document.getElementById('task-modal').classList.add('show');
+}
+function closeTaskModal() { document.getElementById('task-modal').classList.remove('show'); }
+
+document.getElementById('task-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeTaskModal();
+});
+
+function assignTask() {
+  const from = document.getElementById('task-from').value;
+  const to = document.getElementById('task-to').value;
+  const desc = document.getElementById('task-desc').value.trim();
+  const priority = document.getElementById('task-priority').value;
+  if (from === to) { alert('Pick two different departments!'); return; }
+  if (!desc) { alert('Enter a task description!'); return; }
+  socket.emit('assign-task', { from, to, description: desc, priority });
+  closeTaskModal();
+  addMsg('system', `📋 Task assigned to ${departments[to].name}: "${desc}"`);
+  addTyping();
+}
+
+function viewTasks() {
+  if (!currentDept) return;
+  socket.emit('get-tasks', { departmentId: currentDept });
+}
+
+socket.on('task-assigned', ({ task }) => {
+  const fromName = departments[task.from]?.name || task.from;
+  const toName = departments[task.to]?.name || task.to;
+  const priorityIcon = task.priority === 'urgent' ? '🔥' : task.priority === 'high' ? '⚡' : '📋';
+  if (currentDept === task.to) {
+    removeTyping();
+    addMsg('agent', `${priorityIcon} New task from ${fromName}: "${task.description}"\n\n${task.response}`);
+  } else if (currentDept === task.from) {
+    removeTyping();
+    addMsg('agent', `${priorityIcon} ${toName} received your task: "${task.description}"\n\nTheir response: ${task.response}`);
+  }
+});
+
+socket.on('tasks-list', ({ departmentId, tasks }) => {
+  if (currentDept !== departmentId) return;
+  if (tasks.length === 0) {
+    addMsg('system', '📊 No tasks for this department yet.');
+    return;
+  }
+  let list = `📊 Tasks for ${departments[departmentId]?.name}:\n\n`;
+  tasks.forEach((t, i) => {
+    const icon = t.priority === 'urgent' ? '🔥' : t.priority === 'high' ? '⚡' : '📋';
+    const status = t.status === 'done' ? '✅' : t.status === 'in-progress' ? '🔄' : '⏳';
+    const from = departments[t.from]?.name || t.from;
+    list += `${icon} ${status} "${t.description}" (from ${from})\n`;
+  });
+  addMsg('system', list);
 });
 
 // Click on canvas to move
