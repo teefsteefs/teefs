@@ -19,88 +19,88 @@ const MODEL = process.env.MODEL || 'gpt-4o-mini';
 
 const departments = {
   ceo: {
-    name: 'Giám đốc',
+    name: 'CEO Office',
     emoji: '👔',
     color: '#e74c3c',
-    position: { x: 400, y: 80 },
-    system: `Bạn là CEO của công ty AI Town. Bạn ra quyết định chiến lược, quản lý tổng thể.
-Tính cách: quyết đoán, nhìn xa trông rộng, hay dùng từ "chiến lược", "tầm nhìn".
-Trả lời ngắn gọn, dưới 3 câu.`,
+    position: { x: 0, y: 0, z: -8 },
+    system: `You are the CEO of AI Town Corp. You make strategic decisions and oversee all operations.
+Personality: decisive, visionary, uses words like "strategy", "growth", "market position".
+Keep replies under 3 sentences.`,
     memory: [],
-    status: 'Đang review báo cáo quý',
+    status: 'Reviewing quarterly report',
+  },
+  engineering: {
+    name: 'Engineering',
+    emoji: '💻',
+    color: '#2ecc71',
+    position: { x: -8, y: 0, z: 0 },
+    system: `You are the Engineering Lead at AI Town Corp. You handle architecture, code reviews, and technical decisions.
+Personality: logical, precise, talks about tech stack, scalability, clean code, and system design.
+Keep replies under 3 sentences.`,
+    memory: [],
+    status: 'Refactoring auth module',
   },
   marketing: {
     name: 'Marketing',
     emoji: '📢',
     color: '#e67e22',
-    position: { x: 150, y: 250 },
-    system: `Bạn là trưởng phòng Marketing. Bạn chuyên về content, social media, chiến dịch quảng cáo.
-Tính cách: sáng tạo, năng động, hay dùng buzzword marketing.
-Trả lời ngắn gọn, dưới 3 câu.`,
+    position: { x: 8, y: 0, z: 0 },
+    system: `You are the Marketing Lead at AI Town Corp. You handle campaigns, branding, social media, and growth.
+Personality: creative, energetic, uses marketing buzzwords, talks about funnels and engagement.
+Keep replies under 3 sentences.`,
     memory: [],
-    status: 'Đang lên kế hoạch campaign Q3',
-  },
-  dev: {
-    name: 'Phát triển',
-    emoji: '💻',
-    color: '#2ecc71',
-    position: { x: 650, y: 250 },
-    system: `Bạn là trưởng phòng Phát triển (Dev Lead). Bạn chuyên code, kiến trúc hệ thống, review code.
-Tính cách: logic, thích tối ưu, hay nói về tech stack, clean code, scalability.
-Trả lời ngắn gọn, dưới 3 câu.`,
-    memory: [],
-    status: 'Đang refactor authentication module',
+    status: 'Planning Q3 campaign',
   },
   design: {
-    name: 'Thiết kế',
+    name: 'Design',
     emoji: '🎨',
     color: '#9b59b6',
-    position: { x: 150, y: 450 },
-    system: `Bạn là trưởng phòng Thiết kế (Design Lead). Bạn chuyên UI/UX, branding, visual design.
-Tính cách: thẩm mỹ cao, hay nói về user experience, color theory, typography.
-Trả lời ngắn gọn, dưới 3 câu.`,
+    position: { x: -8, y: 0, z: -8 },
+    system: `You are the Design Lead at AI Town Corp. You handle UI/UX, branding, and visual design.
+Personality: aesthetic, detail-oriented, talks about user experience, typography, and color theory.
+Keep replies under 3 sentences.`,
     memory: [],
-    status: 'Đang thiết kế landing page mới',
+    status: 'Designing new landing page',
   },
   data: {
-    name: 'Dữ liệu',
+    name: 'Data Science',
     emoji: '📊',
     color: '#3498db',
-    position: { x: 650, y: 450 },
-    system: `Bạn là trưởng phòng Dữ liệu (Data Lead). Bạn chuyên phân tích data, ML, báo cáo.
-Tính cách: chính xác, dựa trên số liệu, hay quote thống kê và metrics.
-Trả lời ngắn gọn, dưới 3 câu.`,
+    position: { x: 8, y: 0, z: -8 },
+    system: `You are the Data Science Lead at AI Town Corp. You handle analytics, ML models, and data pipelines.
+Personality: precise, data-driven, quotes statistics and metrics, talks about models and accuracy.
+Keep replies under 3 sentences.`,
     memory: [],
-    status: 'Đang phân tích user retention',
+    status: 'Analyzing user retention',
   },
   hr: {
-    name: 'Nhân sự',
+    name: 'Human Resources',
     emoji: '🤝',
     color: '#1abc9c',
-    position: { x: 400, y: 600 },
-    system: `Bạn là trưởng phòng Nhân sự (HR Lead). Bạn chuyên tuyển dụng, đào tạo, văn hóa công ty.
-Tính cách: thân thiện, quan tâm mọi người, hay nói về team building, culture fit.
-Trả lời ngắn gọn, dưới 3 câu.`,
+    position: { x: 0, y: 0, z: 4 },
+    system: `You are the HR Lead at AI Town Corp. You handle hiring, culture, team building, and employee wellbeing.
+Personality: friendly, empathetic, talks about culture fit, team dynamics, and personal growth.
+Keep replies under 3 sentences.`,
     memory: [],
-    status: 'Đang phỏng vấn ứng viên mới',
+    status: 'Interviewing candidates',
   },
 };
 
-const agentActivities = [
-  'đang họp với team',
-  'đang uống cà phê',
-  'đang brainstorm',
-  'đang review tài liệu',
-  'đang trả lời email',
-  'đang nghỉ trưa',
-  'đang pair programming',
-  'đang gọi điện khách hàng',
+const activities = [
+  'In a meeting',
+  'Coffee break',
+  'Brainstorming',
+  'Reviewing docs',
+  'Answering emails',
+  'Lunch break',
+  'On a call',
+  'Deep work session',
 ];
 
 setInterval(() => {
   for (const [id, dept] of Object.entries(departments)) {
     if (Math.random() < 0.15) {
-      dept.status = agentActivities[Math.floor(Math.random() * agentActivities.length)];
+      dept.status = activities[Math.floor(Math.random() * activities.length)];
       io.emit('agent-status', { id, status: dept.status });
     }
   }
@@ -143,7 +143,7 @@ io.on('connection', (socket) => {
       console.error('AI Error:', err.message);
       socket.emit('chat-reply', {
         departmentId,
-        message: `[Lỗi kết nối AI - kiểm tra OPENAI_API_KEY hoặc OPENAI_BASE_URL]\n${err.message}`,
+        message: `[AI connection error — check OPENAI_API_KEY or OPENAI_BASE_URL]\n${err.message}`,
       });
     }
   });
@@ -159,12 +159,12 @@ io.on('connection', (socket) => {
         messages: [
           {
             role: 'system',
-            content: `Bạn là ${fromDept.name} (${fromDept.emoji}) đang họp với ${toDept.name} (${toDept.emoji}).
-Mô phỏng cuộc họp ngắn giữa 2 phòng ban về chủ đề được đưa ra.
-Format: mỗi người nói 1-2 câu, tổng 4-6 lượt. Dùng emoji để phân biệt ai nói.
-Viết bằng tiếng Việt.`,
+            content: `Simulate a short meeting between ${fromDept.name} and ${toDept.name}.
+Each person speaks 1-2 sentences, 4-6 turns total. Use their department emoji to distinguish speakers.
+${fromDept.name} (${fromDept.emoji}): ${fromDept.system}
+${toDept.name} (${toDept.emoji}): ${toDept.system}`,
           },
-          { role: 'user', content: `Chủ đề họp: ${topic}` },
+          { role: 'user', content: `Meeting topic: ${topic}` },
         ],
         max_tokens: 500,
       });
@@ -180,7 +180,7 @@ Viết bằng tiếng Việt.`,
         from,
         to,
         topic,
-        conversation: `[Lỗi: ${err.message}]`,
+        conversation: `[Error: ${err.message}]`,
       });
     }
   });
@@ -192,9 +192,9 @@ Viết bằng tiếng Việt.`,
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🏢 AI Town đang chạy tại http://localhost:${PORT}`);
-  console.log(`\nCấu hình:`);
+  console.log(`\n🏢 AI Town running at http://localhost:${PORT}`);
+  console.log(`\nConfig:`);
   console.log(`  Model: ${MODEL}`);
   console.log(`  API Base: ${openai.baseURL}`);
-  console.log(`  Để dùng Ollama: OPENAI_BASE_URL=http://localhost:11434/v1 MODEL=llama3 npm start\n`);
+  console.log(`  For Ollama: OPENAI_BASE_URL=http://localhost:11434/v1 MODEL=llama3 npm start\n`);
 });
