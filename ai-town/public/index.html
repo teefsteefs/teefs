@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏢 AI Town - Công ty AI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0a1a;
+      color: #e0e0e0;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    #app {
+      display: flex;
+      height: 100vh;
+    }
+
+    #map-container {
+      flex: 1;
+      position: relative;
+      background: #12122a;
+      overflow: hidden;
+    }
+
+    #map-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .department-node {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .department-node:hover {
+      transform: scale(1.1);
+      border-color: rgba(255,255,255,0.4);
+      box-shadow: 0 0 30px rgba(255,255,255,0.1);
+    }
+
+    .department-node.active {
+      transform: scale(1.1);
+      border-color: #fff;
+      box-shadow: 0 0 40px rgba(255,255,255,0.2);
+    }
+
+    .dept-emoji {
+      font-size: 36px;
+      margin-bottom: 6px;
+    }
+
+    .dept-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .dept-status {
+      font-size: 10px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 4px;
+      text-align: center;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pulse-dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2ecc71;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.5); }
+    }
+
+    .connection-line {
+      position: absolute;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #chat-panel {
+      width: 400px;
+      background: #1a1a2e;
+      border-left: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+
+    #chat-panel.hidden {
+      width: 0;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-header-emoji {
+      font-size: 28px;
+    }
+
+    .chat-header-info h3 {
+      font-size: 16px;
+      color: #fff;
+    }
+
+    .chat-header-info p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .chat-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .chat-close:hover { color: #fff; }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #3498db;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.agent {
+      align-self: flex-start;
+      background: rgba(255,255,255,0.1);
+      color: #e0e0e0;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.system {
+      align-self: center;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .message.meeting {
+      align-self: center;
+      background: rgba(155, 89, 182, 0.15);
+      color: #e0e0e0;
+      max-width: 95%;
+      border: 1px solid rgba(155, 89, 182, 0.3);
+    }
+
+    #chat-input-container {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      gap: 8px;
+    }
+
+    #chat-input {
+      flex: 1;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+
+    #chat-input:focus {
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    #chat-input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    #send-btn {
+      background: #3498db;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    #send-btn:hover { background: #2980b9; }
+    #send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 8px 14px;
+      align-self: flex-start;
+    }
+
+    .typing-indicator span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    #header {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 10;
+    }
+
+    #header h1 {
+      font-size: 22px;
+      color: #fff;
+    }
+
+    #header p {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4px;
+    }
+
+    #meeting-btn {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 10;
+      background: rgba(155, 89, 182, 0.8);
+      border: 1px solid rgba(155, 89, 182, 0.5);
+      border-radius: 10px;
+      padding: 10px 18px;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+    }
+
+    #meeting-btn:hover { background: rgba(155, 89, 182, 1); }
+
+    #meeting-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #meeting-modal.show { display: flex; }
+
+    .modal-content {
+      background: #1a1a2e;
+      border-radius: 16px;
+      padding: 24px;
+      width: 360px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .modal-content h3 {
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    .modal-content select, .modal-content input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .modal-content option {
+      background: #1a1a2e;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .modal-actions button {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-cancel {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .btn-start {
+      background: #9b59b6;
+      color: #fff;
+    }
+
+    #player {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #f1c40f;
+      border: 3px solid #f39c12;
+      z-index: 5;
+      transition: all 0.6s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 0 15px rgba(241, 196, 15, 0.5);
+    }
+
+    #instructions {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      z-index: 10;
+      backdrop-filter: blur(10px);
+    }
+
+    .particles {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #chat-messages::-webkit-scrollbar { width: 4px; }
+    #chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="map-container">
+      <div id="header">
+        <h1>🏢 AI Town</h1>
+        <p>Click vào phòng ban để trò chuyện • Di chuyển nhân vật bằng click</p>
+      </div>
+
+      <canvas class="particles" id="particles"></canvas>
+      <svg id="connections" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;"></svg>
+
+      <div id="player">🧑</div>
+
+      <div id="departments-container"></div>
+
+      <button id="meeting-btn">🤝 Tổ chức cuộc họp</button>
+      <div id="instructions">Click phòng ban để chat • Click map để di chuyển nhân vật</div>
+    </div>
+
+    <div id="chat-panel" class="hidden">
+      <div class="chat-header">
+        <span class="chat-header-emoji" id="chat-emoji"></span>
+        <div class="chat-header-info">
+          <h3 id="chat-dept-name"></h3>
+          <p id="chat-dept-status"></p>
+        </div>
+        <button class="chat-close" onclick="closeChat()">✕</button>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-input-container">
+        <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." autocomplete="off">
+        <button id="send-btn" onclick="sendMessage()">Gửi</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="meeting-modal">
+    <div class="modal-content">
+      <h3>🤝 Tổ chức cuộc họp</h3>
+      <label style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:4px;display:block;">Phòng ban 1</label>
+      <select id="meeting-from"></select>
+      <label style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:4px;display:block;">Phòng ban 2</label>
+      <select id="meeting-to"></select>
+      <label style="color:rgba(255,255,255,0.6);font-size:12px;margin-bottom:4px;display:block;">Chủ đề họp</label>
+      <input type="text" id="meeting-topic" placeholder="VD: Kế hoạch ra mắt sản phẩm mới">
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeMeetingModal()">Hủy</button>
+        <button class="btn-start" onclick="startMeeting()">Bắt đầu họp</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let departments = {};
+    let currentDept = null;
+    let chatHistories = {};
+    let playerPos = { x: 400, y: 350 };
+
+    const particleCanvas = document.getElementById('particles');
+    const pctx = particleCanvas.getContext('2d');
+    let particles = [];
+
+    function initParticles() {
+      particleCanvas.width = particleCanvas.parentElement.clientWidth;
+      particleCanvas.height = particleCanvas.parentElement.clientHeight;
+      particles = [];
+      for (let i = 0; i < 50; i++) {
+        particles.push({
+          x: Math.random() * particleCanvas.width,
+          y: Math.random() * particleCanvas.height,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          size: Math.random() * 2 + 1,
+          opacity: Math.random() * 0.3 + 0.1,
+        });
+      }
+    }
+
+    function drawParticles() {
+      pctx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = particleCanvas.width;
+        if (p.x > particleCanvas.width) p.x = 0;
+        if (p.y < 0) p.y = particleCanvas.height;
+        if (p.y > particleCanvas.height) p.y = 0;
+        pctx.beginPath();
+        pctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        pctx.fillStyle = `rgba(255,255,255,${p.opacity})`;
+        pctx.fill();
+      }
+      requestAnimationFrame(drawParticles);
+    }
+
+    function drawConnections() {
+      const svg = document.getElementById('connections');
+      const deptIds = Object.keys(departments);
+      let html = '';
+      for (let i = 0; i < deptIds.length; i++) {
+        for (let j = i + 1; j < deptIds.length; j++) {
+          const a = departments[deptIds[i]].position;
+          const b = departments[deptIds[j]].position;
+          html += `<line x1="${a.x + 60}" y1="${a.y + 60}" x2="${b.x + 60}" y2="${b.y + 60}"
+            stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="4,8"/>`;
+        }
+      }
+      svg.innerHTML = html;
+    }
+
+    socket.on('init', (data) => {
+      departments = data.departments;
+      renderDepartments();
+      drawConnections();
+      populateMeetingSelects();
+    });
+
+    socket.on('agent-status', ({ id, status }) => {
+      if (departments[id]) {
+        departments[id].status = status;
+        const el = document.querySelector(`[data-dept="${id}"] .dept-status`);
+        if (el) el.textContent = status;
+        if (currentDept === id) {
+          document.getElementById('chat-dept-status').textContent = status;
+        }
+      }
+    });
+
+    socket.on('chat-reply', ({ departmentId, message }) => {
+      if (!chatHistories[departmentId]) chatHistories[departmentId] = [];
+      chatHistories[departmentId].push({ role: 'agent', content: message });
+
+      if (currentDept === departmentId) {
+        removeTypingIndicator();
+        addMessageToUI('agent', message);
+      }
+      document.getElementById('send-btn').disabled = false;
+    });
+
+    socket.on('meeting-result', ({ from, to, topic, conversation }) => {
+      if (!chatHistories[currentDept]) chatHistories[currentDept] = [];
+      const header = `📋 Cuộc họp: ${departments[from].emoji} ${departments[from].name} × ${departments[to].emoji} ${departments[to].name}\n📌 Chủ đề: ${topic}\n\n`;
+      chatHistories[currentDept].push({ role: 'meeting', content: header + conversation });
+      if (currentDept) {
+        removeTypingIndicator();
+        addMessageToUI('meeting', header + conversation);
+      }
+      closeMeetingModal();
+    });
+
+    function renderDepartments() {
+      const container = document.getElementById('departments-container');
+      container.innerHTML = '';
+
+      for (const [id, dept] of Object.entries(departments)) {
+        const node = document.createElement('div');
+        node.className = 'department-node';
+        node.dataset.dept = id;
+        node.style.left = dept.position.x + 'px';
+        node.style.top = dept.position.y + 'px';
+        node.style.background = dept.color + '33';
+        node.style.zIndex = '2';
+
+        node.innerHTML = `
+          <div class="pulse-dot"></div>
+          <span class="dept-emoji">${dept.emoji}</span>
+          <span class="dept-name">${dept.name}</span>
+          <span class="dept-status">${dept.status}</span>
+        `;
+
+        node.addEventListener('click', (e) => {
+          e.stopPropagation();
+          movePlayerTo(dept.position.x + 45, dept.position.y + 45);
+          setTimeout(() => openChat(id), 400);
+        });
+
+        container.appendChild(node);
+      }
+    }
+
+    function movePlayerTo(x, y) {
+      const player = document.getElementById('player');
+      playerPos = { x: x - 15, y: y - 15 };
+      player.style.left = playerPos.x + 'px';
+      player.style.top = playerPos.y + 'px';
+    }
+
+    document.getElementById('map-container').addEventListener('click', (e) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      movePlayerTo(e.clientX - rect.left, e.clientY - rect.top);
+    });
+
+    function openChat(deptId) {
+      currentDept = deptId;
+      const dept = departments[deptId];
+
+      document.querySelectorAll('.department-node').forEach(n => n.classList.remove('active'));
+      document.querySelector(`[data-dept="${deptId}"]`).classList.add('active');
+
+      document.getElementById('chat-emoji').textContent = dept.emoji;
+      document.getElementById('chat-dept-name').textContent = `Phòng ${dept.name}`;
+      document.getElementById('chat-dept-status').textContent = dept.status;
+      document.getElementById('chat-panel').classList.remove('hidden');
+
+      const messagesEl = document.getElementById('chat-messages');
+      messagesEl.innerHTML = '';
+
+      addMessageToUI('system', `Bạn đã vào phòng ${dept.name} ${dept.emoji}`);
+
+      if (chatHistories[deptId]) {
+        for (const msg of chatHistories[deptId]) {
+          addMessageToUI(msg.role, msg.content);
+        }
+      }
+
+      document.getElementById('chat-input').focus();
+    }
+
+    function closeChat() {
+      document.getElementById('chat-panel').classList.add('hidden');
+      document.querySelectorAll('.department-node').forEach(n => n.classList.remove('active'));
+      currentDept = null;
+    }
+
+    function addMessageToUI(role, content) {
+      const messagesEl = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.className = `message ${role}`;
+      div.textContent = content;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function addTypingIndicator() {
+      const messagesEl = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.className = 'typing-indicator';
+      div.id = 'typing';
+      div.innerHTML = '<span></span><span></span><span></span>';
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const el = document.getElementById('typing');
+      if (el) el.remove();
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      if (!message || !currentDept) return;
+
+      if (!chatHistories[currentDept]) chatHistories[currentDept] = [];
+      chatHistories[currentDept].push({ role: 'user', content: message });
+
+      addMessageToUI('user', message);
+      addTypingIndicator();
+      document.getElementById('send-btn').disabled = true;
+
+      socket.emit('chat', { departmentId: currentDept, message });
+      input.value = '';
+    }
+
+    document.getElementById('chat-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    document.getElementById('meeting-btn').addEventListener('click', () => {
+      document.getElementById('meeting-modal').classList.add('show');
+    });
+
+    function closeMeetingModal() {
+      document.getElementById('meeting-modal').classList.remove('show');
+    }
+
+    function populateMeetingSelects() {
+      const fromEl = document.getElementById('meeting-from');
+      const toEl = document.getElementById('meeting-to');
+      fromEl.innerHTML = '';
+      toEl.innerHTML = '';
+      for (const [id, dept] of Object.entries(departments)) {
+        fromEl.innerHTML += `<option value="${id}">${dept.emoji} ${dept.name}</option>`;
+        toEl.innerHTML += `<option value="${id}">${dept.emoji} ${dept.name}</option>`;
+      }
+      if (toEl.options.length > 1) toEl.selectedIndex = 1;
+    }
+
+    function startMeeting() {
+      const from = document.getElementById('meeting-from').value;
+      const to = document.getElementById('meeting-to').value;
+      const topic = document.getElementById('meeting-topic').value.trim();
+
+      if (from === to) { alert('Chọn 2 phòng ban khác nhau!'); return; }
+      if (!topic) { alert('Nhập chủ đề cuộc họp!'); return; }
+
+      if (!currentDept) openChat(from);
+      addMessageToUI('system', `🤝 Đang tổ chức cuộc họp...`);
+      addTypingIndicator();
+
+      socket.emit('agent-meeting', { from, to, topic });
+    }
+
+    document.getElementById('meeting-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeMeetingModal();
+    });
+
+    initParticles();
+    drawParticles();
+    window.addEventListener('resize', () => {
+      initParticles();
+      drawConnections();
+    });
+
+    movePlayerTo(400, 350);
+  </script>
+</body>
+</html>

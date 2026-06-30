@@ -1,0 +1,15 @@
+{
+  "name": "ai-town",
+  "version": "1.0.0",
+  "description": "AI Town - Multi-agent simulation with departments",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "openai": "^4.20.0"
+  }
+}
