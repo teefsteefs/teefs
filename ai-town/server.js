@@ -138,7 +138,6 @@ const fallbackTaskWork = {
       "Drafting executive summary and key action items...",
       "Consulting with leadership team on resource allocation...",
     ],
-    done: "✅ Done! I've prepared an executive brief with strategic recommendations and resource plan. Key takeaway: this aligns well with our Q3 objectives. I've scheduled a follow-up review for next week.",
   },
   engineering: {
     accept: "Understood. I'll break this down into tickets and start working on it.",
@@ -148,7 +147,6 @@ const fallbackTaskWork = {
       "Writing core logic and unit tests...",
       "Running CI pipeline and code review...",
     ],
-    done: "✅ Done! Implementation is complete — all tests passing, code reviewed, and deployed to staging. PR #42 is ready for review. Performance benchmarks look good: 200ms avg response time.",
   },
   marketing: {
     accept: "On it! I'll draft a plan and loop in the content team.",
@@ -157,7 +155,6 @@ const fallbackTaskWork = {
       "Creating content brief and campaign assets...",
       "Setting up A/B test variants and tracking pixels...",
     ],
-    done: "✅ Done! Campaign is live with 3 variants. Landing page copy is finalized, social assets are scheduled for the next 2 weeks. Estimated reach: 50K impressions. Tracking dashboard is set up.",
   },
   design: {
     accept: "Thanks for the brief! I'll start sketching out concepts.",
@@ -166,7 +163,6 @@ const fallbackTaskWork = {
       "Exploring visual directions and color palettes...",
       "Building high-fidelity mockups in Figma...",
     ],
-    done: "✅ Done! Final designs are in Figma — 3 screens with responsive variants. Used our updated design system tokens. User flow reduces clicks by 40% compared to current. Ready for dev handoff!",
   },
   data: {
     accept: "I'll pull the relevant data and start the analysis.",
@@ -175,7 +171,6 @@ const fallbackTaskWork = {
       "Running statistical analysis and building models...",
       "Creating visualization dashboard with key metrics...",
     ],
-    done: "✅ Done! Analysis complete — dashboard is live with real-time metrics. Key finding: 23% improvement opportunity identified. Confidence interval: 95%. Full report with methodology attached.",
   },
   hr: {
     accept: "Noted! I'll coordinate with the team right away.",
@@ -184,9 +179,37 @@ const fallbackTaskWork = {
       "Drafting communication plan and scheduling...",
       "Coordinating with stakeholders and getting approvals...",
     ],
-    done: "✅ Done! Everything is coordinated — team is aligned, schedule is set, and all stakeholders have confirmed. Sent calendar invites and updated the team wiki. Feedback survey will go out next week.",
   },
 };
+
+function generateDeliverable(deptId, description) {
+  const desc = description.toLowerCase();
+  if (desc.includes('email') || desc.includes('template')) {
+    return `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n📧 EMAIL TEMPLATE\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nSubject: Introducing Our AI Agent — Your New Digital Teammate 🤖\n\nHi [Name],\n\nWe're excited to introduce our latest AI Agent — designed to automate workflows, answer questions, and boost your team's productivity.\n\n🔹 Smart Automation — Handles repetitive tasks so you can focus on what matters\n🔹 24/7 Availability — Always ready to help, no coffee breaks needed\n🔹 Easy Integration — Works with your existing tools in minutes\n\nReady to see it in action?\n👉 [Book a Demo] | [Try It Free]\n\nBest regards,\nThe AI Town Team\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  }
+  if (desc.includes('landing') || desc.includes('page') || desc.includes('website')) {
+    return `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🌐 LANDING PAGE SPEC\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nHero Section:\n  Headline: "Meet Your AI-Powered Team"\n  Subhead: "Intelligent agents that work alongside your employees"\n  CTA: "Get Started Free" (primary) | "Watch Demo" (secondary)\n\nFeatures Section (3 columns):\n  1. 🧠 Smart Conversations — Natural language understanding\n  2. ⚡ Lightning Fast — Sub-second response times\n  3. 🔒 Enterprise Secure — SOC2 compliant, encrypted\n\nSocial Proof: 3 testimonial cards + logo bar\nPricing: Free / Pro $29/mo / Enterprise (custom)\nFooter: Links + newsletter signup\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  }
+  if (desc.includes('report') || desc.includes('analysis') || desc.includes('data')) {
+    return `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 ANALYSIS REPORT\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nKey Metrics:\n  • Monthly Active Users: 12,450 (+18% MoM)\n  • Avg. Session Duration: 4m 32s\n  • Conversion Rate: 3.8% (vs 2.1% industry avg)\n  • NPS Score: 72 (Excellent)\n\nTop Findings:\n  1. Mobile traffic up 45% — needs responsive optimization\n  2. Onboarding drop-off at step 3 (payment) — 34% abandon\n  3. Power users (top 10%) drive 60% of engagement\n\nRecommendations:\n  → Simplify payment flow (estimated +12% conversion)\n  → Launch mobile app MVP by Q4\n  → Create loyalty program for power users\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  }
+  if (desc.includes('hire') || desc.includes('recruit') || desc.includes('job') || desc.includes('interview')) {
+    return `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n📋 RECRUITMENT PLAN\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nPosition: As requested\nTimeline: 4-6 weeks\n\nPhase 1 (Week 1-2): Source & Screen\n  • Post on LinkedIn, Indeed, internal referrals\n  • Screen 30+ candidates → shortlist 10\n\nPhase 2 (Week 3-4): Interview\n  • Round 1: Technical/skills assessment\n  • Round 2: Culture fit + team meet\n  • Round 3: Final with hiring manager\n\nPhase 3 (Week 5-6): Offer & Onboard\n  • Comp benchmarking + offer letter\n  • 30/60/90 day onboarding plan\n\nBudget: Covered by existing hiring allocation\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  }
+  if (desc.includes('design') || desc.includes('logo') || desc.includes('brand') || desc.includes('ui') || desc.includes('mockup')) {
+    return `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎨 DESIGN SPEC\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nColor Palette:\n  Primary: #3B82F6 (Blue)  Accent: #8B5CF6 (Purple)\n  Background: #0F172A       Text: #F8FAFC\n\nTypography:\n  Headings: Inter Bold 24-48px\n  Body: Inter Regular 14-16px\n  Code: JetBrains Mono 13px\n\nComponents:\n  • Cards with 12px radius, subtle shadow\n  • Buttons: filled primary, outlined secondary\n  • Input fields with floating labels\n  • Toast notifications (top-right)\n\nLayout: 12-column grid, 1200px max-width\nScreens delivered: 5 pages in Figma\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  }
+  // Generic deliverable
+  const deptDeliverables = {
+    ceo: `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n📋 EXECUTIVE BRIEF\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nObjective: ${description}\n\nStrategic Assessment:\n  • Aligns with Q3-Q4 company roadmap\n  • Resource impact: Low-Medium\n  • Expected ROI: 2-3x within 6 months\n\nAction Items:\n  1. Kick off cross-team alignment meeting\n  2. Allocate budget from innovation fund\n  3. Set milestone checkpoints (monthly)\n\nApproved for execution. Next review: 2 weeks.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    engineering: `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n💻 IMPLEMENTATION COMPLETE\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nTask: ${description}\n\nTechnical Summary:\n  • Architecture: Modular, event-driven\n  • Stack: Node.js + Express + Socket.IO\n  • Tests: 24 unit tests, all passing ✓\n  • Coverage: 89%\n\nPerformance:\n  • Avg response: 145ms\n  • Memory: 48MB baseline\n  • Handles 1000 concurrent connections\n\nDeployed to staging. PR #47 ready for review.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    marketing: `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n📢 CAMPAIGN PACKAGE\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nCampaign: ${description}\n\nAssets Created:\n  • 3 email sequences (welcome, nurture, convert)\n  • 5 social media posts (LinkedIn + Twitter)\n  • 1 blog post draft (1,200 words)\n  • Ad copy for 2 variants (A/B test ready)\n\nTargeting:\n  • Audience: Tech decision-makers, 25-45\n  • Channels: LinkedIn Ads + Google Search\n  • Budget: $2,500/month recommended\n\nEstimated Reach: 50K impressions, 3.5% CTR\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    design: `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎨 DESIGN DELIVERABLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nProject: ${description}\n\nDelivered:\n  • 4 high-fidelity mockups (desktop + mobile)\n  • Interactive prototype in Figma\n  • Component library (12 reusable components)\n  • Style guide with design tokens\n\nKey Decisions:\n  • Minimal, clean aesthetic\n  • Accessibility: WCAG AA compliant\n  • Motion: subtle micro-interactions\n\nFigma link shared with team. Ready for dev handoff.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    data: `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 DATA ANALYSIS\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nAnalysis: ${description}\n\nKey Findings:\n  • Primary metric improved 23% (p < 0.01)\n  • Identified 3 user segments with distinct behavior\n  • Predictive model accuracy: 91.2%\n\nDashboard: Live at /analytics/report-47\nDataset: 2.3M records processed\nMethodology: Regression + clustering analysis\n\nRecommendation: Focus on Segment A (highest LTV)\nNext steps: Weekly automated reports enabled\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    hr: `✅ Done! Here's the deliverable:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🤝 HR ACTION PLAN\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nProject: ${description}\n\nCompleted:\n  • Stakeholder alignment (all confirmed)\n  • Schedule finalized and calendar invites sent\n  • Documentation updated in team wiki\n  • Communication plan distributed\n\nTimeline:\n  • Week 1: Kickoff + initial setup\n  • Week 2-3: Execution phase\n  • Week 4: Review + feedback collection\n\nAll teams notified. Feedback survey scheduled.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+  };
+  return deptDeliverables[deptId] || deptDeliverables.engineering;
+}
 
 const activities = [
   'In a meeting',
@@ -316,32 +339,34 @@ ${toDept.name} (${toDept.emoji}): ${toDept.system}`,
 
     const speedMs = priority === 'urgent' ? 3000 : priority === 'high' ? 5000 : 8000;
 
+    const emitUpdate = (data) => {
+      socket.emit('task-update', { ...data, taskId, from, to });
+    };
+
     if (!HAS_AI) {
       const work = fallbackTaskWork[to] || fallbackTaskWork.ceo;
 
-      // Step 1: Accept
       setTimeout(() => {
         task.status = 'accepted';
-        socket.emit('task-update', { taskId, departmentId: to, status: 'accepted', message: work.accept });
+        emitUpdate({ status: 'accepted', message: work.accept });
         toDept.status = `Working on: ${description.slice(0, 30)}...`;
         io.emit('agent-status', { id: to, status: toDept.status });
       }, 800 + Math.random() * 500);
 
-      // Step 2: Progress updates
       work.progress.forEach((msg, i) => {
         setTimeout(() => {
           task.status = 'in-progress';
           task.progress = Math.round(((i + 1) / work.progress.length) * 80);
-          socket.emit('task-update', { taskId, departmentId: to, status: 'in-progress', message: msg, progress: task.progress });
+          emitUpdate({ status: 'in-progress', message: msg, progress: task.progress });
         }, speedMs * (i + 1) + Math.random() * 1000);
       });
 
-      // Step 3: Complete
       setTimeout(() => {
         task.status = 'done';
         task.progress = 100;
-        task.result = work.done;
-        socket.emit('task-update', { taskId, departmentId: to, status: 'done', message: work.done, progress: 100 });
+        const deliverable = generateDeliverable(to, description);
+        task.result = deliverable;
+        emitUpdate({ status: 'done', message: deliverable, progress: 100 });
         toDept.status = activities[Math.floor(Math.random() * activities.length)];
         io.emit('agent-status', { id: to, status: toDept.status });
       }, speedMs * (work.progress.length + 1) + 1000);
@@ -350,7 +375,6 @@ ${toDept.name} (${toDept.emoji}): ${toDept.system}`,
     }
 
     try {
-      // AI mode: accept
       const acceptRes = await openai.chat.completions.create({
         model: MODEL,
         messages: [
@@ -360,11 +384,10 @@ ${toDept.name} (${toDept.emoji}): ${toDept.system}`,
         max_tokens: 100,
       });
       task.status = 'accepted';
-      socket.emit('task-update', { taskId, departmentId: to, status: 'accepted', message: acceptRes.choices[0].message.content });
+      emitUpdate({ status: 'accepted', message: acceptRes.choices[0].message.content });
       toDept.status = `Working on: ${description.slice(0, 30)}...`;
       io.emit('agent-status', { id: to, status: toDept.status });
 
-      // AI mode: progress updates
       const progressSteps = ['analyzing requirements', 'working on implementation', 'reviewing and finalizing'];
       for (let i = 0; i < progressSteps.length; i++) {
         await new Promise(r => setTimeout(r, speedMs));
@@ -378,31 +401,31 @@ ${toDept.name} (${toDept.emoji}): ${toDept.system}`,
         });
         task.status = 'in-progress';
         task.progress = Math.round(((i + 1) / progressSteps.length) * 80);
-        socket.emit('task-update', { taskId, departmentId: to, status: 'in-progress', message: progRes.choices[0].message.content, progress: task.progress });
+        emitUpdate({ status: 'in-progress', message: progRes.choices[0].message.content, progress: task.progress });
       }
 
-      // AI mode: complete
       await new Promise(r => setTimeout(r, speedMs));
       const doneRes = await openai.chat.completions.create({
         model: MODEL,
         messages: [
-          { role: 'system', content: toDept.system + '\nYou just finished a task. Summarize what you delivered in 2-3 sentences. Start with ✅.' },
-          { role: 'user', content: `Completed task: ${description}` },
+          { role: 'system', content: toDept.system + `\nYou just finished this task: "${description}"\nProvide the actual deliverable output. If it's an email template, write the actual email. If it's a report, write the actual report. If it's code, write the actual code. Make it concrete and ready to use. Start with ✅ Done!` },
+          { role: 'user', content: `Deliver the completed task: ${description}` },
         ],
-        max_tokens: 150,
+        max_tokens: 500,
       });
       task.status = 'done';
       task.progress = 100;
       task.result = doneRes.choices[0].message.content;
-      socket.emit('task-update', { taskId, departmentId: to, status: 'done', message: task.result, progress: 100 });
+      emitUpdate({ status: 'done', message: task.result, progress: 100 });
       toDept.status = activities[Math.floor(Math.random() * activities.length)];
       io.emit('agent-status', { id: to, status: toDept.status });
     } catch (err) {
       console.error('Task AI Error:', err.message);
-      const work = fallbackTaskWork[to] || fallbackTaskWork.ceo;
       task.status = 'done';
-      task.result = work.done;
-      socket.emit('task-update', { taskId, departmentId: to, status: 'done', message: work.done, progress: 100 });
+      task.progress = 100;
+      const deliverable = generateDeliverable(to, description);
+      task.result = deliverable;
+      emitUpdate({ status: 'done', message: deliverable, progress: 100 });
     }
   });
 

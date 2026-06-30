@@ -874,8 +874,7 @@ function assignTask() {
   socket.emit('assign-task', { from, to, description: desc, priority });
   closeTaskModal();
   const priorityIcon = priority === 'urgent' ? '🔥' : priority === 'high' ? '⚡' : '📋';
-  addMsg('system', `${priorityIcon} Task assigned to ${departments[to].name}: "${desc}"`);
-  addTyping();
+  addMsg('system', `${priorityIcon} Task sent to ${departments[to].name}: "${desc}"\n💡 Switch to ${departments[to].name} to watch them work on it.`);
 }
 
 function viewTasks() {
@@ -883,20 +882,35 @@ function viewTasks() {
   socket.emit('get-tasks', { departmentId: currentDept });
 }
 
-socket.on('task-update', ({ taskId, departmentId, status, message, progress }) => {
-  const deptName = departments[departmentId]?.name || departmentId;
+socket.on('task-update', ({ taskId, from, to, status, message, progress }) => {
+  const toName = departments[to]?.name || to;
+  const fromName = departments[from]?.name || from;
   const statusIcon = status === 'done' ? '✅' : status === 'in-progress' ? '🔄' : status === 'accepted' ? '👍' : '📋';
   const progressBar = progress != null ? ` [${progress}%]` : '';
 
-  if (currentDept === departmentId || currentDept) {
+  // Store update in the receiving department's chat history
+  if (!chatHistories[to]) chatHistories[to] = [];
+  if (status === 'done') {
+    chatHistories[to].push({ role: 'agent', content: message });
+  } else {
+    chatHistories[to].push({ role: 'system', content: `${statusIcon} ${toName}${progressBar}: ${message}` });
+  }
+
+  // Show in chat if viewing the receiving department
+  if (currentDept === to) {
     removeTyping();
     if (status === 'done') {
       addMsg('agent', message);
     } else {
-      addMsg('system', `${statusIcon} ${deptName}${progressBar}: ${message}`);
-      if (status !== 'done') addTyping();
+      addMsg('system', `${statusIcon} ${toName}${progressBar}: ${message}`);
+      addTyping();
     }
     updateProgressBar(taskId, progress || 0);
+  }
+
+  // Notify the assigning department when done
+  if (status === 'done' && currentDept === from && from !== to) {
+    addMsg('system', `📬 ${toName} completed your task! Switch to ${toName} to see the deliverable.`);
   }
 });
 
