@@ -1,8 +1,47 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const { Server } = require('socket.io');
 const OpenAI = require('openai');
 const path = require('path');
+
+function webSearch(query) {
+  return new Promise((resolve) => {
+    const searchUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+    const req = https.get(searchUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 8000 }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          const results = [];
+          if (json.Abstract) {
+            results.push({ title: json.Heading || 'Summary', snippet: json.Abstract });
+          }
+          if (json.RelatedTopics) {
+            for (const topic of json.RelatedTopics) {
+              if (topic.Text && results.length < 5) {
+                results.push({ title: topic.FirstURL?.split('/').pop()?.replace(/_/g, ' ') || 'Related', snippet: topic.Text });
+              }
+              if (topic.Topics) {
+                for (const sub of topic.Topics) {
+                  if (sub.Text && results.length < 5) {
+                    results.push({ title: sub.FirstURL?.split('/').pop()?.replace(/_/g, ' ') || 'Related', snippet: sub.Text });
+                  }
+                }
+              }
+            }
+          }
+          resolve(results);
+        } catch {
+          resolve([]);
+        }
+      });
+    });
+    req.on('error', () => resolve([]));
+    req.on('timeout', () => { req.destroy(); resolve([]); });
+  });
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -249,6 +288,66 @@ io.on('connection', (socket) => {
 
     dept.memory.push({ role: 'user', content: message });
     if (dept.memory.length > 20) dept.memory = dept.memory.slice(-20);
+
+    const lowerMsg = message.toLowerCase();
+    const isSearchQuery = lowerMsg.startsWith('search ') || lowerMsg.startsWith('tìm ') ||
+      lowerMsg.startsWith('look up ') || lowerMsg.startsWith('find ') ||
+      lowerMsg.includes('search for') || lowerMsg.includes('look up') ||
+      lowerMsg.includes('tìm kiếm') || lowerMsg.includes('tra cứu');
+
+    if (isSearchQuery) {
+      const searchTerm = message.replace(/^(search|tìm|look up|find|tìm kiếm|tra cứu)\s*/i, '').replace(/(search for|look up|tìm kiếm|tra cứu)\s*/i, '').trim() || message;
+      socket.emit('chat-reply', { departmentId, message: `🔍 Searching the web for: "${searchTerm}"...`, isSearching: true });
+
+      const results = await webSearch(searchTerm);
+      if (results.length === 0) {
+        if (HAS_AI) {
+          try {
+            const aiSearch = await openai.chat.completions.create({
+              model: MODEL,
+              messages: [
+                { role: 'system', content: dept.system + '\nThe user asked you to search for something. Web search is unavailable, so answer from your knowledge. Be helpful and specific.' },
+                { role: 'user', content: `Search/find: ${searchTerm}` },
+              ],
+              max_tokens: 400,
+            });
+            const reply = `🔍 Web search unavailable — here's what I know:\n\n${aiSearch.choices[0].message.content}`;
+            dept.memory.push({ role: 'assistant', content: reply });
+            socket.emit('chat-reply', { departmentId, message: reply });
+          } catch (e) {
+            socket.emit('chat-reply', { departmentId, message: `🔍 Search for "${searchTerm}" failed. Check your internet connection and try again.` });
+          }
+        } else {
+          const reply = `🔍 Search for "${searchTerm}" — web search is not available in demo mode.\n\n💡 To enable search, set your API key:\n  set OPENAI_API_KEY=sk-xxx\n  npm start\n\nWith an API key, agents can search the web and analyze results for you.`;
+          dept.memory.push({ role: 'assistant', content: reply });
+          socket.emit('chat-reply', { departmentId, message: reply });
+        }
+        return;
+      }
+
+      let searchReply = `🔍 Search results for "${searchTerm}":\n\n`;
+      results.forEach((r, i) => {
+        searchReply += `${i + 1}. ${r.title}\n   ${r.snippet}\n\n`;
+      });
+
+      if (HAS_AI) {
+        try {
+          const analysis = await openai.chat.completions.create({
+            model: MODEL,
+            messages: [
+              { role: 'system', content: dept.system + '\nThe user asked you to search for something. Here are the web search results. Summarize the key findings in 2-3 sentences from your department perspective.' },
+              { role: 'user', content: `Search query: ${searchTerm}\n\nResults:\n${results.map(r => `- ${r.title}: ${r.snippet}`).join('\n')}` },
+            ],
+            max_tokens: 200,
+          });
+          searchReply += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n💡 ${dept.name} Analysis:\n${analysis.choices[0].message.content}`;
+        } catch (e) { /* skip AI analysis on error */ }
+      }
+
+      dept.memory.push({ role: 'assistant', content: searchReply });
+      socket.emit('chat-reply', { departmentId, message: searchReply });
+      return;
+    }
 
     if (!HAS_AI) {
       const replies = fallbackReplies[departmentId] || fallbackReplies.ceo;

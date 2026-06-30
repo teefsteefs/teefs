@@ -736,7 +736,11 @@ socket.on('agent-status', ({ id, status }) => {
   }
 });
 
-socket.on('chat-reply', ({ departmentId, message }) => {
+socket.on('chat-reply', ({ departmentId, message, isSearching }) => {
+  if (isSearching) {
+    if (currentDept === departmentId) { addMsg('system', message); addTyping(); }
+    return;
+  }
   if (!chatHistories[departmentId]) chatHistories[departmentId] = [];
   chatHistories[departmentId].push({ role: 'agent', content: message });
   if (currentDept === departmentId) { removeTyping(); addMsg('agent', message); }
@@ -909,8 +913,13 @@ socket.on('task-update', ({ taskId, from, to, status, message, progress }) => {
   }
 
   // Notify the assigning department when done
-  if (status === 'done' && currentDept === from && from !== to) {
-    addMsg('system', `📬 ${toName} completed your task! Switch to ${toName} to see the deliverable.`);
+  if (status === 'done' && from !== to) {
+    const notif = `📬 ${toName} completed your task: "${message.slice(0, 60)}..."\nSwitch to ${toName} to see the full deliverable.`;
+    if (!chatHistories[from]) chatHistories[from] = [];
+    chatHistories[from].push({ role: 'system', content: notif });
+    if (currentDept === from) {
+      addMsg('system', notif);
+    }
   }
 });
 
