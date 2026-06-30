@@ -10,12 +10,54 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+const API_KEY = process.env.OPENAI_API_KEY || '';
+const HAS_AI = API_KEY && API_KEY !== 'sk-placeholder';
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'sk-placeholder',
+  apiKey: API_KEY || 'sk-placeholder',
   baseURL: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
 });
 
 const MODEL = process.env.MODEL || 'gpt-4o-mini';
+
+const fallbackReplies = {
+  ceo: [
+    "Strategically speaking, we need to focus on our Q3 targets. Let's align on this during the all-hands.",
+    "I've been reviewing the numbers — our growth trajectory looks promising. Let's double down on what's working.",
+    "Great question. Let me loop in the relevant teams and we'll have a strategy session this week.",
+    "From a high-level perspective, I think we should prioritize market expansion. Let's set up a deep dive.",
+  ],
+  engineering: [
+    "We're currently refactoring the auth module to improve scalability. Should be done by end of sprint.",
+    "I'd recommend we go with a microservices approach here — it'll give us better separation of concerns.",
+    "The tech debt is manageable right now, but we should allocate 20% of next sprint for cleanup.",
+    "Good point. Let me check the CI pipeline and get back to you with benchmarks.",
+  ],
+  marketing: [
+    "Our latest campaign hit a 3.2% conversion rate — that's above industry average! 🎯",
+    "I'm thinking we should pivot our content strategy toward more video-first approaches this quarter.",
+    "The brand awareness metrics are trending up. Let me put together a funnel analysis for the team.",
+    "Social engagement is up 40% this month! We should capitalize on this momentum.",
+  ],
+  design: [
+    "I've been exploring a more minimal design language — cleaner typography, more whitespace.",
+    "The user testing results show our new onboarding flow reduced drop-off by 25%. Really happy with that!",
+    "Color-wise, I think we should shift toward warmer tones. It aligns better with our brand personality.",
+    "Let me mock up a few options and we can do a design review tomorrow.",
+  ],
+  data: [
+    "The retention data shows a 15% improvement after we launched the new features last month.",
+    "I've built a predictive model that estimates churn with 87% accuracy. Want to see the dashboard?",
+    "Based on our A/B test results, variant B outperforms by 2.3 standard deviations. Statistically significant.",
+    "Let me pull the latest metrics. The data pipeline just finished processing the overnight batch.",
+  ],
+  hr: [
+    "We've got 12 strong candidates in the pipeline for the senior roles. Interviews start next week!",
+    "The team engagement survey results are in — overall satisfaction is at 8.2/10. Room for improvement on work-life balance.",
+    "I'm planning a team building event for next month. Thinking escape room or cooking class?",
+    "The new onboarding program has really improved our 90-day retention. New hires feel much more supported.",
+  ],
+};
 
 const departments = {
   ceo: {
@@ -125,6 +167,16 @@ io.on('connection', (socket) => {
     dept.memory.push({ role: 'user', content: message });
     if (dept.memory.length > 20) dept.memory = dept.memory.slice(-20);
 
+    if (!HAS_AI) {
+      const replies = fallbackReplies[departmentId] || fallbackReplies.ceo;
+      const reply = replies[Math.floor(Math.random() * replies.length)];
+      dept.memory.push({ role: 'assistant', content: reply });
+      setTimeout(() => {
+        socket.emit('chat-reply', { departmentId, message: reply });
+      }, 500 + Math.random() * 1000);
+      return;
+    }
+
     try {
       const response = await openai.chat.completions.create({
         model: MODEL,
@@ -141,10 +193,9 @@ io.on('connection', (socket) => {
       socket.emit('chat-reply', { departmentId, message: reply });
     } catch (err) {
       console.error('AI Error:', err.message);
-      socket.emit('chat-reply', {
-        departmentId,
-        message: `[AI connection error — check OPENAI_API_KEY or OPENAI_BASE_URL]\n${err.message}`,
-      });
+      const replies = fallbackReplies[departmentId] || fallbackReplies.ceo;
+      const reply = replies[Math.floor(Math.random() * replies.length)];
+      socket.emit('chat-reply', { departmentId, message: reply + '\n\n⚠️ (AI offline — using demo replies. Set OPENAI_API_KEY for real AI)' });
     }
   });
 
@@ -152,6 +203,14 @@ io.on('connection', (socket) => {
     const fromDept = departments[from];
     const toDept = departments[to];
     if (!fromDept || !toDept) return;
+
+    if (!HAS_AI) {
+      const conversation = `${fromDept.emoji} ${fromDept.name}: Thanks for meeting. Let's discuss ${topic}.\n\n${toDept.emoji} ${toDept.name}: Absolutely. I think we need to approach this strategically.\n\n${fromDept.emoji} ${fromDept.name}: From my side, the key priority is alignment across our teams.\n\n${toDept.emoji} ${toDept.name}: Agreed. I'll prepare a proposal and share it by end of week.\n\n${fromDept.emoji} ${fromDept.name}: Perfect. Let's sync again next Tuesday.\n\n${toDept.emoji} ${toDept.name}: Sounds good. I'll send a calendar invite.`;
+      setTimeout(() => {
+        socket.emit('meeting-result', { from, to, topic, conversation });
+      }, 800 + Math.random() * 1200);
+      return;
+    }
 
     try {
       const response = await openai.chat.completions.create({
@@ -194,7 +253,9 @@ const PORT = process.env.PORT || 3001;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🏢 AI Town running at http://localhost:${PORT}`);
   console.log(`\nConfig:`);
-  console.log(`  Model: ${MODEL}`);
-  console.log(`  API Base: ${openai.baseURL}`);
-  console.log(`  For Ollama: OPENAI_BASE_URL=http://localhost:11434/v1 MODEL=llama3 npm start\n`);
+  console.log(`  AI Mode: ${HAS_AI ? '🟢 Connected (' + MODEL + ')' : '🟡 Demo mode (fallback replies)'}`);
+  if (HAS_AI) console.log(`  API Base: ${openai.baseURL}`);
+  console.log(`\nTo enable AI chat:`);
+  console.log(`  OPENAI_API_KEY=sk-xxx npm start`);
+  console.log(`  OPENAI_BASE_URL=http://localhost:11434/v1 MODEL=llama3 npm start  (Ollama)\n`);
 });
