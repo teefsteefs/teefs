@@ -475,6 +475,13 @@
     if(/(hôm nay.*ngày|ngày mấy|thứ mấy|what.*date)/.test(t)){const d=new Date();
       return say(`Hôm nay là ${days[d.getDay()]}, ngày ${d.getDate()} ${months[d.getMonth()].toLowerCase()} năm ${d.getFullYear()}.`);}
 
+    // gold / market prices — no free realtime API, route to live search
+    if(/(giá vàng|gold|vàng 9999|vàng sjc|nhẫn trơn|giá đô|tỷ giá|giá xăng|giá bitcoin|giá btc)/.test(t)){
+      const q=t.replace(/^(check|kiểm tra|xem|coi|tra|tìm|cho tôi|hỏi)\s+/,"").replace(/\s*(dùm|giùm|hộ|nhé|nha|đi|với|cho tôi)\s*$/,"");
+      window.open("https://www.google.com/search?q="+encodeURIComponent(q+" hôm nay"),"_blank");
+      return say(`Đang mở kết quả mới nhất cho "${q}", thưa sir. Trình duyệt không cho tôi đọc trực tiếp trang bên ngoài, nên tôi đưa ngài đến nguồn chính xác nhất.`);
+    }
+
     // weather
     if(/(thời tiết|weather|nhiệt độ|trời)/.test(t)){
       if(lastWeather)return say(`Hiện tại ngoài trời khoảng ${Math.round(lastWeather.temperature_2m)} độ C, gió ${Math.round(lastWeather.wind_speed_10m)} km/h, thưa sir.`);
@@ -498,10 +505,11 @@
       if(url){window.open(url,"_blank");return say(`Đang mở ${key}, thưa sir.`);}
       window.open("https://"+key+".com","_blank");return say(`Đang thử mở ${key}.com.`);}
 
-    // search
-    m=t.match(/(?:tìm|search|tra cứu|google)\s+(.+)/);
-    if(m){window.open("https://www.google.com/search?q="+encodeURIComponent(m[1]),"_blank");
-      return say(`Đang tìm "${m[1]}" cho ngài.`);}
+    // search — nhiều cách nói: tìm/check/tra/xem/coi/kiếm…
+    m=t.match(/(?:tìm kiếm|tìm|search|tra cứu|tra|google|check|kiểm tra|xem|coi|kiếm|hỏi)\s+(.+)/);
+    if(m){const q=m[1].replace(/^(giúp|dùm|giùm|hộ)\s+/,"").replace(/\s*(dùm|giùm|hộ|nhé|nha|đi|với|cho tôi|giúp tôi)\s*$/,"");
+      window.open("https://www.google.com/search?q="+encodeURIComponent(q),"_blank");
+      return say(`Đang tìm "${q}" cho ngài.`);}
 
     // status
     if(/(tình trạng|status|báo cáo|hệ thống|report)/.test(t)){
@@ -516,8 +524,10 @@
     if(/(bạn là ai|who are you|tên gì|là gì)/.test(t))return say("Tôi là J.A.R.V.I.S. — trí tuệ nhân tạo quản lý toàn bộ hệ thống của ngài. Sao chép từ nguyên bản của ngài Stark.");
     if(/(tạm biệt|bye|goodbye|ngủ ngon)/.test(t))return say("Tạm biệt sir. Tôi sẽ luôn ở đây khi ngài cần.");
 
-    // fallback
-    say(`Tôi ghi nhận "${raw}", nhưng chưa có kỹ năng cho lệnh này, thưa sir. Ngài có thể kết nối nó với một API thật để tôi thực thi. Gõ "help" để xem những gì tôi làm được.`);
+    // fallback — không bó tay: tự tìm Google cho câu chưa hiểu
+    const fq=raw.replace(/\s*(dùm|giùm|hộ|nhé|nha|đi|với)\s*$/i,"");
+    window.open("https://www.google.com/search?q="+encodeURIComponent(fq),"_blank");
+    say(`Tôi chưa có kỹ năng riêng cho việc này, nên tôi đã tìm Google giúp ngài: "${fq}". Gõ "help" để xem các lệnh tôi xử lý trực tiếp.`);
   }
 
   // expose for extension
