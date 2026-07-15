@@ -6,8 +6,12 @@ sandboxed and cannot read other websites; this server does that reading:
 
   GET /api/gold     -> SJC gold prices (vàng miếng + nhẫn trơn), 60s cache
   GET /api/weather  -> current weather located by the caller's IP
+
+Local mode: if an index.html sits next to this script, it is served at /,
+so `python jarvis-server.py` + http://localhost:5050 runs the whole app
+(localhost is a secure context, so the microphone works too).
 """
-import json, re, time, threading
+import json, os, time, threading
 import urllib.request
 import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -95,6 +99,16 @@ class Handler(BaseHTTPRequestHandler):
             ip = self.headers.get("X-Forwarded-For", "").split(",")[0].strip() \
                  or self.client_address[0]
             return self._send(get_weather(ip))
+        if path in ("", "/index.html"):  # local mode: serve the app itself
+            page = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+            if os.path.isfile(page):
+                with open(page, "rb") as f:
+                    body = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.end_headers()
+                return self.wfile.write(body)
+            return self._send({"ok": True, "hint": "API only — put index.html next to this script to serve the app"})
         return self._send({"ok": False, "error": "not found"}, 404)
 
     def log_message(self, fmt, *args):

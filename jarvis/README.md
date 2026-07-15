@@ -3,16 +3,29 @@
 Giao diện HUD kiểu Iron Man, chạy hoàn toàn trong trình duyệt. Một file duy nhất
 `index.html`, không cần build, không phụ thuộc CDN.
 
-## Chạy
+## Chạy local (1 lệnh)
 
-- Mở nhanh: nhấp đúp `index.html`, hoặc
-- Serve tĩnh (khuyên dùng để voice + geolocation hoạt động qua HTTPS/localhost):
+Cần Python 3 (Windows: cài từ Microsoft Store, gõ `python` sẽ được gợi ý cài).
+Đặt `index.html` và `jarvis-server.py` cùng thư mục, rồi:
 
 ```bash
-cd jarvis
-python3 -m http.server 8080
-# mở http://localhost:8080
+python jarvis-server.py        # Windows
+python3 jarvis-server.py       # macOS/Linux
+# mở http://localhost:5050
 ```
+
+Server này vừa phục vụ trang, vừa cung cấp API `/api/gold` (giá vàng SJC)
+và `/api/weather` (thời tiết theo IP). Vì là `localhost` nên micro hoạt
+động không cần HTTPS.
+
+> Mở nhanh không cần Python: nhấp đúp `index.html` — giao diện và gõ lệnh
+> vẫn chạy, nhưng không có micro, giá vàng và thời tiết theo IP.
+
+## Deploy lên VPS
+
+Xem `server-setup.sh` (nginx + HTTPS tự ký, chạy 1 lần trên server),
+`api-setup.sh` (cài API thành systemd service + proxy `/api/`), và
+`deploy.sh` (đẩy `index.html` lên server).
 
 ## Tính năng
 
