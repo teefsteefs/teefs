@@ -413,6 +413,25 @@
   }
   function escapeHtml(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
 
+  /* ---------------- helpers: open URL (popup-safe) + query cleaning ---------------- */
+  function openUrl(url,label){
+    const w=window.open(url,"_blank");
+    if(!w){ // lệnh giọng nói không được tính là "cú bấm" nên popup bị chặn — đưa link để bấm tay
+      const m=document.createElement("div");m.className="msg j";
+      m.innerHTML=`<b>J.A.R.V.I.S.</b>Trình duyệt chặn tôi tự mở tab từ lệnh giọng nói — ngài bấm vào đây: <a href="${url}" target="_blank" rel="noopener" style="color:var(--cyan)">${escapeHtml(label||url)}</a>`;
+      transcript.appendChild(m);transcript.scrollTop=transcript.scrollHeight;
+    }
+  }
+  function openSearch(q){openUrl("https://www.google.com/search?q="+encodeURIComponent(q),"Kết quả: "+q);}
+  function cleanQuery(s){
+    let q=s.toLowerCase().replace(/[.!?…]+\s*$/,"").trim();
+    const lead=/^(bạn|em|anh|chị|jarvis|ơi|này|làm ơn|hãy|vui lòng|giúp|cho|tôi|mình|check|kiểm tra|tra cứu|tra|xem|coi|tìm kiếm|tìm|kiếm|hỏi|dùm|giùm|hộ|search|google)\s+/;
+    while(lead.test(q))q=q.replace(lead,"");
+    const tail=/\s+(dùm|giùm|hộ|nhé|nha|nhá|đi|với|cái|lúc này|bây giờ|hiện tại|giúp tôi|cho tôi|tôi|mình|là bao nhiêu|bao nhiêu)$/;
+    while(tail.test(q))q=q.replace(tail,"");
+    return q.trim();
+  }
+
   /* ---------------- speech recognition ---------------- */
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   let rec=null;
@@ -475,11 +494,40 @@
     if(/(hôm nay.*ngày|ngày mấy|thứ mấy|what.*date)/.test(t)){const d=new Date();
       return say(`Hôm nay là ${days[d.getDay()]}, ngày ${d.getDate()} ${months[d.getMonth()].toLowerCase()} năm ${d.getFullYear()}.`);}
 
-    // gold / market prices — no free realtime API, route to live search
-    if(/(giá vàng|gold|vàng 9999|vàng sjc|nhẫn trơn|giá đô|tỷ giá|giá xăng|giá bitcoin|giá btc)/.test(t)){
-      const q=t.replace(/^(check|kiểm tra|xem|coi|tra|tìm|cho tôi|hỏi)\s+/,"").replace(/\s*(dùm|giùm|hộ|nhé|nha|đi|với|cho tôi)\s*$/,"");
-      window.open("https://www.google.com/search?q="+encodeURIComponent(q+" hôm nay"),"_blank");
-      return say(`Đang mở kết quả mới nhất cho "${q}", thưa sir. Trình duyệt không cho tôi đọc trực tiếp trang bên ngoài, nên tôi đưa ngài đến nguồn chính xác nhất.`);
+    // crypto — lấy giá thật từ Binance (API công khai) và đọc luôn
+    if(/(bitcoin|btc|ethereum|\beth\b|solana|\bsol\b)/.test(t)){
+      const coin=/eth/.test(t)?["ETHUSDT","Ethereum"]:/sol/.test(t)?["SOLUSDT","Solana"]:["BTCUSDT","Bitcoin"];
+      setStatus("Đang truy vấn sàn giá…",true);
+      fetch("https://api.binance.com/api/v3/ticker/price?symbol="+coin[0])
+        .then(r=>r.json()).then(d=>{
+          const usd=parseFloat(d.price);
+          if(!isFinite(usd))throw 0;
+          fetch("https://open.er-api.com/v6/latest/USD").then(r=>r.json()).then(fx=>{
+            const vnd=fx&&fx.rates&&fx.rates.VND?`, tức khoảng ${(usd*fx.rates.VND/1e6).toFixed(1)} triệu đồng`:"";
+            say(`${coin[1]} hiện tại ${usd.toLocaleString("vi-VN",{maximumFractionDigits:0})} đô la Mỹ${vnd}, thưa sir.`);
+          }).catch(()=>say(`${coin[1]} hiện tại ${usd.toLocaleString("vi-VN",{maximumFractionDigits:0})} đô la Mỹ, thưa sir.`));
+        })
+        .catch(()=>{openSearch("giá "+coin[1]);say("Không truy cập được sàn giá trực tiếp, tôi đã chuẩn bị kết quả tìm kiếm cho ngài.");});
+      return;
+    }
+
+    // tỷ giá USD/VND — lấy thật và đọc luôn
+    if(/(tỷ giá|giá đô|giá usd|đô la|usd)/.test(t)){
+      setStatus("Đang truy vấn tỷ giá…",true);
+      fetch("https://open.er-api.com/v6/latest/USD")
+        .then(r=>r.json()).then(d=>{
+          if(d&&d.rates&&d.rates.VND)say(`1 đô la Mỹ hiện đổi được khoảng ${Math.round(d.rates.VND).toLocaleString("vi-VN")} đồng, thưa sir.`);
+          else throw 0;
+        })
+        .catch(()=>{openSearch("tỷ giá usd vnd hôm nay");say("Không lấy được tỷ giá trực tiếp, tôi đã chuẩn bị kết quả tìm kiếm cho ngài.");});
+      return;
+    }
+
+    // gold / xăng — chưa có API realtime miễn phí đáng tin, đưa đến nguồn sống
+    if(/(giá vàng|gold|vàng 9999|vàng sjc|nhẫn trơn|giá xăng)/.test(t)){
+      const q=cleanQuery(t);
+      openSearch(q+" hôm nay");
+      return say(`Đang mở kết quả mới nhất cho "${q}", thưa sir. Chưa có nguồn dữ liệu trực tiếp miễn phí cho mặt hàng này, nên tôi đưa ngài đến nguồn chính xác nhất.`);
     }
 
     // weather
@@ -502,13 +550,13 @@
     m=t.match(/(?:mở|open|vào|truy cập)\s+([a-zà-ỹ0-9]+)/i);
     if(m){const sites={youtube:"https://youtube.com",google:"https://google.com",facebook:"https://facebook.com",github:"https://github.com",gmail:"https://mail.google.com",maps:"https://maps.google.com","bản đồ":"https://maps.google.com",chatgpt:"https://chat.openai.com",claude:"https://claude.ai"};
       const key=m[1].toLowerCase(),url=sites[key];
-      if(url){window.open(url,"_blank");return say(`Đang mở ${key}, thưa sir.`);}
-      window.open("https://"+key+".com","_blank");return say(`Đang thử mở ${key}.com.`);}
+      if(url){openUrl(url,key);return say(`Đang mở ${key}, thưa sir.`);}
+      openUrl("https://"+key+".com",key+".com");return say(`Đang thử mở ${key}.com.`);}
 
     // search — nhiều cách nói: tìm/check/tra/xem/coi/kiếm…
     m=t.match(/(?:tìm kiếm|tìm|search|tra cứu|tra|google|check|kiểm tra|xem|coi|kiếm|hỏi)\s+(.+)/);
-    if(m){const q=m[1].replace(/^(giúp|dùm|giùm|hộ)\s+/,"").replace(/\s*(dùm|giùm|hộ|nhé|nha|đi|với|cho tôi|giúp tôi)\s*$/,"");
-      window.open("https://www.google.com/search?q="+encodeURIComponent(q),"_blank");
+    if(m){const q=cleanQuery(m[1]);
+      openSearch(q);
       return say(`Đang tìm "${q}" cho ngài.`);}
 
     // status
@@ -525,8 +573,8 @@
     if(/(tạm biệt|bye|goodbye|ngủ ngon)/.test(t))return say("Tạm biệt sir. Tôi sẽ luôn ở đây khi ngài cần.");
 
     // fallback — không bó tay: tự tìm Google cho câu chưa hiểu
-    const fq=raw.replace(/\s*(dùm|giùm|hộ|nhé|nha|đi|với)\s*$/i,"");
-    window.open("https://www.google.com/search?q="+encodeURIComponent(fq),"_blank");
+    const fq=cleanQuery(raw)||raw;
+    openSearch(fq);
     say(`Tôi chưa có kỹ năng riêng cho việc này, nên tôi đã tìm Google giúp ngài: "${fq}". Gõ "help" để xem các lệnh tôi xử lý trực tiếp.`);
   }
 
