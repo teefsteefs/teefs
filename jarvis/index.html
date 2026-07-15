@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="J.A.R.V.I.S. — giao diện điều khiển kiểu Iron Man với điều khiển bằng giọng nói.">
+<title>J.A.R.V.I.S. — Control Interface</title>
+<style>
+  :root{
+    --bg:#04070d;
+    --bg2:#081420;
+    --panel:rgba(10,24,38,.55);
+    --panel-line:rgba(55,215,255,.22);
+    --cyan:#37d7ff;
+    --cyan-soft:#7fe7ff;
+    --ice:#d6f6ff;
+    --gold:#ffb638;
+    --red:#ff4d5e;
+    --green:#38e8a0;
+    --muted:#5f89a3;
+    --grid:rgba(55,215,255,.06);
+    --hud:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:
+      radial-gradient(1200px 800px at 50% 42%, rgba(55,215,255,.10), transparent 60%),
+      radial-gradient(900px 700px at 50% 120%, rgba(255,182,56,.05), transparent 60%),
+      var(--bg);
+    color:var(--ice);font-family:var(--sans);overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{ /* scan grid */
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:44px 44px;mask:radial-gradient(circle at 50% 45%,#000 30%,transparent 80%);
+  }
+  body::after{ /* scanline flicker */
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:60;mix-blend-mode:overlay;opacity:.35;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px);
+  }
+  .stage{position:relative;z-index:1;height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:14px;padding:18px clamp(14px,3vw,40px)}
+
+  /* ---------- top bar ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;font-family:var(--hud)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);animation:pulse 2.4s infinite}
+  .brand b{letter-spacing:.42em;font-weight:600;font-size:15px}
+  .brand span{color:var(--muted);letter-spacing:.3em;font-size:10px}
+  .clock{display:flex;flex-direction:column;align-items:flex-end;line-height:1.1}
+  .clock .t{font-size:26px;font-weight:600;letter-spacing:.12em;font-variant-numeric:tabular-nums;text-shadow:0 0 14px rgba(55,215,255,.4)}
+  .clock .d{font-size:10px;color:var(--muted);letter-spacing:.28em}
+
+  /* ---------- main 3-col ---------- */
+  .main{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,1.35fr) minmax(0,1fr);gap:clamp(12px,2vw,28px);min-height:0}
+  @media(max-width:940px){.main{grid-template-columns:1fr;grid-template-rows:auto auto auto;overflow:auto}}
+
+  .col{display:flex;flex-direction:column;gap:14px;min-height:0}
+  .panel{
+    background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;padding:14px 16px;
+    backdrop-filter:blur(6px);position:relative;overflow:hidden;
+    box-shadow:inset 0 0 30px rgba(55,215,255,.05),0 8px 30px rgba(0,0,0,.35);
+  }
+  .panel::before{content:"";position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.5}
+  .corner{position:absolute;width:12px;height:12px;border:1px solid var(--cyan);opacity:.55}
+  .corner.tl{top:6px;left:6px;border-right:0;border-bottom:0}
+  .corner.tr{top:6px;right:6px;border-left:0;border-bottom:0}
+  .corner.bl{bottom:6px;left:6px;border-right:0;border-top:0}
+  .corner.br{bottom:6px;right:6px;border-left:0;border-top:0}
+  .p-title{font-family:var(--hud);font-size:10px;letter-spacing:.34em;color:var(--cyan-soft);text-transform:uppercase;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .p-title::before{content:"";width:14px;height:1px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+
+  /* vitals */
+  .vital{margin-bottom:14px}
+  .vital:last-child{margin-bottom:0}
+  .vital .row{display:flex;justify-content:space-between;font-family:var(--hud);font-size:11px;margin-bottom:5px;letter-spacing:.1em}
+  .vital .row b{color:var(--ice);font-variant-numeric:tabular-nums}
+  .vital .row .lbl{color:var(--muted);letter-spacing:.22em}
+  .bar{height:6px;border-radius:6px;background:rgba(55,215,255,.1);overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--cyan),var(--cyan-soft));box-shadow:0 0 10px var(--cyan);transition:width .6s ease}
+  .bar.warn i{background:linear-gradient(90deg,var(--gold),#ffd27a);box-shadow:0 0 10px var(--gold)}
+  .bar.crit i{background:linear-gradient(90deg,var(--red),#ff8a94);box-shadow:0 0 10px var(--red)}
+
+  /* devices */
+  .devices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .dev{border:1px solid var(--panel-line);border-radius:11px;padding:11px 12px;cursor:pointer;transition:.25s;background:rgba(6,16,26,.5);user-select:none}
+  .dev:hover{border-color:var(--cyan);transform:translateY(-2px)}
+  .dev .ic{font-size:20px;line-height:1;filter:grayscale(.6);opacity:.6;transition:.25s}
+  .dev .nm{font-family:var(--hud);font-size:10px;letter-spacing:.16em;color:var(--muted);margin-top:8px;text-transform:uppercase}
+  .dev .st{font-size:10px;font-family:var(--hud);letter-spacing:.14em;margin-top:2px;color:var(--muted)}
+  .dev.on{border-color:var(--cyan);box-shadow:0 0 18px rgba(55,215,255,.25),inset 0 0 20px rgba(55,215,255,.08)}
+  .dev.on .ic{filter:none;opacity:1}
+  .dev.on .st{color:var(--cyan)}
+
+  /* ---------- center reactor ---------- */
+  .center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:0}
+  .reactor{position:relative;width:min(46vh,340px);aspect-ratio:1;display:grid;place-items:center}
+  .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(55,215,255,.25)}
+  .ring.r2{inset:12%;border-style:dashed;border-color:rgba(55,215,255,.35);animation:spin 18s linear infinite}
+  .ring.r3{inset:24%;border-color:rgba(255,182,56,.4);animation:spin 26s linear infinite reverse}
+  .ring.r4{inset:6%;border:2px solid rgba(55,215,255,.12);animation:spin 40s linear infinite}
+  .ticks{position:absolute;inset:0;animation:spin 60s linear infinite}
+  .core{
+    width:42%;aspect-ratio:1;border-radius:50%;position:relative;
+    background:radial-gradient(circle at 50% 45%,#eafcff,var(--cyan) 45%,#0a4a66 90%);
+    box-shadow:0 0 60px rgba(55,215,255,.7),0 0 120px rgba(55,215,255,.35),inset 0 0 30px rgba(255,255,255,.6);
+    display:grid;place-items:center;animation:breathe 4s ease-in-out infinite;
+  }
+  .core.listen{background:radial-gradient(circle at 50% 45%,#fff,var(--gold) 45%,#7a4a00 90%);box-shadow:0 0 70px rgba(255,182,56,.7),0 0 140px rgba(255,182,56,.4)}
+  .core.speak{animation:breathe 1.1s ease-in-out infinite}
+  .core .glyph{font-family:var(--hud);font-size:11px;letter-spacing:.3em;color:#022;font-weight:700;text-shadow:0 0 6px rgba(255,255,255,.6)}
+  .status-line{font-family:var(--hud);font-size:11px;letter-spacing:.34em;color:var(--cyan-soft);text-transform:uppercase;min-height:16px;text-align:center}
+  .status-line.busy{color:var(--gold)}
+  canvas#wave{width:min(70%,420px);height:46px;opacity:.85}
+
+  /* transcript */
+  .transcript{width:100%;max-width:520px;min-height:0;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px;scrollbar-width:thin}
+  .msg{font-size:13px;line-height:1.5;padding:9px 13px;border-radius:12px;max-width:88%;animation:rise .3s ease}
+  .msg.u{align-self:flex-end;background:rgba(55,215,255,.12);border:1px solid var(--panel-line);color:var(--ice)}
+  .msg.j{align-self:flex-start;background:rgba(8,20,32,.7);border:1px solid rgba(255,182,56,.25)}
+  .msg.j b{color:var(--gold);font-family:var(--hud);font-size:10px;letter-spacing:.2em;display:block;margin-bottom:3px}
+
+  /* ---------- console ---------- */
+  .console{display:flex;align-items:center;gap:12px;font-family:var(--hud)}
+  .prompt{color:var(--cyan);letter-spacing:.2em;font-size:13px}
+  .console input{
+    flex:1;background:rgba(8,20,32,.6);border:1px solid var(--panel-line);border-radius:12px;
+    padding:14px 16px;color:var(--ice);font-family:var(--hud);font-size:13px;letter-spacing:.06em;outline:none;transition:.2s;
+  }
+  .console input:focus{border-color:var(--cyan);box-shadow:0 0 18px rgba(55,215,255,.25)}
+  .console input::placeholder{color:var(--muted)}
+  .mic{
+    width:52px;height:52px;flex:none;border-radius:50%;border:1px solid var(--panel-line);background:rgba(8,20,32,.6);
+    color:var(--cyan);font-size:20px;cursor:pointer;display:grid;place-items:center;transition:.25s;
+  }
+  .mic:hover{border-color:var(--cyan);box-shadow:0 0 18px rgba(55,215,255,.3)}
+  .mic.rec{background:var(--gold);color:#111;border-color:var(--gold);box-shadow:0 0 26px rgba(255,182,56,.6);animation:pulse 1s infinite}
+  .lang{border:1px solid var(--panel-line);background:rgba(8,20,32,.6);color:var(--cyan-soft);font-family:var(--hud);font-size:11px;letter-spacing:.14em;padding:0 14px;height:52px;border-radius:12px;cursor:pointer}
+
+  .hint{font-family:var(--hud);font-size:10px;color:var(--muted);letter-spacing:.14em;text-align:center;margin-top:-4px}
+  .hint span{color:var(--cyan-soft)}
+
+  /* ---------- boot ---------- */
+  #boot{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center;transition:opacity .8s;font-family:var(--hud)}
+  #boot .b-wrap{width:min(90%,460px);text-align:center}
+  #boot .b-logo{font-size:22px;letter-spacing:.5em;color:var(--cyan);text-shadow:0 0 20px var(--cyan);margin-bottom:24px}
+  #boot .b-log{text-align:left;font-size:11px;line-height:1.9;color:var(--cyan-soft);min-height:150px;letter-spacing:.06em}
+  #boot .b-log .ok{color:var(--green)}
+  #boot .b-bar{height:3px;background:rgba(55,215,255,.15);border-radius:3px;margin-top:18px;overflow:hidden}
+  #boot .b-bar i{display:block;height:100%;width:0;background:var(--cyan);box-shadow:0 0 10px var(--cyan);transition:width .3s}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes breathe{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.06);filter:brightness(1.2)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+  @media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.05s!important}}
+</style>
+</head>
+<body>
+<div id="boot">
+  <div class="b-wrap">
+    <div class="b-logo">J.A.R.V.I.S.</div>
+    <div class="b-log" id="bootLog"></div>
+    <div class="b-bar"><i id="bootBar"></i></div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <div><b>J.A.R.V.I.S.</b><br><span>JUST A RATHER VERY INTELLIGENT SYSTEM</span></div>
+    </div>
+    <div class="clock"><div class="t" id="clock">--:--:--</div><div class="d" id="date">— — —</div></div>
+  </div>
+
+  <div class="main">
+    <!-- LEFT: vitals -->
+    <div class="col">
+      <div class="panel" style="flex:1">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <p class="p-title">System Vitals</p>
+        <div class="vital"><div class="row"><span class="lbl">CORE POWER</span><b id="vPowV">98%</b></div><div class="bar"><i id="vPow" style="width:98%"></i></div></div>
+        <div class="vital"><div class="row"><span class="lbl">CPU LOAD</span><b id="vCpuV">12%</b></div><div class="bar"><i id="vCpu" style="width:12%"></i></div></div>
+        <div class="vital"><div class="row"><span class="lbl">MEMORY</span><b id="vMemV">34%</b></div><div class="bar"><i id="vMem" style="width:34%"></i></div></div>
+        <div class="vital"><div class="row"><span class="lbl">NETWORK</span><b id="vNetV">1.2 Gb/s</b></div><div class="bar"><i id="vNet" style="width:60%"></i></div></div>
+        <div class="vital"><div class="row"><span class="lbl">TEMP</span><b id="vTmpV">41°C</b></div><div class="bar"><i id="vTmp" style="width:41%"></i></div></div>
+      </div>
+      <div class="panel">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <p class="p-title">Uplink Status</p>
+        <div class="vital" style="margin:0"><div class="row"><span class="lbl">SATELLITE</span><b style="color:var(--green)">LOCKED</b></div>
+        <div class="row" style="margin-top:8px"><span class="lbl">ENCRYPTION</span><b style="color:var(--green)">AES-256</b></div>
+        <div class="row" style="margin-top:8px"><span class="lbl">LATENCY</span><b id="vPing">18 ms</b></div></div>
+      </div>
+    </div>
+
+    <!-- CENTER: reactor + transcript -->
+    <div class="col center">
+      <div class="reactor">
+        <div class="ring r4"></div><div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div>
+        <canvas class="ticks" id="ticks" width="400" height="400"></canvas>
+        <div class="core" id="core"><span class="glyph">J·A·R·V·I·S</span></div>
+      </div>
+      <div class="status-line" id="statusLine">Awaiting command</div>
+      <canvas id="wave" width="840" height="92"></canvas>
+      <div class="transcript" id="transcript"></div>
+    </div>
+
+    <!-- RIGHT: devices -->
+    <div class="col">
+      <div class="panel" style="flex:1">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <p class="p-title">Connected Devices</p>
+        <div class="devices" id="devices"></div>
+      </div>
+      <div class="panel">
+        <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+        <p class="p-title">Environment</p>
+        <div class="vital" style="margin:0">
+          <div class="row"><span class="lbl">LOCATION</span><b id="envLoc">— —</b></div>
+          <div class="row" style="margin-top:8px"><span class="lbl">CLIMATE</span><b id="envTemp">22°C</b></div>
+          <div class="row" style="margin-top:8px"><span class="lbl">MODE</span><b style="color:var(--cyan)">HOME</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: console -->
+  <div class="col" style="gap:8px">
+    <div class="console">
+      <span class="prompt">&gt;_</span>
+      <input id="cmd" autocomplete="off" placeholder="Ra lệnh cho J.A.R.V.I.S… (gõ 'help' để xem lệnh)">
+      <button class="lang" id="langBtn" title="Đổi ngôn ngữ giọng nói">VI</button>
+      <button class="mic" id="mic" title="Nói">🎙</button>
+    </div>
+    <div class="hint">Thử: <span>"bật đèn phòng khách"</span> · <span>"mấy giờ rồi"</span> · <span>"thời tiết"</span> · <span>"mở youtube"</span> · <span>"tính 15% của 240"</span></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const $=s=>document.querySelector(s);
+  const transcript=$("#transcript"), core=$("#core"), statusLine=$("#statusLine");
+
+  /* ---------------- boot sequence ---------------- */
+  const bootLines=[
+    ["Initializing J.A.R.V.I.S. kernel","ok"],
+    ["Mounting arc reactor telemetry","ok"],
+    ["Calibrating holographic display","ok"],
+    ["Establishing satellite uplink","ok"],
+    ["Loading device control matrix","ok"],
+    ["Speech & voice modules online","ok"],
+    ["Handshake with Stark network","ok"],
+    ["All systems nominal. Welcome back, sir.",""]
+  ];
+  let bi=0;const bootLog=$("#bootLog"),bootBar=$("#bootBar");
+  (function boot(){
+    if(bi<bootLines.length){
+      const [t,c]=bootLines[bi];
+      bootLog.innerHTML+=`<div>&gt; ${t} ${c?`<span class="ok">[${c.toUpperCase()}]</span>`:""}</div>`;
+      bootBar.style.width=Math.round((bi+1)/bootLines.length*100)+"%";
+      bi++;setTimeout(boot,bi===bootLines.length?650:260);
+    }else{
+      const b=$("#boot");b.style.opacity="0";setTimeout(()=>b.remove(),820);
+      setTimeout(()=>say(pick(greetings),{intro:true}),600);
+    }
+  })();
+
+  /* ---------------- clock ---------------- */
+  const days=["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"];
+  const months=["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
+  function tick(){const d=new Date();
+    $("#clock").textContent=[d.getHours(),d.getMinutes(),d.getSeconds()].map(n=>String(n).padStart(2,"0")).join(":");
+    $("#date").textContent=`${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`.toUpperCase();
+  }
+  tick();setInterval(tick,1000);
+
+  /* ---------------- live telemetry ---------------- */
+  function jitter(id,vid,base,spread,unit,fmt){
+    const el=$("#"+id),vel=$("#"+vid),bar=el.parentElement;
+    let v=base;
+    setInterval(()=>{
+      v=Math.max(3,Math.min(99,v+(Math.random()-.5)*spread));
+      el.style.width=v+"%";vel.textContent=fmt?fmt(v):Math.round(v)+unit;
+      bar.classList.toggle("warn",v>70&&v<88);bar.classList.toggle("crit",v>=88);
+    },1800);
+  }
+  jitter("vCpu","vCpuV",14,16,"%");jitter("vMem","vMemV",34,10,"%");jitter("vTmp","vTmpV",41,7,"°C");
+  jitter("vNet","vNetV",60,22,"",v=>(v/50).toFixed(1)+" Gb/s");
+  setInterval(()=>$("#vPing").textContent=(14+Math.round(Math.random()*12))+" ms",2500);
+
+  /* ---------------- reactor ticks ---------------- */
+  const tc=$("#ticks"),tx=tc.getContext("2d");
+  function drawTicks(){tx.clearRect(0,0,400,400);tx.save();tx.translate(200,200);
+    for(let i=0;i<72;i++){tx.rotate(Math.PI*2/72);const big=i%6===0;
+      tx.beginPath();tx.moveTo(0,-186);tx.lineTo(0,big?-172:-180);
+      tx.strokeStyle=big?"rgba(55,215,255,.6)":"rgba(55,215,255,.22)";tx.lineWidth=big?2:1;tx.stroke();}
+    tx.restore();}
+  drawTicks();
+
+  /* ---------------- waveform ---------------- */
+  const wc=$("#wave"),wx=wc.getContext("2d");let waveT=0,waveAmp=0.12;
+  function wave(){waveT+=0.08;wx.clearRect(0,0,840,92);
+    const target=(listening||speaking)?1:0.12;waveAmp+=(target-waveAmp)*0.08;
+    wx.beginPath();
+    for(let x=0;x<840;x++){
+      const n=Math.sin(x*0.025+waveT)*Math.sin(x*0.011-waveT*0.7);
+      const y=46+n*38*waveAmp*(0.6+0.4*Math.sin(waveT*2));
+      x?wx.lineTo(x,y):wx.moveTo(x,y);
+    }
+    const col=listening?"#ffb638":"#37d7ff";
+    wx.strokeStyle=col;wx.lineWidth=2;wx.shadowBlur=12;wx.shadowColor=col;wx.stroke();
+    requestAnimationFrame(wave);
+  }
+  wave();
+
+  /* ---------------- devices ---------------- */
+  const devices=[
+    {id:"living",ic:"💡",nm:"Đèn phòng khách",on:false,kw:["đèn phòng khách","living","phòng khách","đèn khách"]},
+    {id:"bedroom",ic:"🛏",nm:"Đèn phòng ngủ",on:false,kw:["phòng ngủ","bedroom","đèn ngủ"]},
+    {id:"ac",ic:"❄️",nm:"Điều hòa",on:false,kw:["điều hòa","máy lạnh","ac","air"]},
+    {id:"music",ic:"🎵",nm:"Nhạc",on:false,kw:["nhạc","music","loa","speaker"]},
+    {id:"door",ic:"🚪",nm:"Cửa chính",on:false,kw:["cửa","door","khóa","lock"]},
+    {id:"tv",ic:"📺",nm:"TV",on:false,kw:["tivi","tv","television"]},
+  ];
+  const devWrap=$("#devices");
+  function renderDevices(){
+    devWrap.innerHTML="";
+    devices.forEach(d=>{
+      const el=document.createElement("div");
+      el.className="dev"+(d.on?" on":"");
+      el.innerHTML=`<div class="ic">${d.ic}</div><div class="nm">${d.nm}</div><div class="st">${d.on?"ĐANG BẬT":"TẮT"}</div>`;
+      el.onclick=()=>{toggleDevice(d,el);};
+      devWrap.appendChild(el);
+    });
+  }
+  function toggleDevice(d,el,force){
+    d.on=force===undefined?!d.on:force;renderDevices();
+    return d.on;
+  }
+  renderDevices();
+
+  /* ---------------- geolocation / weather (best effort) ---------------- */
+  function locale(){
+    if(!navigator.geolocation)return;
+    navigator.geolocation.getCurrentPosition(p=>{
+      $("#envLoc").textContent=p.coords.latitude.toFixed(1)+", "+p.coords.longitude.toFixed(1);
+      weatherAt(p.coords.latitude,p.coords.longitude);
+    },()=>{},{timeout:4000});
+  }
+  let lastWeather=null;
+  function weatherAt(lat,lon){
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m`)
+      .then(r=>r.json()).then(d=>{
+        if(!d.current)return;lastWeather=d.current;
+        $("#envTemp").textContent=Math.round(d.current.temperature_2m)+"°C";
+      }).catch(()=>{});
+  }
+  locale();
+
+  /* ---------------- speech synthesis ---------------- */
+  let speaking=false, voiceLang="vi-VN";
+  function say(text,opts={}){
+    addMsg("j",text);
+    speaking=true;core.classList.add("speak");setStatus("Đang trả lời",true);
+    try{
+      const u=new SpeechSynthesisUtterance(text.replace(/[*_`#]/g,""));
+      u.lang=voiceLang;u.rate=1.02;u.pitch=1;
+      const vs=speechSynthesis.getVoices().filter(v=>v.lang.startsWith(voiceLang.slice(0,2)));
+      if(vs[0])u.voice=vs[0];
+      u.onend=()=>{speaking=false;core.classList.remove("speak");setStatus("Awaiting command");};
+      speechSynthesis.cancel();speechSynthesis.speak(u);
+    }catch(e){speaking=false;core.classList.remove("speak");setStatus("Awaiting command");}
+  }
+  function setStatus(t,busy){statusLine.textContent=t;statusLine.classList.toggle("busy",!!busy);}
+  function addMsg(who,text){
+    const m=document.createElement("div");m.className="msg "+who;
+    m.innerHTML=who==="j"?`<b>J.A.R.V.I.S.</b>${escapeHtml(text)}`:escapeHtml(text);
+    transcript.appendChild(m);transcript.scrollTop=transcript.scrollHeight;
+    while(transcript.children.length>40)transcript.removeChild(transcript.firstChild);
+  }
+  function escapeHtml(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+
+  /* ---------------- speech recognition ---------------- */
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  let rec=null,listening=false;
+  const mic=$("#mic");
+  if(SR){
+    rec=new SR();rec.continuous=false;rec.interimResults=false;
+    rec.onresult=e=>{const t=e.results[0][0].transcript;$("#cmd").value=t;handle(t);};
+    rec.onerror=()=>stopListen();
+    rec.onend=()=>stopListen();
+  }
+  function startListen(){
+    if(!rec){say("Xin lỗi sir, trình duyệt này không hỗ trợ nhận diện giọng nói. Ngài có thể gõ lệnh.");return;}
+    try{rec.lang=voiceLang;rec.start();listening=true;mic.classList.add("rec");core.classList.add("listen");setStatus("Đang lắng nghe…",true);}catch(e){}
+  }
+  function stopListen(){listening=false;mic.classList.remove("rec");core.classList.remove("listen");if(!speaking)setStatus("Awaiting command");}
+  mic.onclick=()=>listening?rec.stop():startListen();
+  $("#langBtn").onclick=function(){voiceLang=voiceLang==="vi-VN"?"en-US":"vi-VN";this.textContent=voiceLang==="vi-VN"?"VI":"EN";};
+
+  /* ---------------- command console ---------------- */
+  const input=$("#cmd");
+  input.addEventListener("keydown",e=>{if(e.key==="Enter"&&input.value.trim()){handle(input.value.trim());input.value="";}});
+
+  /* ---------------- intent engine ---------------- */
+  const greetings=[
+    "J.A.R.V.I.S. đã trực tuyến. Tôi có thể giúp gì cho ngài?",
+    "Mọi hệ thống hoạt động bình thường, thưa sir. Tôi đang lắng nghe.",
+    "Chào ngài. Tất cả đã sẵn sàng."
+  ];
+  const jokes=[
+    "Tôi đã thử tính khiếu hài hước của mình, nhưng nó tràn bộ nhớ, thưa sir.",
+    "Vì sao lập trình viên nhầm Halloween với Giáng Sinh? Vì OCT 31 = DEC 25.",
+    "Tôi không lười, tôi chỉ đang ở chế độ tiết kiệm năng lượng."
+  ];
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+  function handle(raw){
+    addMsg("u",raw);
+    const t=raw.toLowerCase().trim();
+
+    // help
+    if(/(help|trợ giúp|giúp gì|làm được gì|lệnh gì)/.test(t)){
+      return say("Tôi có thể: điều khiển thiết bị (\"bật đèn phòng khách\", \"tắt điều hòa\", \"bật tất cả\"), báo giờ và ngày, cho biết thời tiết, tính toán (\"tính 15% của 240\"), mở website (\"mở youtube\"), tìm kiếm (\"tìm iron man\"), báo tình trạng hệ thống, và trò chuyện. Ngài cứ ra lệnh.");
+    }
+    // all on/off
+    if(/(bật|mở|turn on).*(tất cả|hết|mọi|all)/.test(t)){devices.forEach(d=>d.on=true);renderDevices();return say("Đã kích hoạt toàn bộ thiết bị, thưa sir.");}
+    if(/(tắt|đóng|turn off).*(tất cả|hết|mọi|all)/.test(t)){devices.forEach(d=>d.on=false);renderDevices();return say("Đã tắt toàn bộ thiết bị. Chúc ngài ngủ ngon.");}
+
+    // device control
+    const wantOn=/(bật|mở|turn on|kích hoạt|on\b)/.test(t);
+    const wantOff=/(tắt|đóng|turn off|ngắt|off\b|khóa)/.test(t);
+    if(wantOn||wantOff){
+      const dev=devices.find(d=>d.kw.some(k=>t.includes(k)));
+      if(dev){const s=toggleDevice(dev,null,wantOn);renderDevices();
+        return say(`Đã ${s?"bật":"tắt"} ${dev.nm.toLowerCase()}, thưa sir.`);}
+    }
+
+    // time / date
+    if(/(mấy giờ|giờ rồi|what time|thời gian)/.test(t)){const d=new Date();
+      return say(`Bây giờ là ${d.getHours()} giờ ${d.getMinutes()} phút, thưa sir.`);}
+    if(/(hôm nay.*ngày|ngày mấy|thứ mấy|what.*date)/.test(t)){const d=new Date();
+      return say(`Hôm nay là ${days[d.getDay()]}, ngày ${d.getDate()} ${months[d.getMonth()].toLowerCase()} năm ${d.getFullYear()}.`);}
+
+    // weather
+    if(/(thời tiết|weather|nhiệt độ|trời)/.test(t)){
+      if(lastWeather)return say(`Hiện tại ngoài trời khoảng ${Math.round(lastWeather.temperature_2m)} độ C, gió ${Math.round(lastWeather.wind_speed_10m)} km/h, thưa sir.`);
+      return say("Tôi đang lấy dữ liệu thời tiết. Nếu ngài cho phép định vị, tôi sẽ báo chính xác hơn.");
+    }
+
+    // math: percentage
+    let m=t.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:của|of)\s*(\d+(?:[.,]\d+)?)/);
+    if(m){const p=parseFloat(m[1].replace(",",".")),n=parseFloat(m[2].replace(",","."));
+      return say(`${m[1]}% của ${m[2]} là ${(p/100*n).toLocaleString("vi-VN")}, thưa sir.`);}
+    // math: arithmetic
+    m=t.match(/(?:tính|tinh|bằng|=|bao nhiêu)?\s*(-?\d+(?:[.,]\d+)?)\s*([+\-*/xX×÷])\s*(-?\d+(?:[.,]\d+)?)/);
+    if(m){const a=parseFloat(m[1].replace(",",".")),b=parseFloat(m[3].replace(",","."));
+      const op=m[2],r={"+":a+b,"-":a-b,"*":a*b,"x":a*b,"X":a*b,"×":a*b,"/":a/b,"÷":a/b}[op];
+      return say(`Kết quả là ${(+r.toFixed(4)).toLocaleString("vi-VN")}, thưa sir.`);}
+
+    // open site
+    m=t.match(/(?:mở|open|vào|truy cập)\s+([a-zà-ỹ0-9]+)/i);
+    if(m){const sites={youtube:"https://youtube.com",google:"https://google.com",facebook:"https://facebook.com",github:"https://github.com",gmail:"https://mail.google.com",maps:"https://maps.google.com","bản đồ":"https://maps.google.com",chatgpt:"https://chat.openai.com",claude:"https://claude.ai"};
+      const key=m[1].toLowerCase(),url=sites[key];
+      if(url){window.open(url,"_blank");return say(`Đang mở ${key}, thưa sir.`);}
+      window.open("https://"+key+".com","_blank");return say(`Đang thử mở ${key}.com.`);}
+
+    // search
+    m=t.match(/(?:tìm|search|tra cứu|google)\s+(.+)/);
+    if(m){window.open("https://www.google.com/search?q="+encodeURIComponent(m[1]),"_blank");
+      return say(`Đang tìm "${m[1]}" cho ngài.`);}
+
+    // status
+    if(/(tình trạng|status|báo cáo|hệ thống|report)/.test(t)){
+      const onCount=devices.filter(d=>d.on).length;
+      return say(`Báo cáo hệ thống: lõi năng lượng ổn định, ${onCount} thiết bị đang hoạt động, uplink an toàn với mã hóa AES-256. Mọi thứ trong tầm kiểm soát, thưa sir.`);
+    }
+
+    // greeting / smalltalk
+    if(/(chào|hello|hi|xin chào|hey jarvis|jarvis)/.test(t))return say(pick(greetings));
+    if(/(cảm ơn|thanks|thank you|cám ơn)/.test(t))return say("Luôn sẵn lòng phục vụ ngài.");
+    if(/(kể chuyện cười|joke|vui|hài)/.test(t))return say(pick(jokes));
+    if(/(bạn là ai|who are you|tên gì|là gì)/.test(t))return say("Tôi là J.A.R.V.I.S. — trí tuệ nhân tạo quản lý toàn bộ hệ thống của ngài. Sao chép từ nguyên bản của ngài Stark.");
+    if(/(tạm biệt|bye|goodbye|ngủ ngon)/.test(t))return say("Tạm biệt sir. Tôi sẽ luôn ở đây khi ngài cần.");
+
+    // fallback
+    say(`Tôi ghi nhận "${raw}", nhưng chưa có kỹ năng cho lệnh này, thưa sir. Ngài có thể kết nối nó với một API thật để tôi thực thi. Gõ "help" để xem những gì tôi làm được.`);
+  }
+
+  // expose for extension
+  window.JARVIS={say,handle,devices,renderDevices,toggleDevice};
+})();
+</script>
+</body>
+</html>
