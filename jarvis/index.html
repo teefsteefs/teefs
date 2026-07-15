@@ -364,18 +364,40 @@
 
   /* ---------------- speech synthesis ---------------- */
   let speaking=false, voiceLang="vi-VN";
-  function say(text,opts={}){
-    addMsg("j",text);
+  const ttsOk="speechSynthesis"in window;
+  let voices=[], audioUnlocked=false, lastSpoken=null;
+  function loadVoices(){ if(ttsOk) voices=speechSynthesis.getVoices()||[]; }
+  if(ttsOk){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
+  function pickVoice(){
+    if(!voices.length) loadVoices();
+    const two=voiceLang.slice(0,2).toLowerCase(), norm=v=>v.lang.replace("_","-").toLowerCase();
+    return voices.find(v=>norm(v)===voiceLang.toLowerCase())
+        || voices.find(v=>norm(v).startsWith(two))
+        || voices.find(v=>v.default) || voices[0] || null;
+  }
+  function say(text){
+    addMsg("j",text); lastSpoken=text;
+    if(!ttsOk || !audioUnlocked){ setStatus(audioUnlocked?"Awaiting command":"Bấm bất kỳ đâu để bật âm thanh 🔊"); return; }
     speaking=true;core.classList.add("speak");setStatus("Đang trả lời",true);
     try{
+      speechSynthesis.cancel();
       const u=new SpeechSynthesisUtterance(text.replace(/[*_`#]/g,""));
-      u.lang=voiceLang;u.rate=1.02;u.pitch=1;
-      const vs=speechSynthesis.getVoices().filter(v=>v.lang.startsWith(voiceLang.slice(0,2)));
-      if(vs[0])u.voice=vs[0];
-      u.onend=()=>{speaking=false;core.classList.remove("speak");setStatus("Awaiting command");};
-      speechSynthesis.cancel();speechSynthesis.speak(u);
+      const v=pickVoice(); if(v){u.voice=v;u.lang=v.lang;} else u.lang=voiceLang;
+      u.rate=1.02;u.pitch=1;
+      const done=()=>{speaking=false;core.classList.remove("speak");setStatus("Awaiting command");};
+      u.onend=done;u.onerror=done;
+      speechSynthesis.speak(u);
+      setTimeout(()=>{try{if(speechSynthesis.paused)speechSynthesis.resume();}catch(e){}},220);
     }catch(e){speaking=false;core.classList.remove("speak");setStatus("Awaiting command");}
   }
+  function unlockAudio(){
+    if(audioUnlocked||!ttsOk) return;
+    audioUnlocked=true;
+    try{const w=new SpeechSynthesisUtterance(" ");w.volume=0;speechSynthesis.speak(w);}catch(e){}
+    if(lastSpoken) setTimeout(()=>say(lastSpoken),120); // đọc lại câu chào đã hiện lúc mở
+  }
+  document.addEventListener("pointerdown",unlockAudio);
+  document.addEventListener("keydown",unlockAudio);
   function setStatus(t,busy){statusLine.textContent=t;statusLine.classList.toggle("busy",!!busy);}
   function addMsg(who,text){
     const m=document.createElement("div");m.className="msg "+who;
