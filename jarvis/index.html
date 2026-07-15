@@ -346,20 +346,24 @@
   renderDevices();
 
   /* ---------------- geolocation / weather (best effort) ---------------- */
-  function locale(){
-    if(!navigator.geolocation)return;
+  let lastWeather=null, lastCity="", pending=null;
+  function weatherText(){
+    return `Hiện tại ${lastCity?"ở "+lastCity+" ":""}khoảng ${Math.round(lastWeather.temperature_2m)} độ C, gió ${Math.round(lastWeather.wind_speed_10m)} km/h, thưa sir.`;
+  }
+  function locale(announce){
+    if(!navigator.geolocation){if(announce)say("Trình duyệt này không hỗ trợ định vị, thưa sir.");return;}
     navigator.geolocation.getCurrentPosition(p=>{
       $("#envLoc").textContent=p.coords.latitude.toFixed(1)+", "+p.coords.longitude.toFixed(1);
-      weatherAt(p.coords.latitude,p.coords.longitude);
-    },()=>{},{timeout:4000});
+      weatherAt(p.coords.latitude,p.coords.longitude,announce);
+    },()=>{if(announce)say("Quyền định vị đang bị chặn, thưa sir. Ngài bấm biểu tượng ổ khóa cạnh thanh địa chỉ và cho phép Location, rồi hỏi lại tôi.");},{timeout:8000});
   }
-  let lastWeather=null;
-  function weatherAt(lat,lon){
+  function weatherAt(lat,lon,announce){
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m`)
       .then(r=>r.json()).then(d=>{
-        if(!d.current)return;lastWeather=d.current;
+        if(!d.current)throw 0;lastWeather=d.current;
         $("#envTemp").textContent=Math.round(d.current.temperature_2m)+"°C";
-      }).catch(()=>{});
+        if(announce)say(weatherText());
+      }).catch(()=>{if(announce)say("Không lấy được dữ liệu thời tiết lúc này, thưa sir.");});
   }
   locale();
 
@@ -471,6 +475,12 @@
     addMsg("u",raw);
     const t=raw.toLowerCase().trim();
 
+    // đồng ý / cho phép — tiếp tục việc đang dang dở thay vì đi search
+    if(/^(ok(ay|e|ie)?[\s,.]*)?(ừm?|vâng|dạ|đồng ý|cho phép|được( rồi)?|có|yes|chấp nhận)[\s.!…]*$/.test(t)||/^ok(ay|e|ie)?[\s.!…]*$/.test(t)){
+      if(pending==="weather"){pending=null;locale(true);return say("Vâng, đang định vị — nếu trình duyệt hỏi, ngài bấm Cho phép (Allow) nhé.");}
+      return say("Vâng, thưa sir.");
+    }
+
     // help
     if(/(help|trợ giúp|giúp gì|làm được gì|lệnh gì)/.test(t)){
       return say("Tôi có thể: điều khiển thiết bị (\"bật đèn phòng khách\", \"tắt điều hòa\", \"bật tất cả\"), báo giờ và ngày, cho biết thời tiết, tính toán (\"tính 15% của 240\"), mở website (\"mở youtube\"), tìm kiếm (\"tìm iron man\"), báo tình trạng hệ thống, và trò chuyện. Ngài cứ ra lệnh.");
@@ -523,17 +533,46 @@
       return;
     }
 
-    // gold / xăng — chưa có API realtime miễn phí đáng tin, đưa đến nguồn sống
-    if(/(giá vàng|gold|vàng 9999|vàng sjc|nhẫn trơn|giá xăng)/.test(t)){
-      const q=cleanQuery(t);
-      openSearch(q+" hôm nay");
-      return say(`Đang mở kết quả mới nhất cho "${q}", thưa sir. Chưa có nguồn dữ liệu trực tiếp miễn phí cho mặt hàng này, nên tôi đưa ngài đến nguồn chính xác nhất.`);
+    // gold — đọc giá thật từ API server (server tự vào nguồn SJC đọc giúp)
+    if(/(giá vàng|gold|vàng 9999|vàng sjc|nhẫn trơn|vàng miếng|vàng nhẫn)/.test(t)){
+      setStatus("Đang đọc bảng giá SJC…",true);
+      fetch("/api/gold").then(r=>r.json()).then(d=>{
+        if(!d||!d.ok||!d.items||!d.items.length)throw 0;
+        const tr=v=>(v/1e6).toLocaleString("vi-VN",{maximumFractionDigits:1})+" triệu";
+        const ring=d.items.find(i=>/nhẫn|99,99|9999/i.test(i.type));
+        const bar=d.items.find(i=>/1L|SJC/i.test(i.type))||d.items[0];
+        let msg=`Theo bảng giá SJC${d.updated?" cập nhật "+d.updated:""}: vàng miếng mua vào ${tr(bar.buy)}, bán ra ${tr(bar.sell)} một lượng`;
+        if(ring)msg+=`; nhẫn trơn 9999 mua ${tr(ring.buy)}, bán ${tr(ring.sell)}`;
+        say(msg+", thưa sir.");
+      }).catch(()=>{
+        const q=cleanQuery(t)||"giá vàng";
+        openSearch(q+" hôm nay");
+        say(`Máy chủ chưa kết nối được nguồn giá trực tiếp, nên tôi đã chuẩn bị kết quả tìm kiếm "${q}" cho ngài.`);
+      });
+      return;
     }
 
-    // weather
+    // xăng dầu — chưa có nguồn trực tiếp, đưa đến kết quả sống
+    if(/giá xăng/.test(t)){
+      const q=cleanQuery(t);openSearch(q+" hôm nay");
+      return say(`Đang mở kết quả mới nhất cho "${q}", thưa sir.`);
+    }
+
+    // weather — ưu tiên dữ liệu sẵn có, rồi API server (định vị theo IP), cuối cùng mới xin GPS
     if(/(thời tiết|weather|nhiệt độ|trời)/.test(t)){
-      if(lastWeather)return say(`Hiện tại ngoài trời khoảng ${Math.round(lastWeather.temperature_2m)} độ C, gió ${Math.round(lastWeather.wind_speed_10m)} km/h, thưa sir.`);
-      return say("Tôi đang lấy dữ liệu thời tiết. Nếu ngài cho phép định vị, tôi sẽ báo chính xác hơn.");
+      if(lastWeather)return say(weatherText());
+      setStatus("Đang lấy thời tiết…",true);
+      fetch("/api/weather").then(r=>r.json()).then(d=>{
+        if(!d||!d.ok)throw 0;
+        lastWeather={temperature_2m:d.temp,wind_speed_10m:d.wind};lastCity=d.city||"";
+        $("#envTemp").textContent=Math.round(d.temp)+"°C";
+        say(weatherText());
+      }).catch(()=>{
+        pending="weather";
+        say("Tôi cần quyền định vị để báo chính xác. Ngài nói \"cho phép\" hoặc bấm Allow khi trình duyệt hỏi nhé.");
+        locale(true);
+      });
+      return;
     }
 
     // math: percentage
