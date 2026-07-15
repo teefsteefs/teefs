@@ -245,6 +245,7 @@
   "use strict";
   const $=s=>document.querySelector(s);
   const transcript=$("#transcript"), core=$("#core"), statusLine=$("#statusLine");
+  let listening=false, speaking=false; // shared UI state, declared before first use
 
   /* ---------------- boot sequence ---------------- */
   const bootLines=[
@@ -363,7 +364,7 @@
   locale();
 
   /* ---------------- speech synthesis ---------------- */
-  let speaking=false, voiceLang="vi-VN";
+  let voiceLang="vi-VN";
   const ttsOk="speechSynthesis"in window;
   let voices=[], audioUnlocked=false, lastSpoken=null;
   function loadVoices(){ if(ttsOk) voices=speechSynthesis.getVoices()||[]; }
@@ -375,9 +376,8 @@
         || voices.find(v=>norm(v).startsWith(two))
         || voices.find(v=>v.default) || voices[0] || null;
   }
-  function say(text){
-    addMsg("j",text); lastSpoken=text;
-    if(!ttsOk || !audioUnlocked){ setStatus(audioUnlocked?"Awaiting command":"Bấm bất kỳ đâu để bật âm thanh 🔊"); return; }
+  function speak(text){ // chỉ phát tiếng, không thêm tin nhắn
+    if(!ttsOk || !audioUnlocked) return;
     speaking=true;core.classList.add("speak");setStatus("Đang trả lời",true);
     try{
       speechSynthesis.cancel();
@@ -390,11 +390,17 @@
       setTimeout(()=>{try{if(speechSynthesis.paused)speechSynthesis.resume();}catch(e){}},220);
     }catch(e){speaking=false;core.classList.remove("speak");setStatus("Awaiting command");}
   }
+  function say(text){
+    addMsg("j",text); lastSpoken=text;
+    if(!ttsOk || !audioUnlocked){ setStatus(audioUnlocked?"Awaiting command":"Bấm bất kỳ đâu để bật âm thanh 🔊"); return; }
+    speak(text);
+  }
   function unlockAudio(){
     if(audioUnlocked||!ttsOk) return;
     audioUnlocked=true;
+    const greeting=lastSpoken; // giữ câu chào hiện lúc mở, không để lệnh sau ghi đè
     try{const w=new SpeechSynthesisUtterance(" ");w.volume=0;speechSynthesis.speak(w);}catch(e){}
-    if(lastSpoken) setTimeout(()=>say(lastSpoken),120); // đọc lại câu chào đã hiện lúc mở
+    if(greeting) setTimeout(()=>speak(greeting),150); // đọc lại câu chào, không thêm tin nhắn trùng
   }
   document.addEventListener("pointerdown",unlockAudio);
   document.addEventListener("keydown",unlockAudio);
@@ -409,7 +415,7 @@
 
   /* ---------------- speech recognition ---------------- */
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  let rec=null,listening=false;
+  let rec=null;
   const mic=$("#mic");
   if(SR){
     rec=new SR();rec.continuous=false;rec.interimResults=false;
