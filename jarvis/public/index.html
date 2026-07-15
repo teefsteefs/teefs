@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>J.A.R.V.I.S — Trợ lý giọng nói</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%2338e1ff' stroke-width='8'/%3E%3Ccircle cx='50' cy='50' r='16' fill='%2338e1ff'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <h1>J.A.R.V.I.S</h1>
+      </div>
+      <div class="top-actions">
+        <span id="modePill" class="pill" title="Chế độ hoạt động của máy chủ">đang kết nối…</span>
+        <button id="settingsBtn" class="icon-btn" title="Cài đặt" aria-label="Cài đặt">⚙</button>
+      </div>
+    </header>
+
+    <main class="stage">
+      <section class="reactor-zone">
+        <div id="reactor" class="reactor state-idle" role="button" tabindex="0"
+             title="Nhấn để nói • hoặc gọi 'Jarvis'">
+          <div class="ring ring-outer"></div>
+          <div class="ring ring-mid"></div>
+          <div class="ring ring-ticks"></div>
+          <div class="core"></div>
+        </div>
+        <div id="activity" class="activity" aria-live="polite">&nbsp;</div>
+        <div id="caption" class="caption" aria-live="polite"></div>
+      </section>
+
+      <section id="chat" class="chat" aria-live="polite"></section>
+    </main>
+
+    <footer class="composer-zone">
+      <div id="banner" class="banner hidden"></div>
+      <form id="composer" class="composer" autocomplete="off">
+        <button type="button" id="micBtn" class="mic-btn" title="Nhấn để nói (hoặc giữ phím Space)" aria-label="Nói">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+            <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/>
+          </svg>
+        </button>
+        <input id="input" type="text" placeholder="Hỏi gì đó… hoặc gọi “Jarvis”" maxlength="4000" />
+        <button type="submit" id="sendBtn" class="send-btn" aria-label="Gửi">➤</button>
+      </form>
+      <p class="hint">Gọi <b>“Jarvis”</b> để đánh thức · giữ <b>Space</b> để nói · <b>Esc</b> để ngắt lời</p>
+    </footer>
+  </div>
+
+  <dialog id="settings" class="settings">
+    <form method="dialog">
+      <h2>Cài đặt</h2>
+
+      <label class="row">
+        <span>Ngôn ngữ nhận giọng nói</span>
+        <select id="setLang">
+          <option value="vi-VN">Tiếng Việt (vi-VN)</option>
+          <option value="en-US">English (en-US)</option>
+        </select>
+      </label>
+
+      <label class="row checkbox">
+        <input type="checkbox" id="setWake" />
+        <span>Luôn lắng nghe từ đánh thức</span>
+      </label>
+
+      <label class="row">
+        <span>Từ đánh thức</span>
+        <input type="text" id="setWakeWord" placeholder="jarvis" maxlength="30" />
+      </label>
+
+      <label class="row checkbox">
+        <input type="checkbox" id="setSpeak" checked />
+        <span>Đọc to câu trả lời</span>
+      </label>
+
+      <label class="row">
+        <span>Giọng đọc</span>
+        <select id="setVoice"><option value="">Tự động theo ngôn ngữ</option></select>
+      </label>
+
+      <label class="row">
+        <span>Tốc độ đọc <output id="rateOut">1.0</output>×</span>
+        <input type="range" id="setRate" min="0.6" max="1.6" step="0.1" value="1" />
+      </label>
+
+      <div class="row server-info">
+        <span>Máy chủ</span>
+        <small id="serverInfo">—</small>
+      </div>
+
+      <menu>
+        <button value="close" class="primary">Đóng</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

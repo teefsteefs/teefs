@@ -1,3 +1,15 @@
+# J.A.R.V.I.S — Trợ lý AI giọng nói
+
+**➡ Xem [`jarvis/`](./jarvis/)** — trợ lý giọng nói kiểu Iron Man: ra lệnh bằng lời, tự quyết định tìm kiếm web ngầm tùy độ khó câu hỏi, hoạt động đầy đủ kể cả khi không có API key (tự lên web tìm qua DuckDuckGo/Wikipedia).
+
+```bash
+cd jarvis && npm install && npm start   # mở http://localhost:3000
+```
+
+Chi tiết kiến trúc, cấu hình và hướng dẫn sử dụng: [`jarvis/README.md`](./jarvis/README.md).
+
+---
+
 # Directus Restack repository
 
 This is the default Directus repository to get you started for generating preview environments from a custom Directus image with Restack github application.
