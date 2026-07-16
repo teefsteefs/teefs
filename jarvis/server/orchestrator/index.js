@@ -6,22 +6,24 @@ import { classify } from './router.js';
 import { composeSearchAnswer, noInternetAnswer } from './directAnswer.js';
 import { webSearch } from '../tools/webSearch.js';
 import { getWeather, formatWeatherAnswer } from '../tools/weather.js';
+import { userMemory, parseMemoryCommand } from '../memory/userMemory.js';
 
 const log = createLogger('orchestrator');
 
 /**
  * Pipeline for every voice command:
  *
- *   1. Local skills (clock / calendar / math)      — instant, offline
- *   2. Agent mode (Claude decides its own tools)   — when credentials work
- *   3. Direct mode (heuristic router + web search) — always available
+ *   1. Local skills (clock / calendar / math)         — instant, offline
+ *   2. Explicit memory commands ("nhớ rằng …")        — instant, offline
+ *   3. Agent mode (Claude/OpenAI decides its tools)   — when credentials work
+ *   4. Direct mode (heuristic router + web search)    — always available
  *
- * Step 3 is a full fallback, not an error page: without any API key the
+ * Step 4 is a full fallback, not an error page: without any API key the
  * assistant still searches the web itself and answers extractively. If the
  * agent throws mid-request, the same command is transparently re-run in
  * direct mode.
  */
-export function createOrchestrator({ claude, sessions }) {
+export function createOrchestrator({ llm, sessions }) {
   async function runDirect({ message, lang, emit }) {
     const canned = tryCannedReply(message, lang);
     if (canned) return { answer: canned.answer, sources: [], mode: 'direct' };
@@ -95,11 +97,22 @@ export function createOrchestrator({ claude, sessions }) {
       return { answer: local.answer, sources: [], mode: 'local', lang };
     }
 
-    // 2) Agent mode when Claude is reachable.
-    if (claude.isAvailable()) {
+    // 2) Explicit long-term-memory commands — deterministic in both modes.
+    //    (In agent mode the model additionally saves facts on its own via
+    //    the `remember` tool.)
+    const memCmd = parseMemoryCommand(text);
+    if (memCmd) {
+      const answer = applyMemoryCommand(memCmd, lang);
+      emit('delta', { text: answer });
+      finishTurn(session, text, answer);
+      return { answer, sources: [], mode: 'local', lang };
+    }
+
+    // 3) Agent mode when an LLM backend is reachable.
+    if (llm.isAvailable()) {
       try {
         emit('status', { stage: 'thinking' });
-        const { answer, sources, finalText } = await claude.ask({
+        const { answer, sources, finalText } = await llm.ask({
           history: session.history,
           message: text,
           ctx,
@@ -114,7 +127,7 @@ export function createOrchestrator({ claude, sessions }) {
       }
     }
 
-    // 3) Direct mode — keyless operation or agent failure.
+    // 4) Direct mode — keyless operation or agent failure.
     const result = await runDirect({ message: text, lang, emit });
     emit('delta', { text: result.answer });
     emit('sources', result.sources);
@@ -125,6 +138,34 @@ export function createOrchestrator({ claude, sessions }) {
   function finishTurn(session, userText, assistantText) {
     sessions.append(session.id, 'user', userText);
     sessions.append(session.id, 'assistant', assistantText);
+  }
+
+  function applyMemoryCommand(cmd, lang) {
+    if (cmd.action === 'remember') {
+      userMemory.add(cmd.fact);
+      return lang === 'vi' ? `Đã ghi nhớ: ${cmd.fact}.` : `Noted and remembered: ${cmd.fact}.`;
+    }
+    if (cmd.action === 'forget_all') {
+      const n = userMemory.clear();
+      return lang === 'vi'
+        ? n > 0
+          ? `Tôi đã xóa toàn bộ ${n} điều ghi nhớ.`
+          : 'Trí nhớ dài hạn của tôi đang trống.'
+        : n > 0
+          ? `I cleared all ${n} remembered facts.`
+          : 'My long-term memory is already empty.';
+    }
+    // recall
+    const facts = userMemory.list();
+    if (facts.length === 0) {
+      return lang === 'vi'
+        ? 'Tôi chưa ghi nhớ điều gì. Bạn có thể nói "nhớ rằng ..." để tôi lưu lại.'
+        : 'I have not remembered anything yet. Say "remember that ..." and I will keep it.';
+    }
+    const shown = facts.slice(-10).join('; ');
+    return lang === 'vi'
+      ? `Tôi đang nhớ ${facts.length} điều, gần đây nhất: ${shown}.`
+      : `I remember ${facts.length} things, most recently: ${shown}.`;
   }
 
   return { handleChat };

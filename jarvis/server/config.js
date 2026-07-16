@@ -46,13 +46,18 @@ export const config = {
   host: process.env.HOST || '0.0.0.0',
   logLevel: oneOf('LOG_LEVEL', ['debug', 'info', 'warn', 'error'], 'info'),
 
-  // Claude — optional. Without credentials the assistant runs in direct
-  // search mode instead of failing.
+  // LLM backends — all optional. Without credentials the assistant runs in
+  // direct search mode instead of failing. With both keys set, Claude is
+  // preferred and OpenAI is the automatic fallback (override: LLM_PROVIDER).
+  llmProvider: oneOf('LLM_PROVIDER', ['auto', 'claude', 'anthropic', 'openai', 'none'], 'auto'),
   anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
   anthropicAuthToken: process.env.ANTHROPIC_AUTH_TOKEN || '',
   claudeModel: process.env.CLAUDE_MODEL || 'claude-opus-4-8',
   claudeEffort: oneOf('CLAUDE_EFFORT', ['low', 'medium', 'high', 'xhigh', 'max'], 'medium'),
   claudeMaxTokens: int('CLAUDE_MAX_TOKENS', 8192),
+  openaiApiKey: process.env.OPENAI_API_KEY || '',
+  openaiModel: process.env.OPENAI_MODEL || 'gpt-4o',
+  openaiBaseUrl: process.env.OPENAI_BASE_URL || '',
   maxAgentIterations: int('MAX_AGENT_ITERATIONS', 8),
 
   // Search providers — optional keys; the keyless chain always exists.
@@ -67,6 +72,9 @@ export const config = {
 
   sessionTtlMs: int('SESSION_TTL_MINUTES', 120) * 60_000,
   maxHistoryTurns: int('MAX_HISTORY_TURNS', 12),
+
+  // Persistent state (session history + long-term memory) lives here.
+  dataDir: process.env.DATA_DIR || path.join(ROOT, 'data'),
 
   maxRequestBodyBytes: 64 * 1024,
   maxMessageChars: 4000,

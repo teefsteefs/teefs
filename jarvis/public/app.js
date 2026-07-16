@@ -395,13 +395,14 @@ async function boot() {
   try {
     const health = await (await fetch('/api/health')).json();
     const agent = health.llm?.enabled;
-    els.modePill.textContent = agent ? `agent · ${health.llm.model}` : 'chế độ tìm kiếm trực tiếp';
+    const backend = health.llm?.provider ? `${health.llm.provider} · ${health.llm.model}` : health.llm?.model;
+    els.modePill.textContent = agent ? `agent · ${backend}` : 'chế độ tìm kiếm trực tiếp';
     els.modePill.classList.add(agent ? 'agent' : 'direct');
     els.modePill.title = agent
-      ? 'Claude quyết định khi nào cần tìm web'
+      ? 'AI quyết định khi nào cần tìm web'
       : `Không có LLM — tự tìm web qua: ${health.search.providers.join(', ')}`;
     els.serverInfo.textContent = agent
-      ? `agent mode · ${health.llm.model} · search: ${health.search.providers.join(', ')}`
+      ? `agent mode · ${backend} · search: ${health.search.providers.join(', ')} · nhớ ${health.memory?.facts ?? 0} điều`
       : `direct mode · search: ${health.search.providers.join(', ')}${health.llm.reason ? ` · lý do: ${health.llm.reason}` : ''}`;
   } catch {
     els.modePill.textContent = 'mất kết nối máy chủ';

@@ -4,13 +4,14 @@ import path from 'node:path';
 import config from './config.js';
 import { createLogger } from './util/logger.js';
 import { sessionStore } from './memory/sessions.js';
-import { createClaudeService } from './llm/claudeAgent.js';
+import { userMemory } from './memory/userMemory.js';
+import { createLlmService } from './llm/index.js';
 import { createOrchestrator } from './orchestrator/index.js';
 import { availableProviders } from './tools/webSearch.js';
 
 const log = createLogger('server');
-const claude = createClaudeService();
-const orchestrator = createOrchestrator({ claude, sessions: sessionStore });
+const llm = createLlmService();
+const orchestrator = createOrchestrator({ llm, sessions: sessionStore });
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -146,13 +147,15 @@ function handleHealth(res) {
   sendJson(res, 200, {
     ok: true,
     name: 'JARVIS Voice Assistant',
-    mode: claude.enabled ? 'agent' : 'direct',
+    mode: llm.enabled ? 'agent' : 'direct',
     llm: {
-      configured: claude.hasCredentials,
-      enabled: claude.enabled,
-      model: claude.hasCredentials ? claude.model : null,
-      reason: claude.enabled ? null : claude.lastFailureReason || null,
+      configured: llm.hasCredentials,
+      enabled: llm.enabled,
+      provider: llm.enabled ? llm.provider : null,
+      model: llm.hasCredentials ? llm.model : null,
+      reason: llm.enabled ? null : llm.lastFailureReason || null,
     },
+    memory: { facts: userMemory.count, sessions: sessionStore.sessions.size },
     search: { providers: availableProviders() },
     uptimeSec: Math.round(process.uptime()),
   });
@@ -171,17 +174,24 @@ const server = http.createServer((req, res) => {
 server.listen(config.port, config.host, async () => {
   log.info(`JARVIS listening on http://${config.host}:${config.port}`);
   log.info(`search chain: ${availableProviders().join(' → ')}`);
-  if (claude.hasCredentials) {
-    await claude.probe();
-    if (!claude.enabled) log.warn('running in DIRECT mode (web search without LLM) until Claude becomes reachable');
+  if (llm.hasCredentials) {
+    await llm.probe();
+    if (llm.enabled) {
+      log.info(`AGENT mode: ${llm.provider} (${llm.model}) decides when to search the web`);
+    } else {
+      log.warn(`running in DIRECT mode until an LLM becomes reachable — ${llm.lastFailureReason}`);
+    }
   } else {
-    log.info('no ANTHROPIC_API_KEY — running in DIRECT mode: the assistant searches the web itself and answers extractively');
+    log.info(
+      'no ANTHROPIC_API_KEY / OPENAI_API_KEY — DIRECT mode: the assistant searches the web itself and answers extractively',
+    );
   }
 });
 
 function shutdown(signal) {
   log.info(`${signal} received, shutting down`);
   sessionStore.close();
+  userMemory.flush();
   server.close(() => process.exit(0));
   setTimeout(() => process.exit(0), 3000).unref();
 }
