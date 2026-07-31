@@ -36,7 +36,8 @@ function mountScrollWorld(container, config) {
 
   const SEGMENTS = [];
   SECTIONS.forEach((s, i) => {
-    const dive = { kind: 'dive', si: i, clip: s.clip, clipM: s.clipMobile, clipWebm: s.clipWebm,
+    const dive = { kind: 'dive', si: i, clip: s.clip, clipM: s.clipMobile,
+                   clipWebm: s.clipWebm, clipWebmM: s.clipWebmMobile,
                    still: s.still, stillM: s.stillMobile,
                    accent: s.accent, w: s.scroll || DIVE_W, linger: s.linger || 0 };
     SEGMENTS.push(dive);
@@ -140,11 +141,18 @@ function mountScrollWorld(container, config) {
   function loadClip(s) {
     if (reduce || s.loading || !s.clip) return;
     s.loading = true;
-    let url = (isMobile() && s.clipM) ? s.clipM : s.clip;
-    // Browsers built without the proprietary H.264 decoder (many Chromium and
-    // Firefox builds) fail on the mp4 with DEMUXER_ERROR_NO_SUPPORTED_STREAMS.
-    // Serve them the VP9 sibling instead so the scrub still works.
-    if (!CAN_H264 && s.clipWebm) url = s.clipWebm;
+    // Phones and desktops get different cuts of the same shot: the desktop clip
+    // is pre-cropped to 16:9 so the decoder never touches the band a widescreen
+    // viewport discards, while the phone clip keeps the full frame its taller
+    // viewport actually shows. Pick the device variant first, then fall back to
+    // VP9 within that same variant — browsers built without the proprietary
+    // H.264 decoder fail the mp4 with DEMUXER_ERROR_NO_SUPPORTED_STREAMS.
+    const mob = isMobile();
+    let url = (mob && s.clipM) ? s.clipM : s.clip;
+    if (!CAN_H264) {
+      const webm = (mob && s.clipWebmM) ? s.clipWebmM : s.clipWebm;
+      if (webm) url = webm;
+    }
     fetch(url).then(r => r.ok ? r.blob() : Promise.reject(new Error('HTTP ' + r.status)))
       .then(blob => {
         const v = document.createElement('video');
