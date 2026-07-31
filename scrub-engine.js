@@ -12,7 +12,19 @@ function warnOnce(key, msg) {
 }
 
 function mountScrollWorld(container, config) {
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Reduced motion keeps the clips off, which is the right accessible default.
+  // But it also makes the page look simply broken to anyone who just has OS
+  // animations switched off, so say so and offer a way back in.
+  const forceMotion = /[?&]motion=(on|force)\b/.test(location.search) || config.forceMotion === true;
+  const reduce = prefersReduce && !forceMotion;
+  if (prefersReduce) {
+    warnOnce('sw-reduce', forceMotion
+      ? 'scroll-world: reduced motion is requested by the system, but motion was force-enabled — clips will play.'
+      : 'scroll-world: the system requests reduced motion, so the scroll-scrubbed clips are disabled and only ' +
+        'the still frames are shown. Add ?motion=on to the URL (or pass forceMotion: true) to play them anyway. ' +
+        'On Windows this setting is Settings > Accessibility > Visual effects > Animation effects.');
+  }
   const coarse = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
   const smallMQ = window.matchMedia('(max-width: 860px)');
   const isMobile = () => coarse || smallMQ.matches;
