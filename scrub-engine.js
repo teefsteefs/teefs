@@ -1,3 +1,16 @@
+const CAN_H264 = (() => {
+  const v = document.createElement('video');
+  return !!(v.canPlayType('video/mp4; codecs="avc1.42E01E"') ||
+            v.canPlayType('video/mp4; codecs="avc1.64001E"'));
+})();
+
+const _warned = {};
+function warnOnce(key, msg) {
+  if (_warned[key]) return;
+  _warned[key] = true;
+  console.warn(msg);
+}
+
 function mountScrollWorld(container, config) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const coarse = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
@@ -17,12 +30,14 @@ function mountScrollWorld(container, config) {
 
   const SEGMENTS = [];
   SECTIONS.forEach((s, i) => {
-    const dive = { kind: 'dive', si: i, clip: s.clip, clipM: s.clipMobile, still: s.still, stillM: s.stillMobile,
+    const dive = { kind: 'dive', si: i, clip: s.clip, clipM: s.clipMobile, clipWebm: s.clipWebm,
+                   still: s.still, stillM: s.stillMobile,
                    accent: s.accent, w: s.scroll || DIVE_W, linger: s.linger || 0 };
     SEGMENTS.push(dive);
     s._seg = dive;
     if (i < N - 1 && CONNECTORS[i]) {
       SEGMENTS.push({ kind: 'conn', si: i, clip: CONNECTORS[i], clipM: CONNECTORS_M[i],
+                      clipWebm: (config.connectorsWebm || [])[i],
                       still: SECTIONS[i + 1].still, stillM: SECTIONS[i + 1].stillMobile,
                       accent: SECTIONS[i + 1].accent, w: CONN_W });
     }
@@ -119,8 +134,12 @@ function mountScrollWorld(container, config) {
   function loadClip(s) {
     if (reduce || s.loading || !s.clip) return;
     s.loading = true;
-    const url = (isMobile() && s.clipM) ? s.clipM : s.clip;
-    fetch(url).then(r => r.ok ? r.blob() : Promise.reject(new Error('404')))
+    let url = (isMobile() && s.clipM) ? s.clipM : s.clip;
+    // Browsers built without the proprietary H.264 decoder (many Chromium and
+    // Firefox builds) fail on the mp4 with DEMUXER_ERROR_NO_SUPPORTED_STREAMS.
+    // Serve them the VP9 sibling instead so the scrub still works.
+    if (!CAN_H264 && s.clipWebm) url = s.clipWebm;
+    fetch(url).then(r => r.ok ? r.blob() : Promise.reject(new Error('HTTP ' + r.status)))
       .then(blob => {
         const v = document.createElement('video');
         v.className = 'sw-scene__video';
@@ -130,8 +149,23 @@ function mountScrollWorld(container, config) {
         v.addEventListener('loadedmetadata', () => { s.ready = true; read(); });
         v.addEventListener('seeked', () => { s.el.classList.add('has-clip'); }, { once: true });
         v.addEventListener('loadeddata', () => { try { v.pause(); } catch (e) {} if (userReady) primeVideo(v); });
+        v.addEventListener('error', () => {
+          const e = v.error;
+          warnOnce('sw-decode',
+            'scroll-world: "' + url + '" could not be decoded' +
+            (e ? ' (' + e.message + ')' : '') +
+            '. The page is falling back to still images.');
+          s.hasClip = false; s.ready = false;
+        });
         s.el.appendChild(v); s.video = v; s.hasClip = true;
-      }).catch(() => { s.loading = false; });
+      }).catch(err => {
+        s.loading = false;
+        warnOnce('sw-fetch',
+          'scroll-world: could not fetch "' + url + '" (' + err.message + '). ' +
+          (location.protocol === 'file:'
+            ? 'The page is open over file:// — clip fetches are blocked by CORS. Serve the folder over HTTP instead, e.g. `python3 -m http.server 8080`.'
+            : 'The page is falling back to still images.'));
+      });
   }
 
   function read() {
