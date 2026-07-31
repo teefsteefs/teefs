@@ -13,18 +13,12 @@ function warnOnce(key, msg) {
 
 function mountScrollWorld(container, config) {
   const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // Reduced motion keeps the clips off, which is the right accessible default.
-  // But it also makes the page look simply broken to anyone who just has OS
-  // animations switched off, so say so and offer a way back in.
-  const forceMotion = /[?&]motion=(on|force)\b/.test(location.search) || config.forceMotion === true;
-  const reduce = prefersReduce && !forceMotion;
-  if (prefersReduce) {
-    warnOnce('sw-reduce', forceMotion
-      ? 'scroll-world: reduced motion is requested by the system, but motion was force-enabled — clips will play.'
-      : 'scroll-world: the system requests reduced motion, so the scroll-scrubbed clips are disabled and only ' +
-        'the still frames are shown. Add ?motion=on to the URL (or pass forceMotion: true) to play them anyway. ' +
-        'On Windows this setting is Settings > Accessibility > Visual effects > Animation effects.');
-  }
+  // The scrubbed clips are the content here, not decoration — with them off the
+  // page is just two stills. So reduced motion no longer suppresses them; it
+  // only drops the incidental motion (particles, smooth jumps, poster drift),
+  // which is handled separately below. ?motion=off opts out entirely.
+  const reduce = /[?&]motion=off\b/.test(location.search) || config.forceStills === true;
+  const calmMotion = prefersReduce || reduce;
   const coarse = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
   const smallMQ = window.matchMedia('(max-width: 860px)');
   const isMobile = () => coarse || smallMQ.matches;
@@ -140,7 +134,7 @@ function mountScrollWorld(container, config) {
 
   function jumpTo(i) {
     const seg = SECTIONS[i]._seg;
-    window.scrollTo({ top: seg.start + (seg.end - seg.start) * 0.5, behavior: reduce ? 'auto' : 'smooth' });
+    window.scrollTo({ top: seg.start + (seg.end - seg.start) * 0.5, behavior: calmMotion ? 'auto' : 'smooth' });
   }
 
   function loadClip(s) {
@@ -197,7 +191,7 @@ function mountScrollWorld(container, config) {
       s.el.style.opacity = op; s.visible = op > 0.001;
       s.el.style.zIndex = (i === ci) ? '120' : String(100 + Math.round(op * 10));
       if (!s.hasClip || !s.ready) {
-        const sc = reduce ? 1 : 1.03 + local * 0.14;
+        const sc = calmMotion ? 1 : 1.03 + local * 0.14;
         s.img.style.transform = `translateX(${stageX - 2}vw) scale(${sc.toFixed(3)})`;
       }
     }
@@ -212,7 +206,7 @@ function mountScrollWorld(container, config) {
       else cop = (before || after) ? 0 : smooth(1 - Math.abs(pr - 0.5) / 0.5);
       const c = copies[i];
       c.style.opacity = cop;
-      c.style.transform = reduce ? 'none' : `translateY(${(0.5 - pr) * 4}vh)`;
+      c.style.transform = calmMotion ? 'none' : `translateY(${(0.5 - pr) * 4}vh)`;
       c.style.pointerEvents = cop > 0.5 ? 'auto' : 'none';
     }
 
@@ -238,7 +232,7 @@ function mountScrollWorld(container, config) {
       if (!s.hasClip || !s.ready || !s.video) continue;
       if (s.video.seeking) continue;
       if (!s.visible && Math.abs(s.cur - s.target) < 0.002) continue;
-      s.cur += (s.target - s.cur) * (reduce ? 1 : 0.18);
+      s.cur += (s.target - s.cur) * (calmMotion ? 1 : 0.18);
       const dur = s.video.duration || 1;
       const t = clamp(s.cur, 0, 0.999) * dur;
       if (Math.abs(s.video.currentTime - t) > eps) { try { s.video.currentTime = t; } catch (e) {} }
@@ -260,7 +254,7 @@ function mountScrollWorld(container, config) {
   window.addEventListener('pointerdown', onFirstGesture, { once: true, passive: true });
   window.addEventListener('touchstart', onFirstGesture, { once: true, passive: true });
 
-  seedParticles(particles, reduce || coarse);
+  seedParticles(particles, calmMotion || coarse);
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(read); } }, { passive: true });
   function onResize() {
     if (coarse && window.innerWidth === laidOutW) return;
