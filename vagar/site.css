@@ -96,6 +96,55 @@ p.muted { color: var(--sw-ink-soft); line-height: 1.62; margin: 0; }
 .g3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
 .g4 { grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); }
 
+/* ---- depth ---------------------------------------------------------------
+   Cards sit inside a perspective context so the pointer tilt is a real 3D
+   rotation rather than a skew. Angles come from site.js as custom properties
+   and default to flat, so the layout is correct with JS disabled. */
+.grid, ol.steps, .contact-grid { perspective: 1100px; }
+
+.card, ol.steps li {
+  transform-style: preserve-3d;
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .45s cubic-bezier(.22,.61,.36,1),
+              border-color .3s ease, background .3s ease;
+}
+.tilt { position: relative; overflow: hidden; }
+/* Sheen tracks the pointer so the tilt reads as a lit surface, not a wobble. */
+.tilt::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit; opacity: 0; transition: opacity .35s ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%),
+              rgba(56, 189, 248, .13), transparent 62%);
+}
+.tilt:hover::after { opacity: 1; }
+.card:hover, ol.steps li:hover {
+  border-color: rgba(56, 189, 248, .34);
+  background: rgba(255, 255, 255, .055);
+}
+/* Lift the text off the card face so the rotation has visible parallax. */
+.card > *, ol.steps li > * { transform: translateZ(22px); }
+ol.steps li::before { transform: translateZ(34px); }
+
+/* ---- scroll reveal ------------------------------------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0) rotateX(6deg);
+  transform-origin: 50% 100%;
+  transition: opacity .7s cubic-bezier(.22,.61,.36,1) var(--rd, 0ms),
+              transform .7s cubic-bezier(.22,.61,.36,1) var(--rd, 0ms);
+}
+.reveal.is-in { opacity: 1; transform: none; }
+
+.phero__img { transform: scale(1.06); transform-origin: 50% 40%; }
+.phero .wrap { will-change: transform, opacity; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card, ol.steps li { transform: none; transition: border-color .3s ease; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .tilt::after { display: none; }
+  .phero__img { transform: none; }
+}
+
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
 .card ul { margin: 12px 0 0; padding-left: 18px; color: var(--sw-ink-soft); line-height: 1.72; }
 .card ul li::marker { color: var(--sw-accent); }
