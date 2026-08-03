@@ -1,0 +1,164 @@
+/* VAGAR ADVISORY — shared shell for every page. */
+
+:root, .sw-root {
+  --sw-bg: #0A0E15;
+  --sw-ink: #EAEFF7;
+  --sw-ink-soft: #93A0B5;
+  --sw-accent: #38BDF8;
+  --line: rgba(148, 173, 200, .16);
+  --card: rgba(255, 255, 255, .035);
+  --maxw: 1180px;
+  --head-h: 68px;
+  --display: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--sw-bg);
+  color: var(--sw-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ---- site header (every page) ------------------------------------------- */
+.site-head {
+  position: fixed; inset: 0 0 auto 0; z-index: 70;
+  height: var(--head-h);
+  display: flex; align-items: center; gap: 18px;
+  padding: 0 clamp(16px, 5vw, 48px);
+  background: rgba(10, 14, 21, .72);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.site-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--sw-ink); }
+.site-brand svg { width: 26px; height: 26px; flex: none; }
+.site-brand b { font-family: var(--display); font-size: 1.02rem; letter-spacing: .01em; white-space: nowrap; }
+.site-nav { display: flex; gap: 2px; margin-left: auto; }
+.site-nav a {
+  text-decoration: none; color: var(--sw-ink-soft); font-size: .88rem;
+  padding: 8px 14px; border-radius: 999px; white-space: nowrap;
+  transition: color .2s, background .2s;
+}
+.site-nav a:hover { color: var(--sw-ink); background: rgba(255, 255, 255, .05); }
+.site-nav a[aria-current="page"] { color: #05202E; background: var(--sw-accent); font-weight: 600; }
+.site-cta {
+  margin-left: 10px; text-decoration: none; font-weight: 650; font-size: .88rem;
+  padding: 10px 18px; border-radius: 999px; background: var(--sw-accent); color: #05202E;
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .site-cta { display: none; }
+  .site-nav { margin-left: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .site-nav::-webkit-scrollbar { display: none; }
+  .site-nav a { padding: 8px 11px; font-size: .82rem; }
+  .site-brand b { font-size: .9rem; }
+}
+@media (max-width: 560px) {
+  .site-brand b { display: none; }
+}
+
+/* ---- page shell ---------------------------------------------------------- */
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(18px, 5vw, 48px); }
+section.band { padding: clamp(52px, 8vh, 96px) 0; border-bottom: 1px solid var(--line); }
+.page { position: relative; z-index: 30; background: var(--sw-bg); }
+
+/* Inner hero for the non-film pages. */
+.phero {
+  position: relative; margin-top: var(--head-h);
+  min-height: clamp(280px, 46vh, 460px);
+  display: flex; align-items: flex-end;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+.phero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.phero__scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, var(--sw-bg) 4%, rgba(10,14,21,.86) 42%, rgba(10,14,21,.5) 72%, rgba(10,14,21,.35) 100%);
+}
+.phero .wrap { position: relative; padding-top: 48px; padding-bottom: 44px; width: 100%; }
+
+/* ---- type ---------------------------------------------------------------- */
+.kicker { font-size: .74rem; font-weight: 700; letter-spacing: .16em;
+          text-transform: uppercase; color: var(--sw-accent); margin: 0 0 14px; }
+h1.h1 { font-family: var(--display); font-weight: 700; margin: 0 0 14px;
+        font-size: clamp(2rem, 4.6vw, 3.2rem); line-height: 1.06; letter-spacing: -.015em; }
+h2.h { font-family: var(--display); font-weight: 700; margin: 0 0 18px;
+       font-size: clamp(1.65rem, 3.3vw, 2.5rem); line-height: 1.12; letter-spacing: -.01em; }
+h3.sub { font-size: clamp(1.02rem, 1.6vw, 1.2rem); margin: 0 0 8px; font-weight: 650; }
+p.lede { font-size: clamp(1rem, 1.3vw, 1.1rem); line-height: 1.62; color: #C3CDDC;
+         max-width: 68ch; margin: 0 0 14px; }
+p.muted { color: var(--sw-ink-soft); line-height: 1.62; margin: 0; }
+
+/* ---- blocks -------------------------------------------------------------- */
+.grid { display: grid; gap: 18px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.g4 { grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+.card ul { margin: 12px 0 0; padding-left: 18px; color: var(--sw-ink-soft); line-height: 1.72; }
+.card ul li::marker { color: var(--sw-accent); }
+.card a { color: var(--sw-accent); text-decoration: none; word-break: break-word; }
+.card a:hover { text-decoration: underline; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.chips li { font-size: .88rem; color: #CBE9F8; padding: 9px 16px; border-radius: 999px;
+            background: rgba(56,189,248,.08); border: 1px solid rgba(56,189,248,.24); }
+
+ol.steps { list-style: none; counter-reset: s; margin: 0; padding: 0;
+           display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+ol.steps li { counter-increment: s; position: relative; background: var(--card);
+              border: 1px solid var(--line); border-radius: 16px; padding: 24px 24px 24px 68px; }
+ol.steps li::before {
+  content: counter(s, decimal-leading-zero);
+  position: absolute; left: 24px; top: 22px;
+  font-family: ui-monospace, Menlo, monospace; font-size: .95rem; font-weight: 700;
+  color: var(--sw-accent);
+}
+
+.label { font-size: .74rem; font-weight: 700; letter-spacing: .12em;
+         text-transform: uppercase; color: var(--sw-ink-soft); margin: 0 0 6px; }
+
+.btnrow { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.btn { text-decoration: none; font-weight: 650; font-size: .95rem;
+       padding: 14px 26px; border-radius: 999px; display: inline-block; }
+.btn--primary { background: var(--sw-accent); color: #05202E; }
+.btn--ghost { border: 1.5px solid rgba(148,173,200,.34); color: var(--sw-ink); }
+
+/* ---- footer -------------------------------------------------------------- */
+footer.foot { padding: clamp(40px, 6vh, 72px) 0; position: relative; z-index: 30; background: var(--sw-bg); }
+footer.foot .fname { font-weight: 700; font-size: 1.05rem; margin: 0 0 8px; }
+footer.foot .fline { color: var(--sw-ink-soft); margin: 0 0 6px; font-size: .93rem; }
+footer.foot .fnav { display: flex; flex-wrap: wrap; gap: 16px; margin: 20px 0 0; }
+footer.foot .fnav a { color: var(--sw-ink-soft); text-decoration: none; font-size: .9rem; }
+footer.foot .fnav a:hover { color: var(--sw-accent); }
+footer.foot .fcopy { color: #6B7789; margin: 20px 0 0; font-size: .84rem; }
+
+/* ---- dark-theme corrections for the scroll engine (home page only) --------
+   The engine ships a light palette and its rules live in @layer sw, so these
+   unlayered ones win without !important. */
+.sw-copy__tags li { color: #CBE9F8; background: rgba(56,189,248,.10); border-color: rgba(56,189,248,.28); }
+.sw-btn--primary { color: #05202E; background: var(--sw-accent); }
+.sw-route__label { color: var(--sw-ink); background: rgba(10,14,21,.82); border-color: rgba(56,189,248,.22); }
+.sw-copylayer::before {
+  background: linear-gradient(90deg,
+    var(--sw-bg) 0%, rgba(10,14,21,.93) 38%, rgba(10,14,21,.62) 66%, transparent 100%);
+}
+@media (max-width: 860px) {
+  .sw-copylayer::before {
+    background: linear-gradient(0deg,
+      var(--sw-bg) 10%, rgba(10,14,21,.90) 52%, rgba(10,14,21,.45) 76%, transparent 100%);
+  }
+}
+/* The engine's own top bar is unused — the site header replaces it. */
+.sw-topbar { display: none; }
+.sw-scrollbar { top: var(--head-h); }
+.sw-copy { padding-top: var(--head-h); }
+@media (max-width: 860px) { .sw-copy { padding-top: 0; } }
+
+/* The route rail and scroll hint only address the film, so dismiss them once
+   the written page takes over. */
+.sw-route, .sw-hint { transition: opacity .35s ease, visibility .35s ease; }
+body.past-film .sw-route, body.past-film .sw-hint { opacity: 0; visibility: hidden; }
+@media (prefers-reduced-motion: reduce) { .sw-route, .sw-hint { transition: none; } }
