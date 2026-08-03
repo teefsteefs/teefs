@@ -81,6 +81,47 @@
     });
   }
 
+  /* ---- image accordion --------------------------------------------------- */
+  const acc = document.querySelector('.iacc');
+  if (acc) {
+    const items = [...acc.querySelectorAll('.iacc__item')];
+    const setActive = (el) => items.forEach(i => i.classList.toggle('is-active', i === el));
+
+    items.forEach(el => {
+      // Hover drives it on a mouse; touch has no hover, so the panels stay a
+      // swipeable strip there and a tap just opens the one you touched.
+      if (canHover) el.addEventListener('pointerenter', () => setActive(el));
+      el.addEventListener('click', () => setActive(el));
+      el.addEventListener('focus', () => setActive(el));
+    });
+
+    // Arrow keys move between panels for keyboard users.
+    acc.addEventListener('keydown', (e) => {
+      const i = items.indexOf(document.activeElement);
+      if (i < 0) return;
+      const next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
+      if (next >= 0 && next < items.length) { e.preventDefault(); items[next].focus(); }
+    });
+  }
+
+  /* ---- prefetch on intent ------------------------------------------------
+     View transitions only smooth the swap; the page still has to arrive. Warm
+     it while the pointer is on its way to the link. */
+  const primed = new Set();
+  const prime = (href) => {
+    if (!href || primed.has(href)) return;
+    primed.add(href);
+    const l = document.createElement('link');
+    l.rel = 'prefetch'; l.href = href; l.as = 'document';
+    document.head.appendChild(l);
+  };
+  document.querySelectorAll('.site-nav a, .site-cta, .fnav a, .btn').forEach(a => {
+    const href = a.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('mailto:')) return;
+    a.addEventListener('pointerenter', () => prime(href), { once: true });
+    a.addEventListener('focus', () => prime(href), { once: true });
+  });
+
   /* ---- hero depth ------------------------------------------------------- */
   // The still and the headline ride the same scroll at different rates, which
   // reads as depth without a second asset.

@@ -21,6 +21,21 @@ body {
   overflow-x: hidden;
 }
 
+/* ---- cross-page navigation ----------------------------------------------
+   Five separate documents means every nav click is a full load and a white
+   flash. Cross-document view transitions cross-fade the two pages instead
+   and hold the header still across the swap. Ignored where unsupported, so
+   navigation stays exactly as it was. */
+@view-transition { navigation: auto; }
+.site-head { view-transition-name: site-head; }
+.phero { view-transition-name: phero; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
 /* ---- site header (every page) ------------------------------------------- */
 .site-head {
   position: fixed; inset: 0 0 auto 0; z-index: 70;
@@ -168,6 +183,66 @@ ol.steps li::before {
 
 .label { font-size: .74rem; font-weight: 700; letter-spacing: .12em;
          text-transform: uppercase; color: var(--sw-ink-soft); margin: 0 0 6px; }
+
+/* ---- image accordion -----------------------------------------------------
+   Panels are flex ratios rather than fixed pixel widths, so the row fills
+   whatever container it lands in instead of overflowing narrow screens. */
+.iacc { display: flex; gap: 12px; height: clamp(320px, 52vh, 460px); }
+.iacc__item {
+  position: relative; flex: 1 1 0; min-width: 54px;
+  border: 0; padding: 0; margin: 0; background: none; color: inherit;
+  border-radius: 18px; overflow: hidden; cursor: pointer;
+  transition: flex-grow .7s cubic-bezier(.22,.61,.36,1);
+}
+.iacc__item.is-active { flex-grow: 6; }
+.iacc__item img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; transform: scale(1.04);
+  transition: transform .7s cubic-bezier(.22,.61,.36,1);
+}
+.iacc__item.is-active img { transform: scale(1); }
+.iacc__item::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(0deg, rgba(6,10,16,.86) 6%, rgba(6,10,16,.34) 46%, rgba(6,10,16,.5) 100%);
+  transition: background .5s ease;
+}
+.iacc__item.is-active::after {
+  background: linear-gradient(0deg, rgba(6,10,16,.82) 4%, rgba(6,10,16,.12) 52%, rgba(6,10,16,.34) 100%);
+}
+.iacc__item:focus-visible { outline: 2px solid var(--sw-accent); outline-offset: 3px; }
+
+.iacc__label {
+  position: absolute; z-index: 2; left: 50%; bottom: 84px;
+  white-space: nowrap; font-weight: 650; font-size: 1.02rem; color: #fff;
+  transform: translateX(-50%) rotate(90deg); transform-origin: 50% 50%;
+  transition: transform .5s cubic-bezier(.22,.61,.36,1), bottom .5s cubic-bezier(.22,.61,.36,1);
+  text-shadow: 0 2px 14px rgba(0,0,0,.6);
+}
+.iacc__item.is-active .iacc__label {
+  bottom: 58px; transform: translateX(-50%) rotate(0deg);
+}
+.iacc__desc {
+  position: absolute; z-index: 2; left: 24px; right: 24px; bottom: 24px;
+  margin: 0; font-size: .92rem; line-height: 1.5; color: #C9D6E6;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .45s ease .12s, transform .45s ease .12s;
+}
+.iacc__item.is-active .iacc__desc { opacity: 1; transform: none; }
+
+/* Below the fold of a phone the row cannot hold five panels, so it becomes a
+   swipeable strip with each panel wide enough to read. */
+@media (max-width: 720px) {
+  .iacc { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+  .iacc::-webkit-scrollbar { display: none; }
+  .iacc__item { flex: 0 0 76%; scroll-snap-align: center; }
+  .iacc__item.is-active { flex-grow: 0; }
+  .iacc__label { bottom: 58px; transform: translateX(-50%) rotate(0deg); }
+  .iacc__desc { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iacc__item, .iacc__item img, .iacc__label, .iacc__desc { transition: none; }
+}
 
 .btnrow { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
 .btn { text-decoration: none; font-weight: 650; font-size: .95rem;
