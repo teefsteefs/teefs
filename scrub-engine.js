@@ -38,6 +38,7 @@ function mountScrollWorld(container, config) {
   SECTIONS.forEach((s, i) => {
     const dive = { kind: 'dive', si: i, clip: s.clip, clipM: s.clipMobile,
                    clipWebm: s.clipWebm, clipWebmM: s.clipWebmMobile,
+                   autoplay: !!s.autoplay,
                    still: s.still, stillM: s.stillMobile,
                    accent: s.accent, w: s.scroll || DIVE_W, linger: s.linger || 0 };
     SEGMENTS.push(dive);
@@ -160,9 +161,19 @@ function mountScrollWorld(container, config) {
         v.muted = true; v.playsInline = true; v.preload = 'auto';
         v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
         v.src = URL.createObjectURL(blob);
+        // Deliberately not looping: each cut is under three seconds, so a loop
+        // would show its seam every few seconds. The move plays out once on
+        // entry and holds on its last frame instead.
         v.addEventListener('loadedmetadata', () => { s.ready = true; read(); });
-        v.addEventListener('seeked', () => { s.el.classList.add('has-clip'); }, { once: true });
-        v.addEventListener('loadeddata', () => { try { v.pause(); } catch (e) {} if (userReady) primeVideo(v); });
+        // Scrubbing reveals the clip on its first seek; a linear clip never
+        // seeks, so it reveals on its first painted frame instead.
+        v.addEventListener(s.autoplay ? 'playing' : 'seeked',
+          () => { s.el.classList.add('has-clip'); }, { once: true });
+        v.addEventListener('loadeddata', () => {
+          if (s.autoplay) { syncPlayback(s); return; }
+          try { v.pause(); } catch (e) {}
+          if (userReady) primeVideo(v);
+        });
         v.addEventListener('error', () => {
           const e = v.error;
           warnOnce('sw-decode',
@@ -197,6 +208,7 @@ function mountScrollWorld(container, config) {
       if (y < s.start) outside = s.start - y; else if (y > s.end) outside = y - s.end;
       const op = smooth(1 - outside / fade);
       s.el.style.opacity = op; s.visible = op > 0.001;
+      if (s.autoplay) syncPlayback(s);
       s.el.style.zIndex = (i === ci) ? '120' : String(100 + Math.round(op * 10));
       if (!s.hasClip || !s.ready) {
         const sc = calmMotion ? 1 : 1.03 + local * 0.14;
@@ -240,6 +252,7 @@ function mountScrollWorld(container, config) {
     const eps = isMobile() ? 0.02 : 0.008;
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
+      if (s.autoplay) continue;          // linear playback: nothing to drive
       if (!s.hasClip || !s.ready || !s.video) continue;
       if (s.video.seeking) continue;
       if (!s.visible && Math.abs(s.cur - s.target) < 0.002) continue;
@@ -249,6 +262,25 @@ function mountScrollWorld(container, config) {
       if (Math.abs(s.video.currentTime - t) > eps) { try { s.video.currentTime = t; } catch (e) {} }
     }
     requestAnimationFrame(raf);
+  }
+
+  // Linear clips play only while their section is on screen, so an off-screen
+  // decoder is never running for nothing.
+  function syncPlayback(s) {
+    const v = s.video;
+    if (!v || !s.ready) return;
+    if (s.visible && !calmMotion) {
+      if (v.paused) {
+        // Rewind on re-entry so the move replays instead of sitting finished.
+        if (s.wasVisible === false && v.currentTime > 0.05) {
+          try { v.currentTime = 0; } catch (e) {}
+        }
+        const p = v.play(); if (p && p.catch) p.catch(() => {});
+      }
+    } else if (!v.paused) {
+      try { v.pause(); } catch (e) {}
+    }
+    s.wasVisible = s.visible;
   }
 
   let userReady = false;
