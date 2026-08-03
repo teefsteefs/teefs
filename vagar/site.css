@@ -154,8 +154,15 @@ footer.foot .fcopy { color: #6B7789; margin: 20px 0 0; font-size: .84rem; }
 /* The engine's own top bar is unused — the site header replaces it. */
 .sw-topbar { display: none; }
 .sw-scrollbar { top: var(--head-h); }
-.sw-copy { padding-top: var(--head-h); }
-@media (max-width: 860px) { .sw-copy { padding-top: 0; } }
+
+/* The film copy is vertically centred, so on a short laptop screen a long
+   headline can still reach up under the fixed header. Trim the display size
+   and the block's internal spacing until it clears. */
+.sw-copy__title { font-size: clamp(1.75rem, 3.1vw, 2.6rem); }
+.sw-copy__body { margin-top: 14px; }
+.sw-copy__tags { margin-top: 18px; }
+.sw-copy__cta { margin-top: 22px; }
+.sw-copy__eyebrow { margin-top: 14px; }
 
 /* The route rail and scroll hint only address the film, so dismiss them once
    the written page takes over. */
