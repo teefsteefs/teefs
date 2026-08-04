@@ -46,23 +46,21 @@ body {
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
-/* Brand lockup, following the supplied logo: mark, vertical rule, then VAGAR
-   over a letterspaced ADVISORY flanked by short rules. The logo is drawn for
-   white paper, so on this dark shell it inverts — VAGAR goes white and the red
-   carries the mark and rules instead of the lettering. */
 .site-brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: var(--sw-ink); }
-.site-brand__mark { width: 30px; height: 30px; flex: none; display: block; }
-.site-brand__rule { width: 1.5px; align-self: stretch; margin: 6px 0; flex: none;
-                    background: var(--sw-accent); opacity: .85; }
-.site-brand__words { display: flex; flex-direction: column; gap: 3px; }
-.site-brand__name { font-family: var(--display); font-weight: 700; line-height: 1;
-                    font-size: 1.12rem; letter-spacing: .07em; white-space: nowrap; }
-.site-brand__sub { display: flex; align-items: center; gap: 6px;
-                   font-size: .56rem; font-weight: 600; letter-spacing: .34em;
-                   color: var(--sw-ink-soft); white-space: nowrap; }
-.site-brand__sub::before, .site-brand__sub::after {
-  content: ""; height: 1px; width: 10px; background: var(--sw-accent); opacity: .8;
+
+/* The supplied logo is a JPEG drawn on white, so it has no transparency to
+   sit on this dark header. Rather than show a bare white rectangle, it gets a
+   deliberate white chip — and the text lockup is dropped, since the artwork
+   already carries the wordmark. */
+.site-brand__logo {
+  display: flex; align-items: center; flex: none;
+  background: #fff; border-radius: 9px; padding: 5px 9px;
 }
+/* If the PNG turns out to carry transparency, add class="site-brand__logo is-bare"
+   in the five headers and the chip disappears — nothing else needs touching. */
+.site-brand__logo.is-bare { background: none; padding: 0; }
+.site-brand__logo img { height: 30px; width: auto; display: block; }
+@media (max-width: 560px) { .site-brand__logo img { height: 24px; } }
 .site-nav { display: flex; gap: 2px; margin-left: auto; }
 .site-nav a {
   text-decoration: none; color: var(--sw-ink-soft); font-size: .88rem;
@@ -81,12 +79,7 @@ body {
   .site-nav { margin-left: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .site-nav::-webkit-scrollbar { display: none; }
   .site-nav a { padding: 8px 11px; font-size: .82rem; }
-  .site-brand b { font-size: .9rem; }
 }
-@media (max-width: 560px) {
-  .site-brand b { display: none; }
-}
-
 /* ---- page shell ---------------------------------------------------------- */
 .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(18px, 5vw, 48px); }
 section.band { padding: clamp(52px, 8vh, 96px) 0; border-bottom: 1px solid var(--line); }
