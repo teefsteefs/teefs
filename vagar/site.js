@@ -51,7 +51,7 @@
 
   /* ---- pointer tilt ----------------------------------------------------- */
   if (canHover && !reduce) {
-    const MAX = 5.5;                        // degrees; past ~7 it reads as a gimmick
+    const MAX = 2.4;                        // restrained; a bigger tilt reads as a toy
     const cards = document.querySelectorAll('.band .card, .band ol.steps li');
     let queued = false, pending = [];
 
@@ -87,13 +87,20 @@
     const items = [...acc.querySelectorAll('.iacc__item')];
     const setActive = (el) => items.forEach(i => i.classList.toggle('is-active', i === el));
 
+    // Sweeping the pointer across the row used to fire every panel in turn, so
+    // four animations started and were cut off before the one you meant. A
+    // short dwell requirement means only the panel you settle on opens.
+    let intent = null;
+    const arm = (el) => { clearTimeout(intent); intent = setTimeout(() => setActive(el), 90); };
+
     items.forEach(el => {
       // Hover drives it on a mouse; touch has no hover, so the panels stay a
       // swipeable strip there and a tap just opens the one you touched.
-      if (canHover) el.addEventListener('pointerenter', () => setActive(el));
-      el.addEventListener('click', () => setActive(el));
-      el.addEventListener('focus', () => setActive(el));
+      if (canHover) el.addEventListener('pointerenter', () => arm(el));
+      el.addEventListener('click', () => { clearTimeout(intent); setActive(el); });
+      el.addEventListener('focus', () => { clearTimeout(intent); setActive(el); });
     });
+    acc.addEventListener('pointerleave', () => clearTimeout(intent));
 
     // Arrow keys move between panels for keyboard users.
     acc.addEventListener('keydown', (e) => {
