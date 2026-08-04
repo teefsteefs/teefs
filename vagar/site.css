@@ -1,11 +1,11 @@
 /* VAGAR ADVISORY — shared shell for every page. */
 
 :root, .sw-root {
-  --sw-bg: #0A0E15;
-  --sw-ink: #EAEFF7;
-  --sw-ink-soft: #93A0B5;
-  --sw-accent: #38BDF8;
-  --line: rgba(148, 173, 200, .16);
+  --sw-bg: #0A0A0B;
+  --sw-ink: #F4F4F5;
+  --sw-ink-soft: #9A9AA2;
+  --sw-accent: #D91F35;
+  --line: rgba(255, 255, 255, .14);
   --card: rgba(255, 255, 255, .035);
   --maxw: 1180px;
   --head-h: 68px;
@@ -42,7 +42,7 @@ body {
   height: var(--head-h);
   display: flex; align-items: center; gap: 18px;
   padding: 0 clamp(16px, 5vw, 48px);
-  background: rgba(10, 14, 21, .72);
+  background: rgba(10, 10, 11, .72);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
@@ -56,10 +56,10 @@ body {
   transition: color .2s, background .2s;
 }
 .site-nav a:hover { color: var(--sw-ink); background: rgba(255, 255, 255, .05); }
-.site-nav a[aria-current="page"] { color: #05202E; background: var(--sw-accent); font-weight: 600; }
+.site-nav a[aria-current="page"] { color: #FFFFFF; background: var(--sw-accent); font-weight: 600; }
 .site-cta {
   margin-left: 10px; text-decoration: none; font-weight: 650; font-size: .88rem;
-  padding: 10px 18px; border-radius: 999px; background: var(--sw-accent); color: #05202E;
+  padding: 10px 18px; border-radius: 999px; background: var(--sw-accent); color: #FFFFFF;
   white-space: nowrap;
 }
 @media (max-width: 900px) {
@@ -89,7 +89,7 @@ section.band { padding: clamp(52px, 8vh, 96px) 0; border-bottom: 1px solid var(-
 .phero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .phero__scrim {
   position: absolute; inset: 0;
-  background: linear-gradient(90deg, var(--sw-bg) 4%, rgba(10,14,21,.86) 42%, rgba(10,14,21,.5) 72%, rgba(10,14,21,.35) 100%);
+  background: linear-gradient(90deg, var(--sw-bg) 4%, rgba(10, 10, 11,.86) 42%, rgba(10, 10, 11,.5) 72%, rgba(10, 10, 11,.35) 100%);
 }
 .phero .wrap { position: relative; padding-top: 48px; padding-bottom: 44px; width: 100%; }
 
@@ -101,7 +101,7 @@ h1.h1 { font-family: var(--display); font-weight: 700; margin: 0 0 14px;
 h2.h { font-family: var(--display); font-weight: 700; margin: 0 0 18px;
        font-size: clamp(1.65rem, 3.3vw, 2.5rem); line-height: 1.12; letter-spacing: -.01em; }
 h3.sub { font-size: clamp(1.02rem, 1.6vw, 1.2rem); margin: 0 0 8px; font-weight: 650; }
-p.lede { font-size: clamp(1rem, 1.3vw, 1.1rem); line-height: 1.62; color: #C3CDDC;
+p.lede { font-size: clamp(1rem, 1.3vw, 1.1rem); line-height: 1.62; color: #CFCFD4;
          max-width: 68ch; margin: 0 0 14px; }
 p.muted { color: var(--sw-ink-soft); line-height: 1.62; margin: 0; }
 
@@ -129,11 +129,11 @@ p.muted { color: var(--sw-ink-soft); line-height: 1.62; margin: 0; }
   content: ""; position: absolute; inset: 0; pointer-events: none;
   border-radius: inherit; opacity: 0; transition: opacity .35s ease;
   background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%),
-              rgba(56, 189, 248, .13), transparent 62%);
+              rgba(217, 31, 53, .13), transparent 62%);
 }
 .tilt:hover::after { opacity: 1; }
 .card:hover, ol.steps li:hover {
-  border-color: rgba(56, 189, 248, .34);
+  border-color: rgba(217, 31, 53, .34);
   background: rgba(255, 255, 255, .055);
 }
 /* Lift the text off the card face so the rotation has visible parallax. */
@@ -167,8 +167,8 @@ ol.steps li::before { transform: translateZ(34px); }
 .card a:hover { text-decoration: underline; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 0; list-style: none; }
-.chips li { font-size: .88rem; color: #CBE9F8; padding: 9px 16px; border-radius: 999px;
-            background: rgba(56,189,248,.08); border: 1px solid rgba(56,189,248,.24); }
+.chips li { font-size: .88rem; color: #F6D8DC; padding: 9px 16px; border-radius: 999px;
+            background: rgba(217, 31, 53,.08); border: 1px solid rgba(217, 31, 53,.24); }
 
 ol.steps { list-style: none; counter-reset: s; margin: 0; padding: 0;
            display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
@@ -203,11 +203,11 @@ ol.steps li::before {
 .iacc__item.is-active img { transform: scale(1); }
 .iacc__item::after {
   content: ""; position: absolute; inset: 0;
-  background: linear-gradient(0deg, rgba(6,10,16,.86) 6%, rgba(6,10,16,.34) 46%, rgba(6,10,16,.5) 100%);
+  background: linear-gradient(0deg, rgba(6, 6, 7,.86) 6%, rgba(6, 6, 7,.34) 46%, rgba(6, 6, 7,.5) 100%);
   transition: background .5s ease;
 }
 .iacc__item.is-active::after {
-  background: linear-gradient(0deg, rgba(6,10,16,.82) 4%, rgba(6,10,16,.12) 52%, rgba(6,10,16,.34) 100%);
+  background: linear-gradient(0deg, rgba(6, 6, 7,.82) 4%, rgba(6, 6, 7,.12) 52%, rgba(6, 6, 7,.34) 100%);
 }
 .iacc__item:focus-visible { outline: 2px solid var(--sw-accent); outline-offset: 3px; }
 
@@ -223,7 +223,7 @@ ol.steps li::before {
 }
 .iacc__desc {
   position: absolute; z-index: 2; left: 24px; right: 24px; bottom: 24px;
-  margin: 0; font-size: .92rem; line-height: 1.5; color: #C9D6E6;
+  margin: 0; font-size: .92rem; line-height: 1.5; color: #D6D6DB;
   opacity: 0; transform: translateY(8px);
   transition: opacity .45s ease .12s, transform .45s ease .12s;
 }
@@ -247,8 +247,8 @@ ol.steps li::before {
 .btnrow { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
 .btn { text-decoration: none; font-weight: 650; font-size: .95rem;
        padding: 14px 26px; border-radius: 999px; display: inline-block; }
-.btn--primary { background: var(--sw-accent); color: #05202E; }
-.btn--ghost { border: 1.5px solid rgba(148,173,200,.34); color: var(--sw-ink); }
+.btn--primary { background: var(--sw-accent); color: #FFFFFF; }
+.btn--ghost { border: 1.5px solid rgba(255, 255, 255, .30); color: var(--sw-ink); }
 
 /* ---- footer -------------------------------------------------------------- */
 footer.foot { padding: clamp(40px, 6vh, 72px) 0; position: relative; z-index: 30; background: var(--sw-bg); }
@@ -257,22 +257,22 @@ footer.foot .fline { color: var(--sw-ink-soft); margin: 0 0 6px; font-size: .93r
 footer.foot .fnav { display: flex; flex-wrap: wrap; gap: 16px; margin: 20px 0 0; }
 footer.foot .fnav a { color: var(--sw-ink-soft); text-decoration: none; font-size: .9rem; }
 footer.foot .fnav a:hover { color: var(--sw-accent); }
-footer.foot .fcopy { color: #6B7789; margin: 20px 0 0; font-size: .84rem; }
+footer.foot .fcopy { color: #77777E; margin: 20px 0 0; font-size: .84rem; }
 
 /* ---- dark-theme corrections for the scroll engine (home page only) --------
    The engine ships a light palette and its rules live in @layer sw, so these
    unlayered ones win without !important. */
-.sw-copy__tags li { color: #CBE9F8; background: rgba(56,189,248,.10); border-color: rgba(56,189,248,.28); }
-.sw-btn--primary { color: #05202E; background: var(--sw-accent); }
-.sw-route__label { color: var(--sw-ink); background: rgba(10,14,21,.82); border-color: rgba(56,189,248,.22); }
+.sw-copy__tags li { color: #F6D8DC; background: rgba(217, 31, 53,.10); border-color: rgba(217, 31, 53,.28); }
+.sw-btn--primary { color: #FFFFFF; background: var(--sw-accent); }
+.sw-route__label { color: var(--sw-ink); background: rgba(10, 10, 11,.82); border-color: rgba(217, 31, 53,.22); }
 .sw-copylayer::before {
   background: linear-gradient(90deg,
-    var(--sw-bg) 0%, rgba(10,14,21,.93) 38%, rgba(10,14,21,.62) 66%, transparent 100%);
+    var(--sw-bg) 0%, rgba(10, 10, 11,.93) 38%, rgba(10, 10, 11,.62) 66%, transparent 100%);
 }
 @media (max-width: 860px) {
   .sw-copylayer::before {
     background: linear-gradient(0deg,
-      var(--sw-bg) 10%, rgba(10,14,21,.90) 52%, rgba(10,14,21,.45) 76%, transparent 100%);
+      var(--sw-bg) 10%, rgba(10, 10, 11,.90) 52%, rgba(10, 10, 11,.45) 76%, transparent 100%);
   }
 }
 /* The engine's own top bar is unused — the site header replaces it. */
