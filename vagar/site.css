@@ -1,0 +1,310 @@
+/* VAGAR ADVISORY — shared shell for every page. */
+
+:root, .sw-root {
+  --sw-bg: #0A0A0B;
+  --sw-ink: #F4F4F5;
+  --sw-ink-soft: #9A9AA2;
+  --sw-accent: #D91F35;
+  --line: rgba(255, 255, 255, .14);
+  --card: rgba(255, 255, 255, .035);
+  --maxw: 1180px;
+  --head-h: 68px;
+  --display: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  /* The engine ships its own rounded display face; match it to the site's. */
+  --sw-font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--sw-bg);
+  color: var(--sw-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ---- cross-page navigation ----------------------------------------------
+   Five separate documents means every nav click is a full load and a white
+   flash. Cross-document view transitions cross-fade the two pages instead
+   and hold the header still across the swap. Ignored where unsupported, so
+   navigation stays exactly as it was. */
+@view-transition { navigation: auto; }
+.site-head { view-transition-name: site-head; }
+.phero { view-transition-name: phero; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ---- site header (every page) ------------------------------------------- */
+.site-head {
+  position: fixed; inset: 0 0 auto 0; z-index: 70;
+  height: var(--head-h);
+  display: flex; align-items: center; gap: 18px;
+  padding: 0 clamp(16px, 5vw, 48px);
+  background: rgba(10, 10, 11, .72);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.site-brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: var(--sw-ink); }
+
+/* The supplied logo is a JPEG drawn on white, so it has no transparency to
+   sit on this dark header. Rather than show a bare white rectangle, it gets a
+   deliberate white chip — and the text lockup is dropped, since the artwork
+   already carries the wordmark. */
+.site-brand__logo {
+  display: flex; align-items: center; flex: none;
+  background: #fff; border-radius: 9px; padding: 5px 9px;
+}
+/* If the PNG turns out to carry transparency, add class="site-brand__logo is-bare"
+   in the five headers and the chip disappears — nothing else needs touching. */
+.site-brand__logo.is-bare { background: none; padding: 0; }
+.site-brand__logo img { height: 30px; width: auto; display: block; }
+@media (max-width: 560px) { .site-brand__logo img { height: 24px; } }
+.site-nav { display: flex; gap: 2px; margin-left: auto; }
+.site-nav a {
+  text-decoration: none; color: var(--sw-ink-soft); font-size: .88rem;
+  padding: 8px 14px; border-radius: 6px; white-space: nowrap;
+  transition: color .2s, background .2s;
+}
+.site-nav a:hover { color: var(--sw-ink); background: rgba(255, 255, 255, .05); }
+.site-nav a[aria-current="page"] { color: #FFFFFF; background: var(--sw-accent); font-weight: 600; }
+.site-cta {
+  margin-left: 10px; text-decoration: none; font-weight: 650; font-size: .88rem;
+  padding: 10px 18px; border-radius: 6px; background: var(--sw-accent); color: #FFFFFF;
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .site-cta { display: none; }
+  .site-nav { margin-left: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .site-nav::-webkit-scrollbar { display: none; }
+  .site-nav a { padding: 8px 11px; font-size: .82rem; }
+}
+/* ---- page shell ---------------------------------------------------------- */
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(18px, 5vw, 48px); }
+section.band { padding: clamp(64px, 10vh, 128px) 0; border-bottom: 1px solid var(--line); }
+.page { position: relative; z-index: 30; background: var(--sw-bg); }
+
+/* Inner hero for the non-film pages. */
+.phero {
+  position: relative; margin-top: var(--head-h);
+  min-height: clamp(280px, 46vh, 460px);
+  display: flex; align-items: flex-end;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+.phero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.phero__scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, var(--sw-bg) 4%, rgba(10, 10, 11,.86) 42%, rgba(10, 10, 11,.5) 72%, rgba(10, 10, 11,.35) 100%);
+}
+.phero .wrap { position: relative; padding-top: 48px; padding-bottom: 44px; width: 100%; }
+
+/* ---- type ---------------------------------------------------------------- */
+.kicker { font-size: .68rem; font-weight: 700; letter-spacing: .2em;
+          text-transform: uppercase; color: var(--sw-accent); margin: 0 0 16px; }
+h1.h1 { font-family: var(--display); font-weight: 700; margin: 0 0 16px;
+        font-size: clamp(1.95rem, 4.2vw, 3rem); line-height: 1.08; letter-spacing: -.022em; }
+h2.h { font-family: var(--display); font-weight: 700; margin: 0 0 20px;
+       font-size: clamp(1.55rem, 3vw, 2.25rem); line-height: 1.16; letter-spacing: -.018em; }
+h3.sub { font-size: clamp(1rem, 1.5vw, 1.12rem); margin: 0 0 10px; font-weight: 650;
+         letter-spacing: -.008em; }
+p.lede { font-size: clamp(1rem, 1.3vw, 1.1rem); line-height: 1.62; color: #CFCFD4;
+         max-width: 68ch; margin: 0 0 14px; }
+p.muted { color: var(--sw-ink-soft); line-height: 1.62; margin: 0; }
+
+/* ---- blocks -------------------------------------------------------------- */
+.grid { display: grid; gap: 18px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.g4 { grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); }
+
+/* ---- depth ---------------------------------------------------------------
+   Cards sit inside a perspective context so the pointer tilt is a real 3D
+   rotation rather than a skew. Angles come from site.js as custom properties
+   and default to flat, so the layout is correct with JS disabled. */
+.grid, ol.steps, .contact-grid { perspective: 1100px; }
+
+.card, ol.steps li {
+  transform-style: preserve-3d;
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .45s cubic-bezier(.22,.61,.36,1),
+              border-color .3s ease, background .3s ease;
+}
+.tilt { position: relative; overflow: hidden; }
+/* Sheen tracks the pointer so the tilt reads as a lit surface, not a wobble. */
+.tilt::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit; opacity: 0; transition: opacity .35s ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%),
+              rgba(255, 255, 255, .05), transparent 62%);
+}
+.tilt:hover::after { opacity: 1; }
+.card:hover, ol.steps li:hover {
+  border-color: rgba(217, 31, 53, .34);
+  background: rgba(255, 255, 255, .055);
+}
+/* Lift the text off the card face so the rotation has visible parallax. */
+.card > *, ol.steps li > * { transform: translateZ(12px); }
+ol.steps li::before { transform: translateZ(34px); }
+
+/* ---- scroll reveal ------------------------------------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0) rotateX(6deg);
+  transform-origin: 50% 100%;
+  transition: opacity .7s cubic-bezier(.22,.61,.36,1) var(--rd, 0ms),
+              transform .7s cubic-bezier(.22,.61,.36,1) var(--rd, 0ms);
+}
+.reveal.is-in { opacity: 1; transform: none; }
+
+.phero__img { transform: scale(1.06); transform-origin: 50% 40%; }
+.phero .wrap { will-change: transform, opacity; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card, ol.steps li { transform: none; transition: border-color .3s ease; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .tilt::after { display: none; }
+  .phero__img { transform: none; }
+}
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 28px; }
+.card ul { margin: 12px 0 0; padding-left: 18px; color: var(--sw-ink-soft); line-height: 1.72; }
+.card ul li::marker { color: var(--sw-accent); }
+.card a { color: var(--sw-accent); text-decoration: none; word-break: break-word; }
+.card a:hover { text-decoration: underline; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.chips li { font-size: .85rem; color: #E8E8EC; padding: 9px 15px; border-radius: 6px;
+            background: rgba(217, 31, 53,.08); border: 1px solid rgba(217, 31, 53,.24); }
+
+ol.steps { list-style: none; counter-reset: s; margin: 0; padding: 0;
+           display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+ol.steps li { position: relative; background: var(--card);
+              border: 1px solid var(--line); border-radius: 10px; padding: 28px; }
+/* The step number is real text now, taken from the copy deck, rather than a
+   CSS counter — so it is readable to anything that does not render ::before. */
+.step-label { margin: 0 0 6px; font-family: ui-monospace, Menlo, monospace;
+              font-size: .82rem; font-weight: 700; letter-spacing: .1em;
+              text-transform: uppercase; color: var(--sw-accent); }
+
+.label { font-size: .74rem; font-weight: 700; letter-spacing: .12em;
+         text-transform: uppercase; color: var(--sw-ink-soft); margin: 0 0 6px; }
+
+/* ---- image accordion -----------------------------------------------------
+   Panels are flex ratios rather than fixed pixel widths, so the row fills
+   whatever container it lands in instead of overflowing narrow screens. */
+.iacc { display: flex; gap: 12px; height: clamp(320px, 52vh, 460px); }
+.iacc__item {
+  position: relative; flex: 1 1 0; min-width: 54px;
+  border: 0; padding: 0; margin: 0; background: none; color: inherit;
+  border-radius: 10px; overflow: hidden; cursor: pointer;
+  /* 700ms read as hesitation on a hover; this lands closer to the pointer. */
+  transition: flex-grow .42s cubic-bezier(.32,.72,.3,1);
+}
+.iacc__item.is-active { flex-grow: 6; }
+/* The image is sized to the widest the panel ever gets and simply cropped as
+   the panel narrows. Sizing it to 100% instead would re-rasterise the bitmap
+   on every frame of the width change, which is what makes these accordions
+   feel heavy. */
+.iacc__item img {
+  position: absolute; top: 0; left: 50%; height: 100%;
+  width: 460px; max-width: none; transform: translateX(-50%);
+  object-fit: cover; object-position: center;
+}
+.iacc__item::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(0deg, rgba(6, 6, 7,.88) 6%, rgba(6, 6, 7,.40) 46%, rgba(6, 6, 7,.55) 100%);
+  transition: background .42s ease;
+}
+.iacc__item.is-active::after {
+  background: linear-gradient(0deg, rgba(6, 6, 7,.82) 4%, rgba(6, 6, 7,.12) 52%, rgba(6, 6, 7,.34) 100%);
+}
+.iacc__item:focus-visible { outline: 2px solid var(--sw-accent); outline-offset: 3px; }
+
+.iacc__label {
+  position: absolute; z-index: 2; left: 50%; bottom: 84px;
+  white-space: nowrap; font-weight: 650; font-size: 1.02rem; color: #fff;
+  transform: translateX(-50%) rotate(90deg); transform-origin: 50% 50%;
+  transition: transform .42s cubic-bezier(.32,.72,.3,1), bottom .42s cubic-bezier(.32,.72,.3,1);
+  text-shadow: 0 2px 14px rgba(0,0,0,.6);
+}
+.iacc__item.is-active .iacc__label {
+  bottom: 58px; transform: translateX(-50%) rotate(0deg);
+}
+.iacc__desc {
+  position: absolute; z-index: 2; left: 24px; right: 24px; bottom: 24px;
+  margin: 0; font-size: .92rem; line-height: 1.5; color: #D6D6DB;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .45s ease .12s, transform .45s ease .12s;
+}
+.iacc__item.is-active .iacc__desc { opacity: 1; transform: none; }
+
+/* Below the fold of a phone the row cannot hold five panels, so it becomes a
+   swipeable strip with each panel wide enough to read. */
+@media (max-width: 720px) {
+  .iacc { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+  .iacc::-webkit-scrollbar { display: none; }
+  .iacc__item { flex: 0 0 76%; scroll-snap-align: center; }
+  .iacc__item.is-active { flex-grow: 0; }
+  .iacc__label { bottom: 58px; transform: translateX(-50%) rotate(0deg); }
+  .iacc__desc { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iacc__item, .iacc__item img, .iacc__label, .iacc__desc { transition: none; }
+}
+
+.btnrow { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.btn { text-decoration: none; font-weight: 650; font-size: .93rem;
+       padding: 14px 28px; border-radius: 6px; display: inline-block;
+       letter-spacing: .01em; }
+.btn--primary { background: var(--sw-accent); color: #FFFFFF; }
+.btn--ghost { border: 1.5px solid rgba(255, 255, 255, .30); color: var(--sw-ink); }
+
+/* ---- footer -------------------------------------------------------------- */
+footer.foot { padding: clamp(40px, 6vh, 72px) 0; position: relative; z-index: 30; background: var(--sw-bg); }
+footer.foot .fname { font-weight: 700; font-size: 1.05rem; margin: 0 0 8px; }
+footer.foot .fline { color: var(--sw-ink-soft); margin: 0 0 6px; font-size: .93rem; }
+footer.foot .fnav { display: flex; flex-wrap: wrap; gap: 16px; margin: 20px 0 0; }
+footer.foot .fnav a { color: var(--sw-ink-soft); text-decoration: none; font-size: .9rem; }
+footer.foot .fnav a:hover { color: var(--sw-accent); }
+footer.foot .fcopy { color: #77777E; margin: 20px 0 0; font-size: .84rem; }
+
+/* ---- dark-theme corrections for the scroll engine (home page only) --------
+   The engine ships a light palette and its rules live in @layer sw, so these
+   unlayered ones win without !important. */
+.sw-copy__tags li { color: #F6D8DC; background: rgba(217, 31, 53,.10); border-color: rgba(217, 31, 53,.28); }
+.sw-btn--primary { color: #FFFFFF; background: var(--sw-accent); }
+.sw-route__label { color: var(--sw-ink); background: rgba(10, 10, 11,.82); border-color: rgba(217, 31, 53,.22); }
+.sw-copylayer::before {
+  background: linear-gradient(90deg,
+    var(--sw-bg) 0%, rgba(10, 10, 11,.93) 38%, rgba(10, 10, 11,.62) 66%, transparent 100%);
+}
+@media (max-width: 860px) {
+  .sw-copylayer::before {
+    background: linear-gradient(0deg,
+      var(--sw-bg) 10%, rgba(10, 10, 11,.90) 52%, rgba(10, 10, 11,.45) 76%, transparent 100%);
+  }
+}
+/* The engine's own top bar is unused — the site header replaces it. */
+.sw-topbar { display: none; }
+.sw-scrollbar { top: var(--head-h); }
+
+/* The film copy is vertically centred, so on a short laptop screen a long
+   headline can still reach up under the fixed header. Trim the display size
+   and the block's internal spacing until it clears. */
+.sw-copy__title { font-size: clamp(1.7rem, 2.9vw, 2.45rem); letter-spacing: -.022em;
+                  line-height: 1.1; }
+.sw-copy__body { margin-top: 14px; }
+.sw-copy__tags { margin-top: 18px; }
+.sw-copy__cta { margin-top: 22px; }
+.sw-copy__eyebrow { margin-top: 14px; }
+
+/* The route rail and scroll hint only address the film, so dismiss them once
+   the written page takes over. */
+.sw-route, .sw-hint { transition: opacity .35s ease, visibility .35s ease; }
+body.past-film .sw-route, body.past-film .sw-hint { opacity: 0; visibility: hidden; }
+@media (prefers-reduced-motion: reduce) { .sw-route, .sw-hint { transition: none; } }

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>TEEFS — The World of Automation</title>
+  <meta name="description" content="Scroll to fly through the world of TEEFS — where tiny robots build big things." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2300B8FF'/%3E%3Crect x='9' y='9' width='14' height='14' rx='4' fill='%23fff' opacity='.9'/%3E%3C/svg%3E" />
+  <style>
+    :root, .sw-root {
+      --sw-bg: #EAEEF3;
+      --sw-ink: #1a1d2b;
+      --sw-ink-soft: #5a6072;
+      --sw-accent: #00B8FF;
+    }
+  </style>
+</head>
+<body>
+  <div id="top"></div>
+  <div id="world"></div>
+
+  <script src="scrub-engine.js"></script>
+  <script>
+    mountScrollWorld(document.getElementById('world'), {
+      brand: { name: 'TEEFS', href: '#top' },
+      cta: { label: 'Explore', href: '#finale' },
+      hint: 'scroll to dive in',
+      diveScroll: 1.6,
+      connScroll: 0.9,
+      sections: [
+        {
+          id: 'command-center',
+          label: 'Command Center',
+          still: 'assets/scene1.webp',
+          stillMobile: 'assets/scene1-m.webp',
+          clip: 'assets/vid/scene1.mp4',
+          clipWebm: 'assets/vid/scene1.webm',
+          clipMobile: 'assets/vid/scene1-m.mp4',
+          clipWebmMobile: 'assets/vid/scene1-m.webm',
+          accent: '#00B8FF',
+          scroll: 1.8,
+          linger: 0.35,
+          eyebrow: 'The Neural Core',
+          title: 'Where intelligence meets industry.',
+          body: 'A self-sustaining island of robots, conveyors, and satellite arrays — all orchestrated by a single glowing core.',
+          tags: ['AI Powered', 'Autonomous', 'Real-time'],
+        },
+        {
+          id: 'finale',
+          label: 'The Factory',
+          still: 'assets/scene2.webp',
+          stillMobile: 'assets/scene2-m.webp',
+          clip: 'assets/vid/scene2.mp4',
+          clipWebm: 'assets/vid/scene2.webm',
+          clipMobile: 'assets/vid/scene2-m.mp4',
+          clipWebmMobile: 'assets/vid/scene2-m.webm',
+          accent: '#F5A623',
+          scroll: 1.8,
+          linger: 0.35,
+          eyebrow: 'Full-spectrum operations',
+          title: 'Every cube has a purpose.',
+          body: 'From data ingestion to deployment — watch the entire pipeline come alive as miniature workers move mountains.',
+          tags: [],
+          cta: {
+            primary: { label: 'Get started', href: '#top' },
+            secondary: { label: 'Learn more', href: '#top' }
+          },
+        },
+      ],
+      connectors: [],
+      connectorsMobile: [],
+    });
+  </script>
+</body>
+</html>

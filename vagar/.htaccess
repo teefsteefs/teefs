@@ -1,0 +1,50 @@
+# VAGAR ADVISORY — Apache config for cPanel shared hosting.
+
+# --- canonical host + https ------------------------------------------------
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+RewriteCond %{HTTP_HOST} ^www\.vagaradvisory\.com$ [NC]
+RewriteRule ^ https://vagaradvisory.com%{REQUEST_URI} [L,R=301]
+
+# --- compression -----------------------------------------------------------
+# Video and WebP are already compressed; squeezing them again just burns CPU.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain application/javascript application/json image/svg+xml
+</IfModule>
+
+# --- caching ---------------------------------------------------------------
+# The clips and stills never change without changing name, so they can sit in
+# the browser for a year. HTML must not, or edits never reach anyone.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType video/mp4        "access plus 1 year"
+  ExpiresByType video/webm       "access plus 1 year"
+  ExpiresByType image/webp       "access plus 1 year"
+  ExpiresByType image/png        "access plus 1 year"
+  ExpiresByType image/jpeg       "access plus 1 year"
+  ExpiresByType text/css         "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType text/html        "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set Cache-Control "no-cache, must-revalidate" "expr=%{CONTENT_TYPE} =~ m#text/html#"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# --- correct types ---------------------------------------------------------
+# Some shared hosts still serve .webm and .webp as octet-stream, which stops
+# the fallback clip and the stills from rendering at all.
+AddType video/webm  .webm
+AddType video/mp4   .mp4
+AddType image/webp  .webp
+
+# Range requests are what let the browser seek inside the clips.
+<IfModule mod_headers.c>
+  Header set Accept-Ranges bytes
+</IfModule>
+
+ErrorDocument 404 /index.html
