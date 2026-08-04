@@ -46,9 +46,23 @@ body {
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
-.site-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--sw-ink); }
-.site-brand svg { width: 26px; height: 26px; flex: none; }
-.site-brand b { font-family: var(--display); font-size: 1.02rem; letter-spacing: .01em; white-space: nowrap; }
+/* Brand lockup, following the supplied logo: mark, vertical rule, then VAGAR
+   over a letterspaced ADVISORY flanked by short rules. The logo is drawn for
+   white paper, so on this dark shell it inverts — VAGAR goes white and the red
+   carries the mark and rules instead of the lettering. */
+.site-brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: var(--sw-ink); }
+.site-brand__mark { width: 30px; height: 30px; flex: none; display: block; }
+.site-brand__rule { width: 1.5px; align-self: stretch; margin: 6px 0; flex: none;
+                    background: var(--sw-accent); opacity: .85; }
+.site-brand__words { display: flex; flex-direction: column; gap: 3px; }
+.site-brand__name { font-family: var(--display); font-weight: 700; line-height: 1;
+                    font-size: 1.12rem; letter-spacing: .07em; white-space: nowrap; }
+.site-brand__sub { display: flex; align-items: center; gap: 6px;
+                   font-size: .56rem; font-weight: 600; letter-spacing: .34em;
+                   color: var(--sw-ink-soft); white-space: nowrap; }
+.site-brand__sub::before, .site-brand__sub::after {
+  content: ""; height: 1px; width: 10px; background: var(--sw-accent); opacity: .8;
+}
 .site-nav { display: flex; gap: 2px; margin-left: auto; }
 .site-nav a {
   text-decoration: none; color: var(--sw-ink-soft); font-size: .88rem;
