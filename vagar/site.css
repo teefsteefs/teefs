@@ -172,14 +172,13 @@ ol.steps li::before { transform: translateZ(34px); }
 
 ol.steps { list-style: none; counter-reset: s; margin: 0; padding: 0;
            display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-ol.steps li { counter-increment: s; position: relative; background: var(--card);
-              border: 1px solid var(--line); border-radius: 16px; padding: 24px 24px 24px 68px; }
-ol.steps li::before {
-  content: counter(s, decimal-leading-zero);
-  position: absolute; left: 24px; top: 22px;
-  font-family: ui-monospace, Menlo, monospace; font-size: .95rem; font-weight: 700;
-  color: var(--sw-accent);
-}
+ol.steps li { position: relative; background: var(--card);
+              border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+/* The step number is real text now, taken from the copy deck, rather than a
+   CSS counter — so it is readable to anything that does not render ::before. */
+.step-label { margin: 0 0 6px; font-family: ui-monospace, Menlo, monospace;
+              font-size: .82rem; font-weight: 700; letter-spacing: .1em;
+              text-transform: uppercase; color: var(--sw-accent); }
 
 .label { font-size: .74rem; font-weight: 700; letter-spacing: .12em;
          text-transform: uppercase; color: var(--sw-ink-soft); margin: 0 0 6px; }
