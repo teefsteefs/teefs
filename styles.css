@@ -2327,15 +2327,17 @@ a { text-decoration: none; color: inherit; }
 .checkbox-item input[type="checkbox"] {
     appearance: none;
     -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    min-width: 18px;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
     border: 1.5px solid var(--border);
     border-radius: 4px;
     background: transparent;
     cursor: pointer;
     transition: border-color 0.3s, background 0.3s;
-    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .checkbox-item input[type="checkbox"]:checked {
@@ -2344,16 +2346,11 @@ a { text-decoration: none; color: inherit; }
 }
 
 .checkbox-item input[type="checkbox"]:checked::after {
-    content: '';
-    position: absolute;
-    top: 1px;
-    left: 5px;
-    width: 6px;
-    height: 10px;
-    border: solid #0a0a0a;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-    display: block;
+    content: '✓';
+    color: #0a0a0a;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
 }
 
 .checkbox-item:has(input:checked) {
