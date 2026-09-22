@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Automation Assessment — Kaiizen AI</title>
+    <meta name="description" content="Tell us about your business and what you'd like to improve. We'll identify where AI or automation could make the biggest difference.">
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="cursor-glow" id="cursor-glow"></div>
+
+    <nav class="nav scrolled" id="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="logo.jpg" alt="Kaiizen AI" class="logo-img">
+                <span>KAIIZEN</span>
+            </a>
+            <div class="nav-links" id="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="services" class="nav-link">Services</a>
+                <a href="solutions" class="nav-link">Solutions</a>
+                <a href="process" class="nav-link">Process</a>
+
+                <a href="clients" class="nav-link">Clients</a>
+                <a href="audit" class="nav-link active">Audit</a>
+                <a href="demo" class="nav-link">Book a Demo</a>
+                <a href="contact" class="nav-cta">Contact Us</a>
+            </div>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <section class="page-hero">
+        <div class="hero-bg">
+            <div class="hero-gradient"></div>
+            <div class="hero-grid"></div>
+        </div>
+        <div class="container">
+            <div class="page-hero-content">
+                <span class="section-tag">Free Assessment</span>
+                <h1 class="page-hero-title">Business Automation <span class="gold-text">Assessment</span></h1>
+                <p class="page-hero-subtitle">Tell us a little about your business and what you would like to improve. We will review your answers and identify where AI or automation could make the biggest difference.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="form-layout">
+                <div class="form-sidebar">
+                    <div class="form-info-card">
+                        <div class="form-info-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        </div>
+                        <h3>What is this assessment?</h3>
+                        <p>A short questionnaire to understand your business, identify the main operational problems, and find where AI or automation can help most.</p>
+                    </div>
+                    <div class="form-info-card">
+                        <div class="form-info-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <h3>Takes just a few minutes</h3>
+                        <p>10 questions about your business, workload, and goals. We'll handle the rest.</p>
+                    </div>
+                    <div class="form-info-card">
+                        <div class="form-info-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <h3>Personalised recommendations</h3>
+                        <p>We'll review your answers and get in touch to discuss the most relevant opportunities and next steps.</p>
+                    </div>
+                </div>
+                <div class="form-card">
+                    <form id="audit-form" class="kz-form">
+                        <h2 class="form-title">Contact Details</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="audit-name">Name <span class="required">*</span></label>
+                                <input type="text" id="audit-name" name="name" placeholder="Your full name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="audit-business">Business Name <span class="required">*</span></label>
+                                <input type="text" id="audit-business" name="business_name" placeholder="Your business name" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="audit-email">Business Email <span class="required">*</span></label>
+                                <input type="email" id="audit-email" name="email" placeholder="Example: you@business.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="audit-phone">Phone Number <span class="required">*</span></label>
+                                <input type="tel" id="audit-phone" name="phone" placeholder="Example: +61 400 000 000" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-website">Website <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+                            <input type="url" id="audit-website" name="website" placeholder="https://yourbusiness.com">
+                        </div>
+
+                        <h2 class="form-title" style="margin-top:2.5rem">About Your Business</h2>
+                        <div class="form-group">
+                            <label for="audit-industry">1. What industry is your business in? <span class="required">*</span></label>
+                            <select id="audit-industry" name="industry" required>
+                                <option value="" disabled selected>Select your industry</option>
+                                <option value="Healthcare / Medical">Healthcare / Medical</option>
+                                <option value="Dental">Dental</option>
+                                <option value="Beauty / Aesthetics / Salon">Beauty / Aesthetics / Salon</option>
+                                <option value="Real Estate">Real Estate</option>
+                                <option value="Construction / Trades">Construction / Trades</option>
+                                <option value="Hospitality / Restaurant">Hospitality / Restaurant</option>
+                                <option value="Retail">Retail</option>
+                                <option value="Ecommerce">Ecommerce</option>
+                                <option value="Professional Services">Professional Services</option>
+                                <option value="Accounting / Finance">Accounting / Finance</option>
+                                <option value="Legal">Legal</option>
+                                <option value="Education / Training">Education / Training</option>
+                                <option value="Manufacturing">Manufacturing</option>
+                                <option value="Distribution / Wholesale">Distribution / Wholesale</option>
+                                <option value="Automotive">Automotive</option>
+                                <option value="Technology">Technology</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-whatdo">2. What does your business mainly do? <span class="required">*</span></label>
+                            <input type="text" id="audit-whatdo" name="business_description" placeholder="Tell us briefly what your business does and who your customers are." required>
+                        </div>
+
+                        <h2 class="form-title" style="margin-top:2.5rem">What You Want to Improve</h2>
+                        <div class="form-group">
+                            <label>3. What would you most like to improve? <span class="required">*</span></label>
+                            <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem">Select all that apply</p>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Customer calls"><span>Customer calls</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Customer messages"><span>Customer messages</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Email management"><span>Email management</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Lead follow up"><span>Lead follow up</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Appointment booking"><span>Appointment booking</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Customer support"><span>Customer support</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Repetitive admin"><span>Repetitive admin</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Data entry"><span>Data entry</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Internal workflows"><span>Internal workflows</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Finding information from company documents"><span>Finding info from documents</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Content creation"><span>Content creation</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Website or app"><span>Website or app</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="improve" value="Other"><span>Other</span></label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-problem">4. What is the biggest problem you want us to solve? <span class="required">*</span></label>
+                            <textarea id="audit-problem" name="biggest_problem" rows="4" placeholder="Tell us what currently takes too much time, gets missed, or causes problems in your business." required></textarea>
+                        </div>
+
+                        <h2 class="form-title" style="margin-top:2.5rem">Volume and Workload</h2>
+                        <div class="form-group">
+                            <label>5. Where do most customer enquiries come from? <span class="required">*</span></label>
+                            <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem">Select all that apply</p>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="Phone"><span>Phone</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="Email"><span>Email</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="Website"><span>Website</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="Facebook"><span>Facebook</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="Instagram"><span>Instagram</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="WhatsApp"><span>WhatsApp</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="Google Business Profile"><span>Google Business Profile</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="Referrals"><span>Referrals</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="Sales team"><span>Sales team</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="Walk ins"><span>Walk ins</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="enquiry_source" value="Other"><span>Other</span></label>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="audit-volume">6. How many customer enquiries per week? <span class="required">*</span></label>
+                                <select id="audit-volume" name="weekly_enquiries" required>
+                                    <option value="" disabled selected>Select range</option>
+                                    <option value="Under 10">Under 10</option>
+                                    <option value="10 to 25">10 to 25</option>
+                                    <option value="26 to 50">26 to 50</option>
+                                    <option value="51 to 100">51 to 100</option>
+                                    <option value="101 to 250">101 to 250</option>
+                                    <option value="More than 250">More than 250</option>
+                                    <option value="Not sure">Not sure</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="audit-reptime">7. Time on repetitive work per week? <span class="required">*</span></label>
+                                <select id="audit-reptime" name="repetitive_hours" required>
+                                    <option value="" disabled selected>Select range</option>
+                                    <option value="Under 5 hours">Under 5 hours</option>
+                                    <option value="5 to 10 hours">5 to 10 hours</option>
+                                    <option value="11 to 20 hours">11 to 20 hours</option>
+                                    <option value="21 to 40 hours">21 to 40 hours</option>
+                                    <option value="More than 40 hours">More than 40 hours</option>
+                                    <option value="Not sure">Not sure</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h2 class="form-title" style="margin-top:2.5rem">Systems and Outcome</h2>
+                        <div class="form-group">
+                            <label for="audit-software">8. What main software or systems do you currently use? <span class="required">*</span></label>
+                            <input type="text" id="audit-software" name="current_software" placeholder="For example HubSpot, Xero, Gmail, Cliniko, Shopify, Microsoft 365." required>
+                        </div>
+                        <div class="form-group">
+                            <label>9. What would a successful result look like for you? <span class="required">*</span></label>
+                            <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:0.75rem">Select all that apply</p>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Save staff time"><span>Save staff time</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Respond to customers faster"><span>Respond to customers faster</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Stop missing enquiries"><span>Stop missing enquiries</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Increase bookings"><span>Increase bookings</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Increase sales"><span>Increase sales</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Improve lead follow up"><span>Improve lead follow up</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Reduce admin"><span>Reduce admin</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Connect existing systems"><span>Connect existing systems</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Improve customer experience"><span>Improve customer experience</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Support customers after hours"><span>Support customers after hours</span></label>
+                                <label class="checkbox-item"><input type="checkbox" name="success_result" value="Other"><span>Other</span></label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-timeline">10. How soon would you like to improve this? <span class="required">*</span></label>
+                            <select id="audit-timeline" name="timeline" required>
+                                <option value="" disabled selected>Select timeline</option>
+                                <option value="As soon as possible">As soon as possible</option>
+                                <option value="Within 1 month">Within 1 month</option>
+                                <option value="Within 1 to 3 months">Within 1 to 3 months</option>
+                                <option value="Within 3 to 6 months">Within 3 to 6 months</option>
+                                <option value="Just researching">Just researching</option>
+                                <option value="Not sure">Not sure</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-gold btn-lg btn-block">
+                            Submit My Assessment
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </button>
+                        <p class="form-disclaimer">Your information is kept confidential and will only be used to prepare your assessment.</p>
+                    </form>
+                    <div id="audit-success" class="form-success" style="display:none">
+                        <div class="success-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <h2>Assessment Submitted!</h2>
+                        <p>Thank you. We have received your assessment. Our team will review your answers to understand where AI and automation could make the biggest difference in your business. We will be in touch shortly to discuss the most relevant opportunities and the next step.</p>
+                        <a href="/" class="btn btn-outline">Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2026 Kaiizen AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
