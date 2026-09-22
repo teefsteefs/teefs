@@ -587,7 +587,14 @@ document.querySelectorAll('.kz-form').forEach(form => {
 
         const formData = new FormData(form);
         const data = { form_type: formId.replace('-form', '') };
-        formData.forEach((value, key) => { data[key] = value; });
+        formData.forEach((value, key) => {
+            if (data[key] !== undefined) {
+                if (!Array.isArray(data[key])) data[key] = [data[key]];
+                data[key].push(value);
+            } else {
+                data[key] = value;
+            }
+        });
 
         try {
             await fetch(WEBHOOK_URL, {
